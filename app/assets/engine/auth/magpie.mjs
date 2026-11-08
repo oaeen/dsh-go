@@ -316,8 +316,15 @@ export class MagpieManager {
     })
     server.unref()
     await new Promise((resolve, reject) => {
-      server.once('error', reject)
-      server.listen(0, '127.0.0.1', () => resolve())
+      const onFirstError = () => {
+        server.once('error', reject)
+        server.listen(0, '127.0.0.1', () => resolve())
+      }
+      server.once('error', onFirstError)
+      server.listen(45135, '127.0.0.1', () => {
+        server.removeListener('error', onFirstError)
+        resolve()
+      })
     })
     this.#server = server
     this.#serverPort = server.address().port

@@ -83,7 +83,10 @@ export default class AppAuth extends TypertRemoteService {
     super(ctx, 'appAuth')
     for (const mark of markRemoteMethods) mark.call(this)
     this.bridge = new AuthBridge({ get: (name) => ctx.get(name), RemoteError, magpie: true })
-    ctx.effect(() => () => this.bridge.dispose(), 'appAuth: sign-in attempts')
+    ctx.effect(() => {
+      this.bridge.list().catch(() => {})
+      return () => this.bridge.dispose()
+    }, 'appAuth: sign-in attempts')
   }
 
   list() {

@@ -973,14 +973,30 @@ export class AuthBridge {
   async #ensurePluginRoute(pluginProvider) {
     const magpie = this.#ensureMagpie()
     await magpie.ensureServer()
+    const credentials = this.#get('credentials')
+    if (credentials) {
+      try {
+        const resolved = await credentials.resolve?.(MAGPIE_PLUGIN_KEY_ENV)
+        if (!resolved?.value) {
+          await credentials.set?.(MAGPIE_PLUGIN_KEY_ENV, 'magpie-plugin-managed')
+        }
+      } catch (error) {
+        this.#log(`setting ${MAGPIE_PLUGIN_KEY_ENV} credential failed: ${redact(error?.message ?? error)}`)
+      }
+    }
     const { settings, section } = this.#section()
     const routeId = toPiAiRouteId(pluginProvider.id)
     const existing = section.value?.providers?.[routeId]
+    const existingUser = section.user?.providers?.[routeId]
     // Do not overwrite a user's custom route that uses a different API key env.
     if (isObject(existing) && existing.apiKeyEnv && existing.apiKeyEnv !== MAGPIE_PLUGIN_KEY_ENV) {
       return false
     }
-    const existingOverrides = isObject(existing?.modelOverrides) ? existing.modelOverrides : undefined
+    const existingOverrides = isObject(existingUser?.modelOverrides)
+      ? existingUser.modelOverrides
+      : isObject(existing?.modelOverrides)
+        ? existing.modelOverrides
+        : undefined
     const protocol = toPiAiProtocol(pluginProvider.npm, pluginProvider.models)
     const nextValue = {
       displayName: pluginProvider.name || pluginProvider.id,
@@ -992,7 +1008,8 @@ export class AuthBridge {
     if (existingOverrides && Object.keys(existingOverrides).length > 0) {
       nextValue.modelOverrides = existingOverrides
     }
-    if (isObject(existing) && JSON.stringify(existing) === JSON.stringify(nextValue)) {
+    const compareTarget = isObject(existingUser) ? existingUser : existing
+    if (isObject(compareTarget) && JSON.stringify(compareTarget) === JSON.stringify(nextValue)) {
       return false
     }
     await settings.mutate(this.#settingsNs, [{ op: 'set', path: ['providers', routeId], value: nextValue }])

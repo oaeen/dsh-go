@@ -22,6 +22,14 @@ import { AuthBridge, BridgeError, COPY, ERRORS, accountOf, describeFailure, reda
 
 class FakeCredentials {
   records = new Map()
+  refs = new Map()
+  async resolve(ref) {
+    const v = this.refs.get(ref)
+    return v !== undefined ? { value: v, source: 'file' } : undefined
+  }
+  async set(ref, value) {
+    this.refs.set(ref, value)
+  }
   async readRecord(key) {
     return this.records.get(key)
   }
@@ -708,7 +716,7 @@ export default async function WorkBuddyPlugin({ magpie }) {
       throw new Error('offline test')
     },
   })
-  const { bridge, settings } = setup({ magpie })
+  const { bridge, settings, credentials } = setup({ magpie })
   t.after(() => bridge.dispose())
 
   // 1. Market lists built-in community plugins including WorkBuddy
@@ -770,6 +778,7 @@ export default async function WorkBuddyPlugin({ magpie }) {
   assert.equal(route.displayName, 'WorkBuddy')
   assert.equal(route.api, 'openai-completions')
   assert.equal(route.apiKeyEnv, MAGPIE_PLUGIN_KEY_ENV)
+  assert.equal(credentials.refs.get(MAGPIE_PLUGIN_KEY_ENV), 'magpie-plugin-managed')
   assert.deepEqual(
     route.models.map((m) => m.id),
     ['deepseek-v3'],
