@@ -27701,7 +27701,7 @@ abstract class L10n {
   /// No description provided for @shellWelcomeMessage.
   ///
   /// In zh, this message translates to:
-  /// **'把 DeepSeek 智能体\n装进口袋'**
+  /// **'移动端的\nDeepSeek 智能体'**
   String get shellWelcomeMessage;
 
   /// No description provided for @shellGetStarted.
@@ -31385,7 +31385,7 @@ abstract class L10n {
   /// No description provided for @appSlogan.
   ///
   /// In zh, this message translates to:
-  /// **'随时随刻，想go就Go！'**
+  /// **'随时随地，智能协作'**
   String get appSlogan;
 
   /// No description provided for @updateCheck.

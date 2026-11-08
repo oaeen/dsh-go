@@ -15075,7 +15075,7 @@ class L10nZh extends L10n {
   String get shellEngineLogs => '引擎日志';
 
   @override
-  String get shellWelcomeMessage => '把 DeepSeek 智能体\n装进口袋';
+  String get shellWelcomeMessage => '移动端的\nDeepSeek 智能体';
 
   @override
   String get shellGetStarted => '开始';
@@ -17116,7 +17116,7 @@ class L10nZh extends L10n {
   String get stateProviderTokenCountInvalid => '填写数字，如 128K';
 
   @override
-  String get appSlogan => '随时随刻，想go就Go！';
+  String get appSlogan => '随时随地，智能协作';
 
   @override
   String get updateCheck => '检查更新';

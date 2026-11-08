@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  DeepSeek Harness 的 Android 客户端。手机上直接跑，也能遥控你电脑上的 DSH。
+  DeepSeek Harness 的 Android 客户端。支持本机独立运行与远程主机连接。
 </p>
 
 <p align="center">
@@ -51,7 +51,7 @@
 </p>
 
 <p align="center">
-  <b>感谢大家对 DSH Go 的支持和喜爱，我将尽快适配 iOS 和鸿蒙！大家 Star 点得越多，我适配得越快哦 hhh</b>
+  <b>感谢对 DSH Go 的支持与关注，iOS 与 HarmonyOS 版本正在持续推进适配中。</b>
 </p>
 
 <p align="center">

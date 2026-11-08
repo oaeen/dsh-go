@@ -15860,7 +15860,7 @@ class L10nEn extends L10n {
   String get shellEngineLogs => 'Engine logs';
 
   @override
-  String get shellWelcomeMessage => 'The DeepSeek agent,\nin your pocket';
+  String get shellWelcomeMessage => 'DeepSeek Agent\nfor Mobile';
 
   @override
   String get shellGetStarted => 'Start';
@@ -18048,7 +18048,7 @@ class L10nEn extends L10n {
   String get stateProviderTokenCountInvalid => 'Enter a number, like 128K';
 
   @override
-  String get appSlogan => 'Anytime, anywhere. Just Go!';
+  String get appSlogan => 'Intelligent workflows, anywhere';
 
   @override
   String get updateCheck => 'Check for updates';

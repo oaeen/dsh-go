@@ -9300,7 +9300,7 @@
     }
   },
   "shellEngineLogs": "引擎日志",
-  "shellWelcomeMessage": "把 DeepSeek 智能体\n装进口袋",
+  "shellWelcomeMessage": "移动端的\nDeepSeek 智能体",
   "shellGetStarted": "开始",
   "shellSearchChats": "搜索对话",
   "shellCollapseChatList": "收起对话列表",
@@ -10650,7 +10650,7 @@
     }
   },
   "stateProviderTokenCountInvalid": "填写数字，如 128K",
-  "appSlogan": "随时随刻，想go就Go！",
+  "appSlogan": "随时随地，智能协作",
   "updateCheck": "检查更新",
   "updateAutoCheck": "自动检查更新",
   "updateAutoCheckDaily": "每天检查一次",

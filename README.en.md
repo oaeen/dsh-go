@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  An Android client for DeepSeek Harness. Run DSH right on your phone, or drive the one on your computer.
+  An Android client for DeepSeek Harness with an integrated on-device runtime and remote host connectivity.
 </p>
 
 <p align="center">
@@ -51,7 +51,7 @@
 </p>
 
 <p align="center">
-  <b>Thank you all for supporting and loving DSH Go! iOS and HarmonyOS versions are coming as soon as I can make them. The more stars, the faster they come, hehe</b>
+  <b>Thank you for supporting DSH Go. iOS and HarmonyOS support is under active development.</b>
 </p>
 
 <p align="center">
