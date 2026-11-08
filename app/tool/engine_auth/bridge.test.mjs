@@ -174,7 +174,7 @@ function deferred() {
   return { promise, resolve, reject }
 }
 
-function setup({ ttlMs, portFree = true, settingsBase, withSettings = true } = {}) {
+function setup({ ttlMs, portFree = true, settingsBase, withSettings = true, magpie } = {}) {
   const credentials = new FakeCredentials()
   const authorization = new FakeAuthorization(credentials)
   const settings = withSettings ? new FakeSettings('llm-pi-ai', settingsBase) : undefined
@@ -185,6 +185,7 @@ function setup({ ttlMs, portFree = true, settingsBase, withSettings = true } = {
     log: (line) => logs.push(line),
     probePort: async () => portFree,
     ...(ttlMs === undefined ? {} : { ttlMs }),
+    ...(magpie === undefined ? {} : { magpie }),
   })
   return { bridge, credentials, authorization, settings, logs }
 }
@@ -515,7 +516,309 @@ test('index.mjs loads the host protocol package and exposes SRC-compatible Remot
     return body === '' ? [] : body.split(',').map((part) => part.trim())
   }
   assert.deepEqual(
-    Object.fromEntries(['list', 'begin', 'poll', 'answer', 'cancel', 'signOut'].map((m) => [m, wireNames(m)])),
-    { list: [], begin: ['provider'], poll: ['attemptId'], answer: ['attemptId', 'value'], cancel: ['attemptId'], signOut: ['provider'] },
+    Object.fromEntries(
+      [
+        'list',
+        'begin',
+        'poll',
+        'answer',
+        'cancel',
+        'signOut',
+        'usage',
+        'checkin',
+        'setOption',
+        'market',
+        'installPlugin',
+        'removePlugin',
+      ].map((m) => [m, wireNames(m)]),
+    ),
+    {
+      list: [],
+      begin: ['provider'],
+      poll: ['attemptId'],
+      answer: ['attemptId', 'value'],
+      cancel: ['attemptId'],
+      signOut: ['provider'],
+      usage: ['provider'],
+      checkin: ['provider'],
+      setOption: ['provider', 'key', 'value'],
+      market: [],
+      installPlugin: ['spec'],
+      removePlugin: ['spec'],
+    },
+  )
+})
+
+// ── Magpie plugin host + compatibility layer end-to-end ───────────────────
+
+test('Magpie compatibility layer: market, installPlugin, OAuth sign-in, loopback fetch proxy, usage, checkin, options, signOut, removePlugin', async (t) => {
+  const fs = await import('node:fs')
+  const http = await import('node:http')
+  const { tmpdir } = await import('node:os')
+  const { MAGPIE_PLUGIN_KEY_ENV, MagpieManager } = await import('../../assets/engine/auth/magpie.mjs')
+
+  const rootDir = fs.mkdtempSync(join(tmpdir(), 'dsh-magpie-test-'))
+  t.after(() => {
+    try {
+      fs.rmSync(rootDir, { recursive: true, force: true })
+    } catch {}
+  })
+
+  // Start a mock upstream LLM server to verify that the plugin's custom `fetch`
+  // transforms headers/body and streams SSE responses through the loopback proxy.
+  const upstreamRequests = []
+  const upstream = http.createServer(async (req, res) => {
+    const chunks = []
+    for await (const c of req) chunks.push(c)
+    const body = Buffer.concat(chunks).toString('utf8')
+    upstreamRequests.push({ url: req.url, headers: req.headers, body })
+    res.writeHead(200, { 'content-type': 'text/event-stream' })
+    res.write('data: {"id":"1","choices":[{"delta":{"content":"hello from workbuddy"}}]}\n\n')
+    res.end('data: [DONE]\n\n')
+  })
+  await new Promise((resolve) => upstream.listen(0, '127.0.0.1', resolve))
+  t.after(() => upstream.close())
+  const upstreamPort = upstream.address().port
+
+  // Create a synthetic OpenCode plugin mimicking @magpie-community/opencode-workbuddy-auth
+  const pluginDir = join(rootDir, 'mock-workbuddy-plugin')
+  fs.mkdirSync(pluginDir, { recursive: true })
+  fs.writeFileSync(
+    join(pluginDir, 'package.json'),
+    JSON.stringify({
+      name: '@magpie-community/opencode-workbuddy-auth',
+      version: '0.3.2',
+      type: 'module',
+      main: './index.js',
+    }),
+  )
+  fs.writeFileSync(
+    join(pluginDir, 'index.js'),
+    `
+export default async function WorkBuddyPlugin({ magpie }) {
+  return {
+    config: async (cfg) => {
+      cfg.provider.workbuddy = {
+        name: 'WorkBuddy',
+        npm: '@ai-sdk/openai-compatible',
+        api: 'http://127.0.0.1:${upstreamPort}/v2/copilot',
+        models: {
+          'deepseek-v3': {
+            name: 'DeepSeek V3 (WorkBuddy)',
+            limit: { context: 128000, output: 16384 },
+            modalities: { input: ['text'], output: ['text'] },
+          },
+        },
+      }
+    },
+    provider: {
+      id: 'workbuddy',
+      models: async (given) => {
+        if (magpie?.option?.('workbuddy', 'pro_models')) {
+          return {
+            ...given.models,
+            'claude-sonnet-4': {
+              id: 'claude-sonnet-4',
+              name: 'Claude Sonnet 4',
+              limit: { context: 200000, output: 16384 },
+              capabilities: { input: { text: true, image: true }, output: { text: true } },
+            },
+          }
+        }
+        return given.models
+      },
+    },
+    auth: {
+      provider: 'workbuddy',
+      options: [
+        {
+          key: 'pro_models',
+          label: '启用 Pro 模型',
+          default: false,
+          filtersModels: true,
+        },
+      ],
+      methods: [
+        {
+          type: 'oauth',
+          label: 'WorkBuddy 浏览器扫码登录',
+          prompts: [
+            {
+              type: 'select',
+              key: 'region',
+              message: '选择站点',
+              options: [
+                { value: 'cn', label: '国内版 (codebuddy.cn)', hint: '推荐' },
+                { value: 'intl', label: '国际版 (workbuddy.ai)' },
+              ],
+            },
+          ],
+          authorize: async (inputs) => ({
+            url: 'https://www.codebuddy.cn/login?region=' + (inputs?.region || 'cn'),
+            instructions: '请在浏览器中输入验证码: WBCD-1234',
+            method: 'auto',
+            callback: async () => ({
+              type: 'success',
+              access: 'wb-access-token-' + (inputs?.region || 'cn'),
+              refresh: 'wb-refresh-token',
+              expires: Date.now() + 3600_000,
+              accountId: 'wb-user@codebuddy.cn',
+            }),
+          }),
+        },
+        {
+          type: 'api',
+          label: '手动输入 Token',
+        },
+      ],
+      loader: async (getAuth) => {
+        const a = await getAuth()
+        if (!a || !a.access) return {}
+        return {
+          apiKey: 'workbuddy-oauth',
+          baseURL: 'http://127.0.0.1:${upstreamPort}/v2/copilot',
+          fetch: async (input, init) => {
+            const headers = new Headers(init?.headers)
+            headers.set('authorization', 'Bearer ' + a.access)
+            headers.set('x-workbuddy-sanitized', 'true')
+            return fetch(input, { ...init, headers })
+          },
+        }
+      },
+      usage: async () => ({
+        plan: 'CodeBuddy Pro',
+        windows: [{ name: '月度快速请求', used: 24, amount: 120, limit: 500, unit: '次' }],
+      }),
+      checkin: async () => ({
+        outcome: 'claimed',
+        credit: 50,
+        streak: 3,
+        message: '今日签到成功 (+50 额度)',
+      }),
+    },
+  }
+}
+`,
+  )
+
+  const magpie = new MagpieManager({
+    rootDir,
+    log: () => {},
+    fetchFn: async () => {
+      throw new Error('offline test')
+    },
+  })
+  const { bridge, settings } = setup({ magpie })
+  t.after(() => bridge.dispose())
+
+  // 1. Market lists built-in community plugins including WorkBuddy
+  const marketBefore = await bridge.market()
+  const wbMarketEntry = marketBefore.plugins.find((p) => p.package === '@magpie-community/opencode-workbuddy-auth')
+  assert.ok(wbMarketEntry, 'WorkBuddy should be in built-in market.json')
+  assert.equal(wbMarketEntry.installed, false)
+
+  // 2. Install local plugin spec
+  const installRes = await bridge.installPlugin(pluginDir)
+  assert.deepEqual(installRes.providers, ['workbuddy'])
+
+  // 3. `list()` now includes `workbuddy` alongside built-in `openai-codex` and `anthropic`
+  const listBefore = await bridge.list()
+  assert.equal(listBefore.providers.length, 3)
+  const wbStatus = listBefore.providers.find((p) => p.id === 'workbuddy')
+  assert.ok(wbStatus)
+  assert.equal(wbStatus.displayName, 'WorkBuddy')
+  assert.equal(wbStatus.signedIn, false)
+  assert.equal(wbStatus.supportsUsage, true)
+  assert.equal(wbStatus.supportsCheckin, true)
+  assert.equal(wbStatus.options?.length, 1)
+  assert.equal(wbStatus.options[0].key, 'pro_models')
+  assert.equal(wbStatus.options[0].value, false)
+
+  // 4. Sign-in flow with method selection + select prompt + device code
+  const { attemptId } = await bridge.begin('workbuddy')
+  const methodPrompt = await waitFor(bridge, attemptId, (v) => v.phase === 'prompt' && Array.isArray(v.options))
+  assert.equal(methodPrompt.options.length, 2)
+  assert.equal(methodPrompt.options[0].label, 'WorkBuddy 浏览器扫码登录')
+
+  // Answer method selection ("0")
+  bridge.answer(attemptId, '0')
+
+  // Next prompt is the region select prompt
+  const regionPrompt = await waitFor(
+    bridge,
+    attemptId,
+    (v) => v.phase === 'prompt' && v.options?.some((o) => o.id === 'cn'),
+  )
+  assert.equal(regionPrompt.message, '选择站点')
+
+  // Answer region selection ("cn")
+  bridge.answer(attemptId, 'cn')
+
+  // Authorize runs and transitions to device/done
+  await waitFor(bridge, attemptId, phase('done'))
+
+  // 5. Verify `list()` shows signedIn + account, and `llm-pi-ai` route is declared
+  const listAfter = await bridge.list()
+  const wbSignedIn = listAfter.providers.find((p) => p.id === 'workbuddy')
+  assert.equal(wbSignedIn.signedIn, true)
+  assert.equal(wbSignedIn.account, 'wb-user@codebuddy.cn')
+
+  const route = settings.user.providers.workbuddy
+  assert.ok(route, 'workbuddy route should be declared in llm-pi-ai settings')
+  assert.equal(route.displayName, 'WorkBuddy')
+  assert.equal(route.api, 'openai-completions')
+  assert.equal(route.apiKeyEnv, MAGPIE_PLUGIN_KEY_ENV)
+  assert.deepEqual(
+    route.models.map((m) => m.id),
+    ['deepseek-v3'],
+  )
+
+  // 6. Test the loopback HTTP proxy end-to-end (simulating `dsh-llm-pi-ai` calling `baseURL + /chat/completions`)
+  const proxyRes = await fetch(`${route.baseURL}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      authorization: `Bearer ${process.env[MAGPIE_PLUGIN_KEY_ENV]}`,
+    },
+    body: JSON.stringify({ model: 'deepseek-v3', messages: [{ role: 'user', content: 'hi' }], stream: true }),
+  })
+  assert.equal(proxyRes.status, 200)
+  const proxyText = await proxyRes.text()
+  assert.match(proxyText, /hello from workbuddy/)
+  assert.equal(upstreamRequests.length, 1)
+  assert.equal(upstreamRequests[0].url, '/v2/copilot/chat/completions')
+  assert.equal(upstreamRequests[0].headers.authorization, 'Bearer wb-access-token-cn')
+  assert.equal(upstreamRequests[0].headers['x-workbuddy-sanitized'], 'true')
+
+  // 7. Test `usage`, `checkin`, and `setOption` (with `filtersModels: true`)
+  const usageRes = await bridge.usage('workbuddy')
+  assert.equal(usageRes.plan, 'CodeBuddy Pro')
+  assert.equal(usageRes.windows[0].name, '月度快速请求')
+  assert.equal(usageRes.windows[0].amount, 120)
+
+  const checkinRes = await bridge.checkin('workbuddy')
+  assert.equal(checkinRes.ok, true)
+  assert.equal(checkinRes.outcome, 'claimed')
+  assert.equal(checkinRes.credit, 50)
+
+  const optRes = await bridge.setOption('workbuddy', 'pro_models', true)
+  assert.equal(optRes.options[0].value, true)
+  assert.deepEqual(
+    settings.user.providers.workbuddy.models.map((m) => m.id),
+    ['deepseek-v3', 'claude-sonnet-4'],
+  )
+
+  // 8. Sign out removes route and clears signedIn status
+  await bridge.signOut('workbuddy')
+  assert.equal(settings.user.providers.workbuddy, undefined)
+  const listSignedOut = await bridge.list()
+  assert.equal(listSignedOut.providers.find((p) => p.id === 'workbuddy').signedIn, false)
+
+  // 9. Remove plugin removes provider from list
+  await bridge.removePlugin(pluginDir)
+  const listRemoved = await bridge.list()
+  assert.deepEqual(
+    listRemoved.providers.map((p) => p.id),
+    ['openai-codex', 'anthropic'],
   )
 })

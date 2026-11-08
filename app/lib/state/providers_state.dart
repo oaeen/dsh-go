@@ -30,11 +30,13 @@ export 'provider_backend.dart';
 // ── Model ────────────────────────────────────────────────────────────────────
 
 /// A route the subscription sign-in bridge declared (`openai-codex`,
-/// `anthropic`), authenticated by the stored grant, no key reference. Shown
-/// with the subscriptions, not as a custom provider. A same-named route with
-/// a key reference is an ordinary key-based provider.
+/// `anthropic`, or a Magpie subscription plugin route), authenticated by the
+/// stored grant, no user key reference. Shown with the subscriptions, not as a
+/// custom provider. A same-named route with a user key reference is an
+/// ordinary key-based provider.
 bool isSubscriptionRoute(ProviderProfile profile) =>
-    Subscription.fromWire(profile.route) != null && (profile.apiKeyEnv == null || profile.apiKeyEnv!.isEmpty);
+    profile.apiKeyEnv == kMagpiePluginKeyEnv ||
+    (Subscription.fromWire(profile.route) != null && (profile.apiKeyEnv == null || profile.apiKeyEnv!.isEmpty));
 
 /// 协议在界面上的名字。
 String protocolLabel(ProviderApi api) => switch (api) {

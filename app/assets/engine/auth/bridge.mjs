@@ -24,6 +24,15 @@
 import { randomUUID } from 'node:crypto'
 import { createServer } from 'node:net'
 
+import {
+  MAGPIE_PLUGIN_KEY_ENV,
+  MagpieManager,
+  extractDeviceCode,
+  toPiAiModels,
+  toPiAiProtocol,
+  toPiAiRouteId,
+} from './magpie.mjs'
+
 /** The subscriptions this bridge signs in to, keyed by pi-ai provider id (= llm-pi-ai route id). */
 export const PROVIDERS = Object.freeze({
   'openai-codex': Object.freeze({
@@ -187,6 +196,7 @@ class Attempt {
     this.url = undefined
     this.userCode = undefined
     this.placeholder = undefined
+    this.options = undefined
     this.error = undefined
     /** The paste prompt pi-ai is waiting on, if any: {resolve, reject}. */
     this.pending = undefined
@@ -216,6 +226,7 @@ class Attempt {
       if (this.url !== undefined && this.phase !== 'starting') view.url = this.url
       if (this.userCode !== undefined && this.phase === 'device') view.userCode = this.userCode
       if (this.placeholder !== undefined && this.pending !== undefined) view.placeholder = this.placeholder
+      if (this.options !== undefined && this.pending !== undefined) view.options = this.options
     }
     if (this.message !== undefined) view.message = this.message
     if (this.error !== undefined) view.error = this.error
@@ -237,6 +248,7 @@ export class AuthBridge {
   #ttlMs
   #probePort
   #settingsNs
+  #magpie = null
   #attempts = new Map()
   #liveByProvider = new Map()
   /** Route and grant changes run one at a time, so a repair cannot interleave with a sign-out. */
@@ -250,6 +262,7 @@ export class AuthBridge {
     ttlMs = ATTEMPT_TTL_MS,
     probePort = portIsFree,
     settingsNs = SETTINGS_NS,
+    magpie = null,
   }) {
     this.#get = get
     this.#log = log
@@ -258,11 +271,25 @@ export class AuthBridge {
     this.#ttlMs = ttlMs
     this.#probePort = probePort
     this.#settingsNs = settingsNs
+    if (magpie instanceof MagpieManager) {
+      this.#magpie = magpie
+    } else if (magpie && typeof magpie === 'object') {
+      this.#magpie = new MagpieManager({ log, ...magpie })
+    } else if (magpie === true) {
+      this.#magpie = new MagpieManager({ log })
+    }
+  }
+
+  #ensureMagpie() {
+    if (!this.#magpie) {
+      this.#magpie = new MagpieManager({ log: this.#log })
+    }
+    return this.#magpie
   }
 
   // ── Remote methods ──────────────────────────────────────────────────────
 
-  /** `appAuth/list`: both subscriptions, signed in or not. */
+  /** `appAuth/list`: built-in and installed plugin subscriptions, signed in or not. */
   async list() {
     const credentials = this.#get('credentials')
     const providers = []
@@ -290,12 +317,70 @@ export class AuthBridge {
       }
       providers.push(entry)
     }
+
+    if (this.#magpie?.hasConfiguredPlugins()) {
+      try {
+        const pluginProviders = await this.#magpie.refreshProviders()
+        const signedInRouteIds = new Set()
+        for (const p of pluginProviders) {
+          if (!p || typeof p.id !== 'string' || Object.hasOwn(PROVIDERS, p.id)) continue
+          const signedIn = Boolean(p.signedIn)
+          const routeId = toPiAiRouteId(p.id)
+          const entry = {
+            id: p.id,
+            displayName: p.name || p.id,
+            pluginSpec: p.spec,
+            signedIn,
+          }
+          if (signedIn && typeof p.accountId === 'string' && p.accountId.trim()) {
+            entry.account = p.accountId.trim()
+          }
+          if (p.usage) entry.supportsUsage = true
+          if (p.checkin) entry.supportsCheckin = true
+          const opts = this.#magpie.getProviderOptions(p.id, p.options)
+          if (opts.length > 0) entry.options = opts
+
+          if (signedIn) {
+            signedInRouteIds.add(routeId)
+            try {
+              await this.#serialized(() => this.#ensurePluginRoute(p))
+            } catch (error) {
+              this.#log(`${p.id}: declaring plugin route failed: ${redact(error?.message ?? error)}`)
+            }
+          }
+          providers.push(entry)
+        }
+        try {
+          await this.#serialized(() => this.#pruneStalePluginRoutes(signedInRouteIds))
+        } catch (error) {
+          this.#log(`pruning stale plugin routes failed: ${redact(error?.message ?? error)}`)
+        }
+      } catch (error) {
+        this.#log(`magpie list failed: ${redact(error?.message ?? error)}`)
+      }
+    }
+
     return { providers }
   }
 
   /** `appAuth/begin`: starts a sign-in and returns its id at once; progress is polled. */
   async begin(provider) {
-    const spec = this.#spec(provider)
+    const isBuiltIn = typeof provider === 'string' && Object.hasOwn(PROVIDERS, provider)
+    let spec
+    let pluginProvider
+    if (isBuiltIn) {
+      spec = PROVIDERS[provider]
+    } else if (typeof provider === 'string' && this.#magpie) {
+      pluginProvider = this.#magpie.getProvider(provider)
+      if (!pluginProvider && this.#magpie.hasConfiguredPlugins()) {
+        const rows = await this.#magpie.refreshProviders().catch(() => [])
+        pluginProvider = rows.find((item) => item.id === provider)
+      }
+    }
+    if (!isBuiltIn && !pluginProvider) {
+      throw new this.#RemoteError('app-auth/unknown-provider', '不支持这个登录方式', {})
+    }
+
     this.#prune()
     // Tapping "sign in" again replaces the attempt in flight (DSH runs one per key).
     const previous = this.#liveByProvider.get(provider)
@@ -312,7 +397,9 @@ export class AuthBridge {
       this.#abort(attempt)
     }, this.#ttlMs)
     attempt.timer.unref?.()
-    attempt.done = this.#run(attempt, spec, previous !== undefined)
+    attempt.done = isBuiltIn
+      ? this.#run(attempt, spec, previous !== undefined)
+      : this.#runPluginAttempt(attempt, provider)
     return { attemptId: attempt.id }
   }
 
@@ -324,7 +411,7 @@ export class AuthBridge {
     return attempt.view()
   }
 
-  /** `appAuth/answer`: the pasted code or redirect URL for a pending prompt. */
+  /** `appAuth/answer`: the pasted code, redirect URL, or selected option for a pending prompt. */
   answer(attemptId, value) {
     const attempt = this.#attempts.get(String(attemptId))
     if (attempt === undefined || !attempt.live) throw new this.#RemoteError('app-auth/attempt-over', ERRORS.expired, {})
@@ -335,6 +422,8 @@ export class AuthBridge {
     if (text.length > MAX_ANSWER_LENGTH) throw new this.#RemoteError('app-auth/answer-too-long', ERRORS.badPaste, {})
     attempt.pending = undefined
     attempt.placeholder = undefined
+    attempt.options = undefined
+    attempt.error = undefined
     attempt.set('starting', COPY.finishing)
     pending.resolve(text)
     return {}
@@ -352,7 +441,19 @@ export class AuthBridge {
 
   /** `appAuth/signOut`: removes the route (when the bridge owns it) and deletes the grant. */
   async signOut(provider) {
-    this.#spec(provider)
+    const isBuiltIn = typeof provider === 'string' && Object.hasOwn(PROVIDERS, provider)
+    let pluginProvider
+    if (!isBuiltIn && typeof provider === 'string' && this.#magpie) {
+      pluginProvider = this.#magpie.getProvider(provider)
+      if (!pluginProvider && this.#magpie.hasConfiguredPlugins()) {
+        const rows = await this.#magpie.refreshProviders().catch(() => [])
+        pluginProvider = rows.find((item) => item.id === provider)
+      }
+    }
+    if (!isBuiltIn && !pluginProvider) {
+      throw new this.#RemoteError('app-auth/unknown-provider', '不支持这个登录方式', {})
+    }
+
     const live = this.#liveByProvider.get(provider)
     if (live !== undefined) {
       live.cancelRequested = true
@@ -361,15 +462,21 @@ export class AuthBridge {
     }
     try {
       await this.#serialized(async () => {
-        // Route first: a grant without a route is repaired by list(); a route
-        // without a grant would offer models that cannot answer.
-        await this.#removeRoute(provider)
-        const credentials = this.#get('credentials')
-        if (credentials === undefined) throw new Error('credentials service is absent')
-        const key = recordKeyFor(provider)
-        const record = await credentials.readRecord(key)
-        // Only an OAuth grant is ours to remove; an api-key record is the user's.
-        if (record?.kind === 'grant') await credentials.deleteRecord(key)
+        if (isBuiltIn) {
+          // Route first: a grant without a route is repaired by list(); a route
+          // without a grant would offer models that cannot answer.
+          await this.#removeRoute(provider)
+          const credentials = this.#get('credentials')
+          if (credentials === undefined) throw new Error('credentials service is absent')
+          const key = recordKeyFor(provider)
+          const record = await credentials.readRecord(key)
+          // Only an OAuth grant is ours to remove; an api-key record is the user's.
+          if (record?.kind === 'grant') await credentials.deleteRecord(key)
+        } else {
+          await this.#removePluginRoute(provider)
+          await this.#magpie.call('signOut', { provider })
+          await this.#magpie.refreshProviders()
+        }
       })
       this.#log(`${provider}: signed out`)
     } catch (error) {
@@ -379,13 +486,126 @@ export class AuthBridge {
     return {}
   }
 
-  /** Withdraws every attempt (plugin unload). */
+  /** `appAuth/usage`: queries subscription quota/usage windows from a plugin provider. */
+  async usage(provider) {
+    if (typeof provider !== 'string' || !provider.trim()) {
+      throw new this.#RemoteError('app-auth/unknown-provider', '不支持这个订阅渠道', {})
+    }
+    const magpie = this.#ensureMagpie()
+    try {
+      const res = await magpie.call('usage', { provider })
+      return res ?? {}
+    } catch (error) {
+      this.#log(`${provider}: usage failed: ${redact(error?.message ?? error)}`)
+      throw new this.#RemoteError('app-auth/usage-failed', error?.message || '获取用量失败', {})
+    }
+  }
+
+  /** `appAuth/checkin`: runs daily check-in for a plugin provider. */
+  async checkin(provider) {
+    if (typeof provider !== 'string' || !provider.trim()) {
+      throw new this.#RemoteError('app-auth/unknown-provider', '不支持这个订阅渠道', {})
+    }
+    const magpie = this.#ensureMagpie()
+    try {
+      const res = await magpie.call('checkin', { provider })
+      const outcome = typeof res?.outcome === 'string' ? res.outcome : ''
+      const ok = outcome === 'claimed' || outcome === 'done' || res?.ok === true
+      return {
+        ok,
+        outcome: outcome || (ok ? 'claimed' : 'failed'),
+        credit: typeof res?.credit === 'number' ? res.credit : 0,
+        streak: typeof res?.streak === 'number' ? res.streak : 0,
+        message: typeof res?.message === 'string' ? res.message : '',
+        until: typeof res?.until === 'string' ? res.until : '',
+      }
+    } catch (error) {
+      this.#log(`${provider}: checkin failed: ${redact(error?.message ?? error)}`)
+      throw new this.#RemoteError('app-auth/checkin-failed', error?.message || '签到失败', {})
+    }
+  }
+
+  /** `appAuth/setOption`: updates a boolean provider option and refreshes its model route. */
+  async setOption(provider, key, value) {
+    if (typeof provider !== 'string' || !provider.trim() || typeof key !== 'string' || !key.trim()) {
+      throw new this.#RemoteError('app-auth/invalid-option', '无效的插件选项', {})
+    }
+    const magpie = this.#ensureMagpie()
+    try {
+      await magpie.setProviderOption(provider, key, Boolean(value))
+      const p = magpie.getProvider(provider)
+      if (p?.signedIn) {
+        await this.#serialized(() => this.#ensurePluginRoute(p))
+      }
+      return {
+        options: magpie.getProviderOptions(provider, p?.options ?? []),
+      }
+    } catch (error) {
+      this.#log(`${provider}: setOption failed: ${redact(error?.message ?? error)}`)
+      throw new this.#RemoteError('app-auth/option-failed', error?.message || '更新选项失败', {})
+    }
+  }
+
+  /** `appAuth/market`: lists available and installed Magpie subscription plugins. */
+  async market() {
+    try {
+      return await this.#ensureMagpie().market()
+    } catch (error) {
+      this.#log(`market failed: ${redact(error?.message ?? error)}`)
+      throw new this.#RemoteError('app-auth/market-failed', error?.message || '获取插件市场失败', {})
+    }
+  }
+
+  /** `appAuth/installPlugin`: installs and loads a Magpie subscription plugin. */
+  async installPlugin(spec) {
+    const magpie = this.#ensureMagpie()
+    try {
+      const res = await magpie.installPlugin(spec)
+      for (const p of magpie.getCachedProviders()) {
+        if (p?.signedIn && !Object.hasOwn(PROVIDERS, p.id)) {
+          await this.#serialized(() => this.#ensurePluginRoute(p)).catch((err) => {
+            this.#log(`${p.id}: declaring plugin route after install failed: ${redact(err?.message ?? err)}`)
+          })
+        }
+      }
+      return res
+    } catch (error) {
+      this.#log(`installPlugin(${spec}) failed: ${redact(error?.message ?? error)}`)
+      throw new this.#RemoteError('app-auth/install-failed', error?.message || '安装订阅插件失败', {})
+    }
+  }
+
+  /** `appAuth/removePlugin`: signs out, removes routes, and uninstalls a Magpie plugin. */
+  async removePlugin(spec) {
+    const magpie = this.#ensureMagpie()
+    try {
+      const res = await magpie.removePlugin(spec)
+      for (const id of res.removedProviders ?? []) {
+        const live = this.#liveByProvider.get(id)
+        if (live !== undefined) {
+          live.cancelRequested = true
+          this.#abort(live)
+          await settleWithin(live.done, 2000)
+        }
+        await this.#serialized(() => this.#removePluginRoute(id)).catch((err) => {
+          this.#log(`${id}: removing plugin route failed: ${redact(err?.message ?? err)}`)
+        })
+      }
+      return res
+    } catch (error) {
+      this.#log(`removePlugin(${spec}) failed: ${redact(error?.message ?? error)}`)
+      throw new this.#RemoteError('app-auth/remove-failed', error?.message || '卸载订阅插件失败', {})
+    }
+  }
+
+  /** Withdraws every attempt and stops the Magpie plugin host (plugin unload). */
   dispose() {
     for (const attempt of this.#attempts.values()) {
       if (!attempt.live) continue
       attempt.cancelRequested = true
       this.#abort(attempt)
     }
+    this.#magpie?.dispose()
   }
 
   // ── one attempt ─────────────────────────────────────────────────────────
@@ -434,6 +654,181 @@ export class AuthBridge {
         this.#finish(attempt, 'failed', describeFailure(error))
       }
     }
+  }
+
+  async #runPluginAttempt(attempt, providerId) {
+    const signal = attempt.controller.signal
+    const magpie = this.#ensureMagpie()
+    try {
+      let p = magpie.getProvider(providerId)
+      if (!p) {
+        const rows = await magpie.refreshProviders({ signal })
+        p = rows.find((item) => item.id === providerId)
+      }
+      if (!p) {
+        throw Object.assign(new Error(`no plugin provider for ${providerId}`), { code: 'NO_FLOW' })
+      }
+      const methods = Array.isArray(p.methods) ? p.methods : []
+      if (methods.length === 0) {
+        throw Object.assign(new Error(`plugin ${providerId} offered no login methods`), { code: 'NO_FLOW' })
+      }
+
+      this.#log(`${providerId}: plugin sign-in started (${attempt.id})`)
+      let methodIdx = 0
+      if (methods.length > 1) {
+        const choice = await this.#askAttempt(attempt, {
+          message: '选择登录方式',
+          options: methods.map((m, i) => ({
+            id: String(i),
+            label: m.label || `登录方式 ${i + 1}`,
+          })),
+        })
+        const idx = Number.parseInt(choice, 10)
+        const byLabel = methods.findIndex((m) => m.label === choice)
+        methodIdx = Number.isInteger(idx) && idx >= 0 && idx < methods.length ? idx : byLabel >= 0 ? byLabel : 0
+      }
+
+      const inputs = {}
+      for (;;) {
+        const promptRes = await magpie.call('prompt', { provider: providerId, method: methodIdx, inputs }, { signal })
+        const pr = promptRes?.prompt
+        if (!pr) break
+        for (;;) {
+          const options = Array.isArray(pr.options)
+            ? pr.options.map((o) => ({
+                id: String(o.value ?? ''),
+                label: String(o.label ?? o.value ?? ''),
+                ...(o.hint ? { hint: String(o.hint) } : {}),
+              }))
+            : undefined
+          const answer = await this.#askAttempt(attempt, {
+            message: pr.message || COPY.prompt,
+            placeholder: pr.placeholder || undefined,
+            options,
+          })
+          const valRes = await magpie.call(
+            'validate',
+            { provider: providerId, method: methodIdx, key: pr.key, value: answer },
+            { signal },
+          )
+          if (valRes?.error) {
+            attempt.error = String(valRes.error)
+            continue
+          }
+          attempt.error = undefined
+          inputs[pr.key] = answer
+          break
+        }
+      }
+
+      const method = methods[methodIdx]
+      let targetProviderId = providerId
+      if (method.type === 'api') {
+        let key = ''
+        if (!method.keyless) {
+          key = await this.#askAttempt(attempt, {
+            message: method.label || '请输入 API Key',
+            placeholder: method.placeholder || 'API Key',
+          })
+        }
+        attempt.set('starting', COPY.finishing)
+        const res = await magpie.call(
+          'apiKey',
+          { provider: providerId, method: methodIdx, inputs, key },
+          { signal },
+        )
+        if (!res?.ok) {
+          this.#finish(attempt, 'failed', res?.error || ERRORS.generic)
+          return
+        }
+        if (typeof res.provider === 'string' && res.provider) targetProviderId = res.provider
+      } else {
+        attempt.set('starting', COPY.starting)
+        const authRes = await magpie.call(
+          'authorize',
+          { provider: providerId, method: methodIdx, inputs },
+          { signal },
+        )
+        if (!authRes?.ok) {
+          this.#finish(attempt, 'failed', authRes?.error || ERRORS.generic)
+          return
+        }
+        let cbRes
+        if (authRes.method === 'code') {
+          attempt.url = authRes.url || undefined
+          const code = await this.#askAttempt(attempt, {
+            message: authRes.instructions || COPY.prompt,
+            placeholder: '粘贴授权码或回调网址',
+          })
+          attempt.set('starting', COPY.finishing)
+          cbRes = await magpie.call('callback', { session: authRes.session, code }, { signal })
+        } else {
+          const code = extractDeviceCode(authRes.instructions)
+          attempt.url = authRes.url || undefined
+          if (code !== undefined) {
+            attempt.userCode = code
+            attempt.set('device', authRes.instructions || COPY.device)
+          } else {
+            attempt.set('open', authRes.instructions || COPY.open)
+          }
+          cbRes = await magpie.call('callback', { session: authRes.session }, { signal })
+        }
+        if (!cbRes?.ok) {
+          this.#finish(attempt, 'failed', cbRes?.error || ERRORS.generic)
+          return
+        }
+        if (typeof cbRes.provider === 'string' && cbRes.provider) targetProviderId = cbRes.provider
+      }
+
+      const refreshed = await magpie.refreshProviders({ signal })
+      const updated = refreshed.find((item) => item.id === targetProviderId) ?? refreshed.find((item) => item.id === providerId)
+      if (updated?.signedIn) {
+        try {
+          await this.#serialized(() => this.#ensurePluginRoute(updated))
+        } catch (error) {
+          this.#log(`${updated.id}: declaring plugin route failed: ${redact(error?.message ?? error)}`)
+        }
+      }
+      this.#finish(attempt, 'done')
+    } catch (error) {
+      if (attempt.timedOut || attempt.cancelRequested) {
+        this.#finishWithdrawn(attempt)
+      } else {
+        this.#log(
+          `${providerId}: plugin sign-in failed: ${redact(
+            causes(error)
+              .map((e) => `${e?.name ?? ''}${e?.code ? `[${e.code}]` : ''}: ${e?.message ?? e}`)
+              .join(' <- '),
+          )}`,
+        )
+        this.#finish(attempt, 'failed', describeFailure(error))
+      }
+    }
+  }
+
+  #askAttempt(attempt, { message, placeholder, options }) {
+    return new Promise((resolve, reject) => {
+      if (!attempt.live || attempt.controller.signal.aborted) {
+        reject(new Error('the sign-in is over'))
+        return
+      }
+      const pending = { resolve, reject }
+      const withdraw = () => {
+        if (attempt.pending !== pending) return
+        attempt.pending = undefined
+        attempt.placeholder = undefined
+        attempt.options = undefined
+        if (attempt.live && (attempt.phase === 'open' || attempt.phase === 'prompt')) {
+          attempt.set('starting', COPY.finishing)
+        }
+        reject(new Error('the prompt was withdrawn'))
+      }
+      attempt.controller.signal.addEventListener('abort', withdraw, { once: true })
+      attempt.pending = pending
+      attempt.placeholder = typeof placeholder === 'string' && placeholder.length > 0 ? placeholder : undefined
+      attempt.options = Array.isArray(options) && options.length > 0 ? options : undefined
+      attempt.set('prompt', message || COPY.prompt)
+    })
   }
 
   #finishWithdrawn(attempt) {
@@ -515,6 +910,7 @@ export class AuthBridge {
     attempt.url = undefined
     attempt.userCode = undefined
     attempt.placeholder = undefined
+    attempt.options = undefined
     const pending = attempt.pending
     attempt.pending = undefined
     pending?.reject(new Error('the sign-in is over'))
@@ -528,12 +924,6 @@ export class AuthBridge {
     for (const attempt of finished) {
       if (now - attempt.finishedAt > FINISHED_KEEP_MS || this.#attempts.size > MAX_KEPT_ATTEMPTS) this.#attempts.delete(attempt.id)
     }
-  }
-
-  #spec(provider) {
-    const spec = typeof provider === 'string' && Object.hasOwn(PROVIDERS, provider) ? PROVIDERS[provider] : undefined
-    if (spec === undefined) throw new this.#RemoteError('app-auth/unknown-provider', '不支持这个登录方式', {})
-    return spec
   }
 
   // ── llm-pi-ai routes ───────────────────────────────────────────────────
@@ -577,5 +967,64 @@ export class AuthBridge {
     await settings.mutate(this.#settingsNs, [{ op: 'unset', path: ['providers', provider] }])
     this.#log(`${provider}: route removed`)
     return 'removed'
+  }
+
+  /** Declares or updates a Magpie plugin provider route in `llm-pi-ai`. */
+  async #ensurePluginRoute(pluginProvider) {
+    const magpie = this.#ensureMagpie()
+    await magpie.ensureServer()
+    const { settings, section } = this.#section()
+    const routeId = toPiAiRouteId(pluginProvider.id)
+    const existing = section.value?.providers?.[routeId]
+    // Do not overwrite a user's custom route that uses a different API key env.
+    if (isObject(existing) && existing.apiKeyEnv && existing.apiKeyEnv !== MAGPIE_PLUGIN_KEY_ENV) {
+      return false
+    }
+    const existingOverrides = isObject(existing?.modelOverrides) ? existing.modelOverrides : undefined
+    const protocol = toPiAiProtocol(pluginProvider.npm, pluginProvider.models)
+    const nextValue = {
+      displayName: pluginProvider.name || pluginProvider.id,
+      api: protocol,
+      baseURL: magpie.baseUrlFor(pluginProvider.id, protocol),
+      apiKeyEnv: MAGPIE_PLUGIN_KEY_ENV,
+      models: toPiAiModels(pluginProvider.models, existingOverrides),
+    }
+    if (existingOverrides && Object.keys(existingOverrides).length > 0) {
+      nextValue.modelOverrides = existingOverrides
+    }
+    if (isObject(existing) && JSON.stringify(existing) === JSON.stringify(nextValue)) {
+      return false
+    }
+    await settings.mutate(this.#settingsNs, [{ op: 'set', path: ['providers', routeId], value: nextValue }])
+    this.#log(`${pluginProvider.id}: plugin route declared (${routeId})`)
+    return true
+  }
+
+  /** Removes a Magpie plugin provider route when owned by `MAGPIE_PLUGIN_KEY_ENV`. */
+  async #removePluginRoute(providerId) {
+    const { settings, section } = this.#section()
+    const routeId = toPiAiRouteId(providerId)
+    const own = section.user?.providers?.[routeId] ?? section.value?.providers?.[routeId]
+    if (!isObject(own)) return 'absent'
+    if (own.apiKeyEnv !== MAGPIE_PLUGIN_KEY_ENV) return 'not-magpie'
+    await settings.mutate(this.#settingsNs, [{ op: 'unset', path: ['providers', routeId] }])
+    this.#log(`${providerId}: plugin route removed (${routeId})`)
+    return 'removed'
+  }
+
+  /** Removes any leftover Magpie plugin routes whose provider is no longer signed in. */
+  async #pruneStalePluginRoutes(signedInRouteIds) {
+    const { settings, section } = this.#section()
+    const userProviders = section.user?.providers
+    if (!isObject(userProviders)) return
+    const mutations = []
+    for (const [routeId, cfg] of Object.entries(userProviders)) {
+      if (isObject(cfg) && cfg.apiKeyEnv === MAGPIE_PLUGIN_KEY_ENV && !signedInRouteIds.has(routeId)) {
+        mutations.push({ op: 'unset', path: ['providers', routeId] })
+      }
+    }
+    if (mutations.length > 0) {
+      await settings.mutate(this.#settingsNs, mutations)
+    }
   }
 }

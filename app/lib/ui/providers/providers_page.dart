@@ -31,6 +31,7 @@ import 'new_chat_defaults_card.dart';
 import 'provider_detail_page.dart';
 import 'provider_form_page.dart';
 import 'provider_widgets.dart';
+import 'subscription_market_page.dart';
 import 'subscription_page.dart';
 import 'subscription_sheet.dart';
 
@@ -204,6 +205,15 @@ class _SubscriptionAccounts extends ConsumerWidget {
               onOpen: () => Navigator.of(context)
                   .push(MaterialPageRoute<void>(builder: (_) => SubscriptionPage(subscription: status.subscription))),
             ),
+          ListPageRow(
+            icon: AppIcons.add,
+            iconColor: Theme.of(context).colorScheme.primary,
+            title: l10n.engineSubscriptionPluginMarket,
+            subtitle: l10n.engineSubscriptionPluginMarketSubtitle,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const SubscriptionMarketPage()),
+            ),
+          ),
         ],
       ),
     );
@@ -220,7 +230,7 @@ class _SubscriptionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final label = subscriptionLabel(status.subscription);
+    final label = subscriptionLabel(status.subscription, displayName: status.displayName);
     final account = status.account?.trim();
     if (status.signedIn) {
       return ListPageRow(

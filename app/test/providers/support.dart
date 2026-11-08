@@ -313,16 +313,25 @@ FakeProviderBackend sampleBackend({bool isLocal = true}) => FakeProviderBackend(
 
 /// The sign-in bridge in memory. [steps] are answered by successive polls
 /// (the last one repeats); every call is logged in [calls].
-class FakeSubscriptionBackend implements SubscriptionBackend {
-  FakeSubscriptionBackend({this.available = true, List<SubscriptionStatus>? statuses, List<LoginStep>? steps})
-    : statuses =
-          statuses ?? [for (final s in Subscription.values) SubscriptionStatus(subscription: s, signedIn: false)],
-      steps = steps ?? const [LoginStep(phase: LoginPhase.starting)];
+class FakeSubscriptionBackend extends SubscriptionBackend {
+  FakeSubscriptionBackend({
+    this.available = true,
+    List<SubscriptionStatus>? statuses,
+    List<LoginStep>? steps,
+    this.marketPlugins = const [],
+    this.usageData = const SubscriptionUsage(),
+    this.checkinData = const SubscriptionCheckin(ok: true, outcome: 'claimed'),
+  }) : statuses =
+           statuses ?? [for (final s in Subscription.values) SubscriptionStatus(subscription: s, signedIn: false)],
+       steps = steps ?? const [LoginStep(phase: LoginPhase.starting)];
 
   /// False: `appAuth/list` fails as on an engine without the bridge.
   bool available;
   List<SubscriptionStatus> statuses;
   List<LoginStep> steps;
+  List<SubscriptionMarketPlugin> marketPlugins;
+  SubscriptionUsage usageData;
+  SubscriptionCheckin checkinData;
   Object? beginError;
   int _attempts = 0;
   int _polled = 0;
@@ -366,6 +375,42 @@ class FakeSubscriptionBackend implements SubscriptionBackend {
       for (final s in statuses)
         s.subscription == subscription ? SubscriptionStatus(subscription: subscription, signedIn: false) : s,
     ];
+  }
+
+  @override
+  Future<SubscriptionUsage> usage(Subscription subscription) async {
+    calls.add('usage:${subscription.wire}');
+    return usageData;
+  }
+
+  @override
+  Future<SubscriptionCheckin> checkin(Subscription subscription) async {
+    calls.add('checkin:${subscription.wire}');
+    return checkinData;
+  }
+
+  @override
+  Future<List<SubscriptionOption>> setOption(Subscription subscription, String key, bool value) async {
+    calls.add('setOption:${subscription.wire}:$key:$value');
+    return const [];
+  }
+
+  @override
+  Future<List<SubscriptionMarketPlugin>> market() async {
+    calls.add('market');
+    return marketPlugins;
+  }
+
+  @override
+  Future<SubscriptionPluginInstallResult> installPlugin(String spec) async {
+    calls.add('installPlugin:$spec');
+    return SubscriptionPluginInstallResult(spec: spec, package: spec);
+  }
+
+  @override
+  Future<List<String>> removePlugin(String spec) async {
+    calls.add('removePlugin:$spec');
+    return const [];
   }
 }
 

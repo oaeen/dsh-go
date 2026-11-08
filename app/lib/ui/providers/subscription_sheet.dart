@@ -17,11 +17,13 @@ import '../common/sheet_title_bar.dart';
 import '../common/smooth_size.dart';
 import '../theme/app_icons.dart';
 import '../theme/theme.dart';
+import 'provider_widgets.dart' show Monogram;
 
 /// A subscription's monogram letter (a plain letter, no brand mark).
-String subscriptionLetter(Subscription s) => switch (s) {
-  Subscription.chatgpt => 'G',
-  Subscription.claude => 'C',
+String subscriptionLetter(Subscription s) => switch (s.wire) {
+  'openai-codex' => 'G',
+  'anthropic' => 'C',
+  _ => Monogram.letterOf(subscriptionLabel(s)),
 };
 
 /// Opens the sign-in sheet; true once signed in. Closing it cancels the
@@ -159,6 +161,9 @@ class _SubscriptionLoginSheetState extends ConsumerState<SubscriptionLoginSheet>
         controller: _answer,
         hint: step.placeholder,
         helper: step.message,
+        options: step.options,
+        error: step.error,
+        onOpenUrl: (!widget.subscription.isBuiltIn && step.url != null) ? () => unawaited(_open(step.url!)) : null,
         busy: session?.answering ?? false,
         onSubmit: (value) => unawaited(session?.answer(value)),
       ),
@@ -429,6 +434,9 @@ class _PromptBody extends StatefulWidget {
     required this.controller,
     required this.hint,
     required this.helper,
+    this.options = const [],
+    this.error,
+    this.onOpenUrl,
     required this.busy,
     required this.onSubmit,
   });
@@ -436,6 +444,9 @@ class _PromptBody extends StatefulWidget {
   final TextEditingController controller;
   final String? hint;
   final String? helper;
+  final List<LoginPromptOption> options;
+  final String? error;
+  final VoidCallback? onOpenUrl;
   final bool busy;
   final ValueChanged<String> onSubmit;
 
@@ -480,6 +491,48 @@ class _PromptBodyState extends State<_PromptBody> {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final colors = DshColors.of(context);
+
+    if (widget.options.isNotEmpty) {
+      final title = (widget.helper != null && widget.helper!.trim().isNotEmpty)
+          ? widget.helper!.trim()
+          : promptTitle(widget.helper);
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _Head(
+            badge: const _Badge(icon: AppIcons.apiKey),
+            title: title,
+            line: widget.error?.trim().isNotEmpty == true
+                ? Text(
+                    widget.error!.trim(),
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodySmall?.copyWith(color: scheme.error),
+                  )
+                : null,
+          ),
+          const SizedBox(height: 20),
+          for (var i = 0; i < widget.options.length; i++) ...[
+            if (i > 0) const SizedBox(height: 10),
+            SizedBox(
+              height: 48,
+              child: OutlinedButton(
+                onPressed: widget.busy ? null : () => widget.onSubmit(widget.options[i].id),
+                child: Text(
+                  widget.options[i].hint?.isNotEmpty == true
+                      ? '${widget.options[i].label} (${widget.options[i].hint})'
+                      : widget.options[i].label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+          ],
+        ],
+      );
+    }
+
     final ready = widget.controller.text.trim().isNotEmpty && !widget.busy;
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -489,6 +542,13 @@ class _PromptBodyState extends State<_PromptBody> {
           badge: const _Badge(icon: AppIcons.apiKey),
           title: promptTitle(widget.helper),
         ),
+        if (widget.onOpenUrl != null) ...[
+          const SizedBox(height: 16),
+          OutlinedButton(
+            onPressed: widget.busy ? null : widget.onOpenUrl,
+            child: Text(l10n.engineSubscriptionOpenBrowser),
+          ),
+        ],
         const SizedBox(height: 20),
         TextField(
           controller: widget.controller,
@@ -500,6 +560,7 @@ class _PromptBodyState extends State<_PromptBody> {
             hintText: widget.hint?.trim().isNotEmpty == true ? widget.hint : l10n.engineSubscriptionPasteHere,
             helperText: _cjk.hasMatch(widget.helper ?? '') ? widget.helper!.trim() : null,
             helperMaxLines: 3,
+            errorText: widget.error?.trim().isNotEmpty == true ? widget.error!.trim() : null,
             suffixIcon: IconButton(
               tooltip: l10n.commonPaste,
               icon: const Icon(AppIcons.paste, size: 20),
@@ -513,7 +574,7 @@ class _PromptBodyState extends State<_PromptBody> {
           child: widget.busy
               ? SizedBox.square(
                   dimension: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: scheme.onSurfaceVariant),
+                  child: CircularProgressIndicator(strokeWidth: 2, color: colors.textTertiary),
                 )
               : Text(l10n.engineSubscriptionConfirm),
         ),

@@ -6726,6 +6726,70 @@ class L10nEn extends L10n {
   }
 
   @override
+  String get engineSubscriptionPluginMarket => 'Subscription plugins';
+
+  @override
+  String get engineSubscriptionPluginMarketSubtitle => 'Connect WorkBuddy, Kiro, Cursor, Qoder, ZCode and more';
+
+  @override
+  String get engineSubscriptionPluginInstall => 'Install';
+
+  @override
+  String get engineSubscriptionPluginInstalling => 'Installing…';
+
+  @override
+  String get engineSubscriptionPluginInstalled => 'Installed';
+
+  @override
+  String get engineSubscriptionPluginRemove => 'Uninstall';
+
+  @override
+  String get engineSubscriptionPluginRemoving => 'Uninstalling…';
+
+  @override
+  String get engineSubscriptionPluginCustomTitle => 'Custom plugin package';
+
+  @override
+  String get engineSubscriptionPluginCustomHint =>
+      'npm package or Git spec (e.g. @magpie-community/opencode-workbuddy-auth)';
+
+  @override
+  String engineSubscriptionPluginInstallSuccess(String name) {
+    return 'Installed $name';
+  }
+
+  @override
+  String engineSubscriptionPluginRemoveSuccess(String name) {
+    return 'Uninstalled $name';
+  }
+
+  @override
+  String engineSubscriptionPluginActionFailed(String error) {
+    return 'Failed: $error';
+  }
+
+  @override
+  String get engineSubscriptionUsageSection => 'Plan & usage';
+
+  @override
+  String get engineSubscriptionUsageRefresh => 'Refresh usage';
+
+  @override
+  String get engineSubscriptionCheckin => 'Daily check-in';
+
+  @override
+  String get engineSubscriptionCheckinRunning => 'Checking in…';
+
+  @override
+  String get engineSubscriptionCheckinDone => 'Checked in';
+
+  @override
+  String get engineSubscriptionOptionsSection => 'Plugin options';
+
+  @override
+  String get engineSubscriptionOpenBrowser => 'Open sign-in page';
+
+  @override
   String get featuresCordisSubtitle => 'Dynamic plugins · Cleared when the engine restarts';
 
   @override

@@ -37,14 +37,60 @@ class SubscriptionPage extends ConsumerStatefulWidget {
 
 class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
   bool _busy = false;
+  bool _checkingIn = false;
+  final _updatingOptions = <String>{};
 
-  String get _label => subscriptionLabel(widget.subscription);
+  String _resolveLabel(SubscriptionStatus? status) =>
+      subscriptionLabel(widget.subscription, displayName: status?.displayName);
+
+  Future<void> _checkin() async {
+    final backend = ref.read(subscriptionBackendProvider);
+    if (backend == null || _checkingIn) return;
+    setState(() => _checkingIn = true);
+    try {
+      final result = await backend.checkin(widget.subscription);
+      ref.invalidate(subscriptionUsageProvider(widget.subscription));
+      if (!mounted) return;
+      final text = result.message?.trim().isNotEmpty == true
+          ? result.message!.trim()
+          : (result.ok
+                ? context.l10n.engineSubscriptionCheckinDone
+                : context.l10n.engineSubscriptionPluginActionFailed(result.outcome));
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(content: Text(text)));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.maybeOf(
+        context,
+      )?.showSnackBar(SnackBar(content: Text(context.l10n.engineSubscriptionPluginActionFailed('$error'))));
+    } finally {
+      if (mounted) setState(() => _checkingIn = false);
+    }
+  }
+
+  Future<void> _toggleOption(SubscriptionOption option, bool nextValue) async {
+    final backend = ref.read(subscriptionBackendProvider);
+    if (backend == null || _updatingOptions.contains(option.key)) return;
+    setState(() => _updatingOptions.add(option.key));
+    try {
+      await backend.setOption(widget.subscription, option.key, nextValue);
+      refreshAfterSubscriptionChange(ref);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.maybeOf(
+        context,
+      )?.showSnackBar(SnackBar(content: Text(context.l10n.engineSubscriptionPluginActionFailed('$error'))));
+    } finally {
+      if (mounted) setState(() => _updatingOptions.remove(option.key));
+    }
+  }
 
   Future<void> _signOut() async {
+    final status = ref.read(subscriptionsProvider).value?.of(widget.subscription);
+    final label = _resolveLabel(status);
     final ok = await showAppDialog<bool>(
       context: context,
       builder: (dialog) => AlertDialog(
-        title: Text(context.l10n.engineSubscriptionSignOutTitle(_label)),
+        title: Text(context.l10n.engineSubscriptionSignOutTitle(label)),
         content: Text(context.l10n.engineSubscriptionSignOutBody),
         actions: [
           TextButton(onPressed: () => Navigator.pop(dialog, false), child: Text(context.l10n.commonCancel)),
@@ -124,14 +170,19 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
     // count against this one.)
     final failed = catalog.hasError || (catalog.value?.failures.any((f) => f.provider == wire) ?? false);
     final account = status?.account?.trim();
+    final label = _resolveLabel(status);
+    final supportsUsage = signedIn && (status?.supportsUsage ?? false);
+    final supportsCheckin = signedIn && (status?.supportsCheckin ?? false);
+    final options = status?.options ?? const <SubscriptionOption>[];
+    final usageAsync = supportsUsage ? ref.watch(subscriptionUsageProvider(widget.subscription)) : null;
     const gap = SizedBox(height: 24);
     final modelsTitle = models.isEmpty ? l10n.engineModelTitle : l10n.engineProviderModelCount(models.length);
 
     return AppPage(
-      title: _label,
+      title: label,
       hero: PageHero(
-        leading: Monogram(_label, size: 56, letter: subscriptionLetter(widget.subscription)),
-        title: _label,
+        leading: Monogram(label, size: 56, letter: subscriptionLetter(widget.subscription)),
+        title: label,
         subtitle: Row(
           children: [
             ProviderDot(signedIn ? StatusTone.ok : StatusTone.idle),
@@ -158,8 +209,48 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage> {
                       ? (signedIn ? l10n.commonSignedIn : l10n.engineAccountSignedOut)
                       : account,
                 ),
+                if (supportsCheckin)
+                  ListPageRow(
+                    icon: AppIcons.done,
+                    title: l10n.engineSubscriptionCheckin,
+                    trailing: _checkingIn
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : null,
+                    onTap: _checkingIn ? null : _checkin,
+                  ),
               ],
             ),
+            if (supportsUsage && usageAsync != null) ...[
+              gap,
+              _UsageCard(
+                usageAsync: usageAsync,
+                onRefresh: () => ref.invalidate(subscriptionUsageProvider(widget.subscription)),
+              ),
+            ],
+            if (options.isNotEmpty) ...[
+              gap,
+              ListPageCard(
+                title: l10n.engineSubscriptionOptionsSection,
+                children: [
+                  for (final opt in options)
+                    ListPageRow(
+                      icon: AppIcons.configure,
+                      title: opt.label,
+                      subtitle: opt.description,
+                      trailing: Switch.adaptive(
+                        value: opt.value == true,
+                        onChanged: _updatingOptions.contains(opt.key) ? null : (v) => _toggleOption(opt, v),
+                      ),
+                      onTap: _updatingOptions.contains(opt.key)
+                          ? null
+                          : () => _toggleOption(opt, !(opt.value == true)),
+                    ),
+                ],
+              ),
+            ],
             gap,
             if (models.isEmpty && !catalog.isLoading && failed)
               _modelsFailed(catalog.error)
@@ -229,6 +320,67 @@ class _ModelRow extends StatelessWidget {
       subtitle: model.name == model.id ? null : model.id,
       value: !showContext ? null : (value == null ? l10n.commonDefault : formatTokens(value)),
       onTap: onTap,
+    );
+  }
+}
+
+class _UsageCard extends StatelessWidget {
+  const _UsageCard({required this.usageAsync, required this.onRefresh});
+
+  final AsyncValue<SubscriptionUsage?> usageAsync;
+  final VoidCallback onRefresh;
+
+  String _formatWindowValue(SubscriptionUsageWindow window) {
+    final display = window.display?.trim();
+    if (display != null && display.isNotEmpty) return display;
+    final amount = window.amount;
+    final limit = window.limit;
+    final unit = window.unit?.trim();
+    if (limit > 0) {
+      final a = amount % 1 == 0 ? amount.toInt().toString() : amount.toStringAsFixed(2);
+      final l = limit % 1 == 0 ? limit.toInt().toString() : limit.toStringAsFixed(2);
+      return unit != null && unit.isNotEmpty ? '$a / $l $unit' : '$a / $l';
+    }
+    if (amount > 0) {
+      final a = amount % 1 == 0 ? amount.toInt().toString() : amount.toStringAsFixed(2);
+      return unit != null && unit.isNotEmpty ? '$a $unit' : a;
+    }
+    if (window.usedPercent case final pct?) {
+      return '${pct.toStringAsFixed(0)}%';
+    }
+    return '';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final usage = usageAsync.value;
+    return ListPageCard(
+      title: l10n.engineSubscriptionUsageSection,
+      children: [
+        if (usageAsync.isLoading && usage == null)
+          const QuietSpinner(padding: EdgeInsets.symmetric(vertical: 16))
+        else if (usage != null) ...[
+          if (usage.plan case final plan? when plan.trim().isNotEmpty)
+            ListPageRow(
+              icon: AppIcons.balance,
+              title: l10n.engineProvidersSubscription,
+              value: plan.trim(),
+            ),
+          for (final window in usage.windows)
+            ListPageRow(
+              icon: AppIcons.chart,
+              title: window.name,
+              subtitle: window.resetsAt,
+              value: _formatWindowValue(window),
+            ),
+        ],
+        ListPageRow(
+          icon: AppIcons.refresh,
+          title: l10n.engineSubscriptionUsageRefresh,
+          onTap: usageAsync.isLoading ? null : onRefresh,
+        ),
+      ],
     );
   }
 }

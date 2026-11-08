@@ -131,7 +131,7 @@ void main() {
   });
 }
 
-class _FailingBeginBackend implements SubscriptionBackend {
+class _FailingBeginBackend extends SubscriptionBackend {
   _FailingBeginBackend(this.error);
 
   final Object error;

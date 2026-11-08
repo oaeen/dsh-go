@@ -57,7 +57,20 @@ async function hostImport(specifier) {
 const { TypertRemoteService, Remote, RemoteError } = await hostImport('@deepseek-ai/dsh-typert-protocol')
 
 /** The Remote methods, by implementation name (= wire method name). */
-const REMOTE_METHODS = ['list', 'begin', 'poll', 'answer', 'cancel', 'signOut']
+const REMOTE_METHODS = [
+  'list',
+  'begin',
+  'poll',
+  'answer',
+  'cancel',
+  'signOut',
+  'usage',
+  'checkin',
+  'setOption',
+  'market',
+  'installPlugin',
+  'removePlugin',
+]
 const markRemoteMethods = []
 
 export default class AppAuth extends TypertRemoteService {
@@ -69,7 +82,7 @@ export default class AppAuth extends TypertRemoteService {
   constructor(ctx) {
     super(ctx, 'appAuth')
     for (const mark of markRemoteMethods) mark.call(this)
-    this.bridge = new AuthBridge({ get: (name) => ctx.get(name), RemoteError })
+    this.bridge = new AuthBridge({ get: (name) => ctx.get(name), RemoteError, magpie: true })
     ctx.effect(() => () => this.bridge.dispose(), 'appAuth: sign-in attempts')
   }
 
@@ -95,6 +108,30 @@ export default class AppAuth extends TypertRemoteService {
 
   signOut(provider) {
     return this.bridge.signOut(provider)
+  }
+
+  usage(provider) {
+    return this.bridge.usage(provider)
+  }
+
+  checkin(provider) {
+    return this.bridge.checkin(provider)
+  }
+
+  setOption(provider, key, value) {
+    return this.bridge.setOption(provider, key, value)
+  }
+
+  market() {
+    return this.bridge.market()
+  }
+
+  installPlugin(spec) {
+    return this.bridge.installPlugin(spec)
+  }
+
+  removePlugin(spec) {
+    return this.bridge.removePlugin(spec)
   }
 }
 

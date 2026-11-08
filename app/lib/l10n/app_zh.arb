@@ -3897,6 +3897,46 @@
       }
     }
   },
+  "engineSubscriptionPluginMarket": "订阅插件市场",
+  "engineSubscriptionPluginMarketSubtitle": "接入 WorkBuddy、Kiro、Cursor、Qoder、ZCode 等订阅",
+  "engineSubscriptionPluginInstall": "安装",
+  "engineSubscriptionPluginInstalling": "安装中…",
+  "engineSubscriptionPluginInstalled": "已安装",
+  "engineSubscriptionPluginRemove": "卸载",
+  "engineSubscriptionPluginRemoving": "卸载中…",
+  "engineSubscriptionPluginCustomTitle": "自定义插件包",
+  "engineSubscriptionPluginCustomHint": "输入 npm 包名或 Git 地址（如 @magpie-community/opencode-workbuddy-auth）",
+  "engineSubscriptionPluginInstallSuccess": "已安装 {name}",
+  "@engineSubscriptionPluginInstallSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "engineSubscriptionPluginRemoveSuccess": "已卸载 {name}",
+  "@engineSubscriptionPluginRemoveSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "engineSubscriptionPluginActionFailed": "操作失败：{error}",
+  "@engineSubscriptionPluginActionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "engineSubscriptionUsageSection": "套餐与用量",
+  "engineSubscriptionUsageRefresh": "刷新用量",
+  "engineSubscriptionCheckin": "每日签到",
+  "engineSubscriptionCheckinRunning": "签到中…",
+  "engineSubscriptionCheckinDone": "签到完成",
+  "engineSubscriptionOptionsSection": "插件选项",
+  "engineSubscriptionOpenBrowser": "打开授权网页",
   "featuresCordisSubtitle": "动态插件 · 引擎重启后清空",
   "featuresCordisUnavailable": "这个连接看不到 Cordis",
   "featuresCordisRemoteUnavailable": "经 DSH Remote 中转时不可用",

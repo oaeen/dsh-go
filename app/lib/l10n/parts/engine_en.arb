@@ -358,5 +358,45 @@
   "engineFieldEditOnWeb": "Edit this item on the web",
   "engineSettingsHostChanged": "The host changed. Reopen these settings to edit.",
   "engineSecretTargetChanged": "This field changed. Reopen it to edit.",
-  "engineSettingsGroupCount": "{count, plural, =1{1 setting} other{{count} settings}}"
+  "engineSettingsGroupCount": "{count, plural, =1{1 setting} other{{count} settings}}",
+  "engineSubscriptionPluginMarket": "Subscription plugins",
+  "engineSubscriptionPluginMarketSubtitle": "Connect WorkBuddy, Kiro, Cursor, Qoder, ZCode and more",
+  "engineSubscriptionPluginInstall": "Install",
+  "engineSubscriptionPluginInstalling": "Installing…",
+  "engineSubscriptionPluginInstalled": "Installed",
+  "engineSubscriptionPluginRemove": "Uninstall",
+  "engineSubscriptionPluginRemoving": "Uninstalling…",
+  "engineSubscriptionPluginCustomTitle": "Custom plugin package",
+  "engineSubscriptionPluginCustomHint": "npm package or Git spec (e.g. @magpie-community/opencode-workbuddy-auth)",
+  "engineSubscriptionPluginInstallSuccess": "Installed {name}",
+  "@engineSubscriptionPluginInstallSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "engineSubscriptionPluginRemoveSuccess": "Uninstalled {name}",
+  "@engineSubscriptionPluginRemoveSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "engineSubscriptionPluginActionFailed": "Failed: {error}",
+  "@engineSubscriptionPluginActionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "engineSubscriptionUsageSection": "Plan & usage",
+  "engineSubscriptionUsageRefresh": "Refresh usage",
+  "engineSubscriptionCheckin": "Daily check-in",
+  "engineSubscriptionCheckinRunning": "Checking in…",
+  "engineSubscriptionCheckinDone": "Checked in",
+  "engineSubscriptionOptionsSection": "Plugin options",
+  "engineSubscriptionOpenBrowser": "Open sign-in page"
 }

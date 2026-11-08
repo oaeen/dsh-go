@@ -11786,6 +11786,120 @@ abstract class L10n {
   /// **'{count} 项'**
   String engineSettingsGroupCount(int count);
 
+  /// No description provided for @engineSubscriptionPluginMarket.
+  ///
+  /// In zh, this message translates to:
+  /// **'订阅插件市场'**
+  String get engineSubscriptionPluginMarket;
+
+  /// No description provided for @engineSubscriptionPluginMarketSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'接入 WorkBuddy、Kiro、Cursor、Qoder、ZCode 等订阅'**
+  String get engineSubscriptionPluginMarketSubtitle;
+
+  /// No description provided for @engineSubscriptionPluginInstall.
+  ///
+  /// In zh, this message translates to:
+  /// **'安装'**
+  String get engineSubscriptionPluginInstall;
+
+  /// No description provided for @engineSubscriptionPluginInstalling.
+  ///
+  /// In zh, this message translates to:
+  /// **'安装中…'**
+  String get engineSubscriptionPluginInstalling;
+
+  /// No description provided for @engineSubscriptionPluginInstalled.
+  ///
+  /// In zh, this message translates to:
+  /// **'已安装'**
+  String get engineSubscriptionPluginInstalled;
+
+  /// No description provided for @engineSubscriptionPluginRemove.
+  ///
+  /// In zh, this message translates to:
+  /// **'卸载'**
+  String get engineSubscriptionPluginRemove;
+
+  /// No description provided for @engineSubscriptionPluginRemoving.
+  ///
+  /// In zh, this message translates to:
+  /// **'卸载中…'**
+  String get engineSubscriptionPluginRemoving;
+
+  /// No description provided for @engineSubscriptionPluginCustomTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'自定义插件包'**
+  String get engineSubscriptionPluginCustomTitle;
+
+  /// No description provided for @engineSubscriptionPluginCustomHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'输入 npm 包名或 Git 地址（如 @magpie-community/opencode-workbuddy-auth）'**
+  String get engineSubscriptionPluginCustomHint;
+
+  /// No description provided for @engineSubscriptionPluginInstallSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'已安装 {name}'**
+  String engineSubscriptionPluginInstallSuccess(String name);
+
+  /// No description provided for @engineSubscriptionPluginRemoveSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'已卸载 {name}'**
+  String engineSubscriptionPluginRemoveSuccess(String name);
+
+  /// No description provided for @engineSubscriptionPluginActionFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'操作失败：{error}'**
+  String engineSubscriptionPluginActionFailed(String error);
+
+  /// No description provided for @engineSubscriptionUsageSection.
+  ///
+  /// In zh, this message translates to:
+  /// **'套餐与用量'**
+  String get engineSubscriptionUsageSection;
+
+  /// No description provided for @engineSubscriptionUsageRefresh.
+  ///
+  /// In zh, this message translates to:
+  /// **'刷新用量'**
+  String get engineSubscriptionUsageRefresh;
+
+  /// No description provided for @engineSubscriptionCheckin.
+  ///
+  /// In zh, this message translates to:
+  /// **'每日签到'**
+  String get engineSubscriptionCheckin;
+
+  /// No description provided for @engineSubscriptionCheckinRunning.
+  ///
+  /// In zh, this message translates to:
+  /// **'签到中…'**
+  String get engineSubscriptionCheckinRunning;
+
+  /// No description provided for @engineSubscriptionCheckinDone.
+  ///
+  /// In zh, this message translates to:
+  /// **'签到完成'**
+  String get engineSubscriptionCheckinDone;
+
+  /// No description provided for @engineSubscriptionOptionsSection.
+  ///
+  /// In zh, this message translates to:
+  /// **'插件选项'**
+  String get engineSubscriptionOptionsSection;
+
+  /// No description provided for @engineSubscriptionOpenBrowser.
+  ///
+  /// In zh, this message translates to:
+  /// **'打开授权网页'**
+  String get engineSubscriptionOpenBrowser;
+
   /// No description provided for @featuresCordisSubtitle.
   ///
   /// In zh, this message translates to:

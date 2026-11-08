@@ -25,7 +25,15 @@ object AppAuthGuest {
 
     /** Where Flutter packs `app/assets/engine/auth/` inside the APK's assets. */
     private const val ASSET_DIR = "flutter_assets/assets/engine/auth"
-    private val MODULES = listOf("index.mjs", "bridge.mjs")
+    private val MODULES = listOf(
+        "index.mjs",
+        "bridge.mjs",
+        "magpie.mjs",
+        "bun-shim.mjs",
+        "host.js",
+        "pi.js",
+        "market.json",
+    )
 
     private const val WEB_PATCH_ARG = "--patch /etc/dsh-app/dsh-web.patch.yml"
     private const val DSH_WEB = "/usr/local/bin/dsh web"

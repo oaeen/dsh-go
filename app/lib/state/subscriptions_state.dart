@@ -11,12 +11,26 @@ import 'models_state.dart';
 import 'providers_state.dart';
 import 'read_list_epoch.dart';
 
-export 'package:dsh_client/dsh_client.dart' show LoginPhase, LoginStep, Subscription, SubscriptionStatus;
+export 'package:dsh_client/dsh_client.dart'
+    show
+        LoginPhase,
+        LoginPromptOption,
+        LoginStep,
+        Subscription,
+        SubscriptionCheckin,
+        SubscriptionMarketPlugin,
+        SubscriptionOption,
+        SubscriptionPluginInstallResult,
+        SubscriptionStatus,
+        SubscriptionUsage,
+        SubscriptionUsageWindow,
+        kMagpiePluginKeyEnv;
 
 /// 订阅在界面上的名字。
-String subscriptionLabel(Subscription s) => switch (s) {
-  Subscription.chatgpt => 'ChatGPT',
-  Subscription.claude => 'Claude',
+String subscriptionLabel(Subscription s, {String? displayName}) => switch (s.wire) {
+  'openai-codex' => 'ChatGPT',
+  'anthropic' => 'Claude',
+  _ => (displayName != null && displayName.isNotEmpty) ? displayName : (s.displayName ?? s.wire),
 };
 
 /// One short line for a failure of the bridge itself (not of the provider's
@@ -54,9 +68,23 @@ abstract class SubscriptionBackend {
   Future<void> cancel(String attemptId);
 
   Future<void> signOut(Subscription subscription);
+
+  Future<SubscriptionUsage> usage(Subscription subscription) async => const SubscriptionUsage();
+
+  Future<SubscriptionCheckin> checkin(Subscription subscription) async =>
+      const SubscriptionCheckin(ok: false, outcome: 'inactive');
+
+  Future<List<SubscriptionOption>> setOption(Subscription subscription, String key, bool value) async => const [];
+
+  Future<List<SubscriptionMarketPlugin>> market() async => const [];
+
+  Future<SubscriptionPluginInstallResult> installPlugin(String spec) async =>
+      SubscriptionPluginInstallResult(spec: spec, package: spec);
+
+  Future<List<String>> removePlugin(String spec) async => const [];
 }
 
-class ClientSubscriptionBackend implements SubscriptionBackend {
+class ClientSubscriptionBackend extends SubscriptionBackend {
   ClientSubscriptionBackend(this.client);
 
   final DshClient client;
@@ -78,6 +106,25 @@ class ClientSubscriptionBackend implements SubscriptionBackend {
 
   @override
   Future<void> signOut(Subscription subscription) => client.signOut(subscription);
+
+  @override
+  Future<SubscriptionUsage> usage(Subscription subscription) => client.subscriptionUsage(subscription);
+
+  @override
+  Future<SubscriptionCheckin> checkin(Subscription subscription) => client.subscriptionCheckin(subscription);
+
+  @override
+  Future<List<SubscriptionOption>> setOption(Subscription subscription, String key, bool value) =>
+      client.setSubscriptionOption(subscription, key, value);
+
+  @override
+  Future<List<SubscriptionMarketPlugin>> market() => client.subscriptionMarket();
+
+  @override
+  Future<SubscriptionPluginInstallResult> installPlugin(String spec) => client.installSubscriptionPlugin(spec);
+
+  @override
+  Future<List<String>> removePlugin(String spec) => client.removeSubscriptionPlugin(spec);
 }
 
 /// The active engine's sign-in bridge; null while not connected.
@@ -140,6 +187,23 @@ final subscriptionProfileProvider = FutureProvider.autoDispose.family<ProviderPr
   ref.onDispose(() => unawaited(sub.cancel()));
   final settings = await backend.read();
   return settings?.byRoute(subscription.wire);
+});
+
+/// Queries subscription plan and quota windows (`appAuth/usage`).
+final subscriptionUsageProvider = FutureProvider.autoDispose.family<SubscriptionUsage?, Subscription>((
+  ref,
+  subscription,
+) async {
+  final backend = ref.watch(subscriptionBackendProvider);
+  if (backend == null) return null;
+  return backend.usage(subscription);
+});
+
+/// Lists available and installed Magpie subscription plugins (`appAuth/market`).
+final subscriptionMarketProvider = FutureProvider.autoDispose<List<SubscriptionMarketPlugin>>((ref) async {
+  final backend = ref.watch(subscriptionBackendProvider);
+  if (backend == null) return const [];
+  return backend.market();
 });
 
 /// One sign-in attempt, polled about once a second while its sheet is open.

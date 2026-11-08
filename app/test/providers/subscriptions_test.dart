@@ -129,7 +129,15 @@ void main() {
         for (final row in tester.widgetList<ListPageRow>(find.byType(ListPageRow)))
           row.title ?? row.spot?.title(appL10n),
       ];
-      expect(titles, [appL10n.viewModelSelect, 'DeepSeek', 'ChatGPT', 'Claude', 'My Gateway', '添加渠道']);
+      expect(titles, [
+        appL10n.viewModelSelect,
+        'DeepSeek',
+        'ChatGPT',
+        'Claude',
+        appL10n.engineSubscriptionPluginMarket,
+        'My Gateway',
+        '添加渠道',
+      ]);
       // Plain letters, no brand marks: 「G」 and 「C」.
       expect(find.text('G'), findsOneWidget);
       expect(find.text('C'), findsOneWidget);
@@ -524,6 +532,120 @@ void main() {
       await settle(tester);
       expect(bridge.calls, contains('signOut:openai-codex'));
       expect(find.byType(SubscriptionPage), findsNothing);
+    });
+
+    testWidgets('plugin subscription page: usage windows, daily checkin, and option toggle', (tester) async {
+      const workbuddy = Subscription('workbuddy');
+      final bridge = FakeSubscriptionBackend(
+        statuses: const [
+          SubscriptionStatus(
+            subscription: workbuddy,
+            signedIn: true,
+            account: 'wb_user',
+            displayName: 'WorkBuddy (Tencent)',
+            pluginSpec: '@magpie-community/opencode-workbuddy-auth',
+            supportsUsage: true,
+            supportsCheckin: true,
+            options: [
+              SubscriptionOption(
+                key: 'lite_routing',
+                label: 'Lite Routing',
+                value: false,
+                description: 'Route lightweight requests to lite tier',
+              ),
+            ],
+          ),
+        ],
+        usageData: const SubscriptionUsage(
+          plan: 'Pro',
+          windows: [
+            SubscriptionUsageWindow(name: 'Monthly', amount: 120, limit: 500, unit: 'credits'),
+          ],
+        ),
+      );
+      await _pump(
+        tester,
+        Scaffold(
+          body: Builder(
+            builder: (context) => Center(
+              child: TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const SubscriptionPage(subscription: workbuddy)),
+                ),
+                child: const Text('open-wb'),
+              ),
+            ),
+          ),
+        ),
+        [
+          ...providerOverrides(FakeProviderBackend(), subscriptions: bridge),
+          modelCatalogProvider.overrideWith((ref) async => _codexCatalog),
+        ],
+      );
+      await tester.tap(find.text('open-wb'));
+      await settle(tester);
+      expect(find.text('WorkBuddy (Tencent)'), findsWidgets);
+      expect(find.text('wb_user'), findsOneWidget);
+      expect(find.text('Pro'), findsOneWidget);
+      expect(find.text('120 / 500 credits'), findsOneWidget);
+      expect(find.text('Lite Routing'), findsOneWidget);
+
+      await tester.tap(find.text(appL10n.engineSubscriptionCheckin));
+      await settle(tester);
+      expect(bridge.calls, contains('checkin:workbuddy'));
+
+      await tester.tap(find.text('Lite Routing'));
+      await settle(tester);
+      expect(bridge.calls, contains('setOption:workbuddy:lite_routing:true'));
+    });
+
+    testWidgets('plugin market page lists market plugins and installs / removes', (tester) async {
+      final bridge = FakeSubscriptionBackend(
+        marketPlugins: [
+          const SubscriptionMarketPlugin(
+            name: 'WorkBuddy (Tencent)',
+            package: '@magpie-community/opencode-workbuddy-auth',
+            summaryZh: '腾讯 WorkBuddy 订阅登录',
+            summaryEn: 'Tencent WorkBuddy subscription auth',
+            installed: false,
+          ),
+        ],
+      );
+      await _pump(
+        tester,
+        const ProvidersPage(),
+        providerOverrides(FakeProviderBackend(), subscriptions: bridge),
+      );
+      await tester.tap(find.text(appL10n.engineSubscriptionPluginMarket));
+      await settle(tester);
+      expect(find.text('WorkBuddy (Tencent)'), findsOneWidget);
+      expect(find.text('腾讯 WorkBuddy 订阅登录'), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(FilledButton, appL10n.engineSubscriptionPluginInstall).last);
+      await settle(tester);
+      expect(bridge.calls, contains('installPlugin:@magpie-community/opencode-workbuddy-auth'));
+    });
+
+    testWidgets('prompt with options renders method selection buttons', (tester) async {
+      final bridge = FakeSubscriptionBackend(
+        steps: const [
+          LoginStep(
+            phase: LoginPhase.prompt,
+            message: 'Select login method',
+            options: [
+              LoginPromptOption(id: '0', label: 'WorkBuddy China (国内版)'),
+              LoginPromptOption(id: '1', label: 'CodeBuddy International (国际版)'),
+            ],
+          ),
+          LoginStep(phase: LoginPhase.done),
+        ],
+      );
+      await _openSheet(tester, bridge);
+      expect(find.text('WorkBuddy China (国内版)'), findsOneWidget);
+      expect(find.text('CodeBuddy International (国际版)'), findsOneWidget);
+      await tester.tap(find.text('WorkBuddy China (国内版)'));
+      await settle(tester);
+      expect(bridge.calls, contains('answer:att-1:0'));
     });
   });
 }

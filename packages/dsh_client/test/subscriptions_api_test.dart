@@ -309,4 +309,121 @@ void main() {
       );
     });
   });
+
+  group('Magpie plugin subscriptions', () {
+    test('parses plugin subscriptions, options, select prompts, usage, checkin and market', () async {
+      final carrier = _ScriptedCarrier({
+        'appAuth/list': (_) => ok({
+          'providers': [
+            {'id': 'openai-codex', 'signedIn': false},
+            {
+              'id': 'workbuddy',
+              'displayName': 'WorkBuddy',
+              'pluginSpec': '@magpie-community/opencode-workbuddy-auth',
+              'signedIn': true,
+              'account': 'user@codebuddy.cn',
+              'supportsUsage': true,
+              'supportsCheckin': true,
+              'options': [
+                {'key': 'pro_models', 'label': '启用 Pro 模型', 'filtersModels': true, 'value': true},
+              ],
+            },
+          ],
+        }),
+        'appAuth/poll': (_) => ok({
+          'phase': 'prompt',
+          'message': '选择站点',
+          'options': [
+            {'id': 'cn', 'label': '国内版', 'hint': '推荐'},
+            {'id': 'intl', 'label': '国际版'},
+          ],
+        }),
+        'appAuth/usage': (_) => ok({
+          'plan': 'CodeBuddy Pro',
+          'windows': [
+            {'name': '月度请求', 'used': 24, 'amount': 120, 'limit': 500, 'unit': '次'},
+          ],
+        }),
+        'appAuth/checkin': (_) => ok({
+          'ok': true,
+          'outcome': 'claimed',
+          'credit': 50,
+          'streak': 3,
+          'message': '今日签到成功',
+        }),
+        'appAuth/setOption': (_) => ok({
+          'options': [
+            {'key': 'pro_models', 'label': '启用 Pro 模型', 'value': false},
+          ],
+        }),
+        'appAuth/market': (_) => ok({
+          'plugins': [
+            {
+              'package': '@magpie-community/opencode-workbuddy-auth',
+              'name': 'WorkBuddy',
+              'providers': ['workbuddy', 'workbuddy-ai'],
+              'community': true,
+              'summaryZh': 'WorkBuddy 国内版与国际版',
+              'summaryEn': 'WorkBuddy China and international',
+              'installed': true,
+              'version': '0.3.2',
+            },
+          ],
+        }),
+        'appAuth/installPlugin': (_) => ok({
+          'spec': '@magpie-community/opencode-workbuddy-auth',
+          'package': '@magpie-community/opencode-workbuddy-auth',
+          'version': '0.3.2',
+          'providers': ['workbuddy', 'workbuddy-ai'],
+        }),
+        'appAuth/removePlugin': (_) => ok({
+          'removedProviders': ['workbuddy', 'workbuddy-ai'],
+        }),
+      });
+
+      final client = DshClient.withCarrier(carrier);
+      final list = await client.subscriptions();
+      expect(list, hasLength(2));
+      final wb = list[1];
+      expect(wb.subscription, const Subscription('workbuddy', displayName: 'WorkBuddy'));
+      expect(wb.displayName, 'WorkBuddy');
+      expect(wb.pluginSpec, '@magpie-community/opencode-workbuddy-auth');
+      expect(wb.signedIn, isTrue);
+      expect(wb.supportsUsage, isTrue);
+      expect(wb.supportsCheckin, isTrue);
+      expect(wb.options, hasLength(1));
+      expect(wb.options.single.key, 'pro_models');
+      expect(wb.options.single.value, isTrue);
+
+      final step = await client.pollLogin('a-wb');
+      expect(step.phase, LoginPhase.prompt);
+      expect(step.options, hasLength(2));
+      expect(step.options.first.id, 'cn');
+      expect(step.options.first.hint, '推荐');
+
+      final usage = await client.subscriptionUsage(wb.subscription);
+      expect(usage.plan, 'CodeBuddy Pro');
+      expect(usage.windows.single.name, '月度请求');
+      expect(usage.windows.single.amount, 120);
+      expect(usage.windows.single.limit, 500);
+
+      final checkin = await client.subscriptionCheckin(wb.subscription);
+      expect(checkin.ok, isTrue);
+      expect(checkin.credit, 50);
+      expect(checkin.streak, 3);
+
+      final opts = await client.setSubscriptionOption(wb.subscription, 'pro_models', false);
+      expect(opts.single.value, isFalse);
+
+      final market = await client.subscriptionMarket();
+      expect(market.single.package, '@magpie-community/opencode-workbuddy-auth');
+      expect(market.single.installed, isTrue);
+
+      final installed = await client.installSubscriptionPlugin('@magpie-community/opencode-workbuddy-auth');
+      expect(installed.providers, ['workbuddy', 'workbuddy-ai']);
+
+      final removed = await client.removeSubscriptionPlugin('@magpie-community/opencode-workbuddy-auth');
+      expect(removed, ['workbuddy', 'workbuddy-ai']);
+    });
+  });
 }

@@ -6373,6 +6373,69 @@ class L10nZh extends L10n {
   }
 
   @override
+  String get engineSubscriptionPluginMarket => '订阅插件市场';
+
+  @override
+  String get engineSubscriptionPluginMarketSubtitle => '接入 WorkBuddy、Kiro、Cursor、Qoder、ZCode 等订阅';
+
+  @override
+  String get engineSubscriptionPluginInstall => '安装';
+
+  @override
+  String get engineSubscriptionPluginInstalling => '安装中…';
+
+  @override
+  String get engineSubscriptionPluginInstalled => '已安装';
+
+  @override
+  String get engineSubscriptionPluginRemove => '卸载';
+
+  @override
+  String get engineSubscriptionPluginRemoving => '卸载中…';
+
+  @override
+  String get engineSubscriptionPluginCustomTitle => '自定义插件包';
+
+  @override
+  String get engineSubscriptionPluginCustomHint => '输入 npm 包名或 Git 地址（如 @magpie-community/opencode-workbuddy-auth）';
+
+  @override
+  String engineSubscriptionPluginInstallSuccess(String name) {
+    return '已安装 $name';
+  }
+
+  @override
+  String engineSubscriptionPluginRemoveSuccess(String name) {
+    return '已卸载 $name';
+  }
+
+  @override
+  String engineSubscriptionPluginActionFailed(String error) {
+    return '操作失败：$error';
+  }
+
+  @override
+  String get engineSubscriptionUsageSection => '套餐与用量';
+
+  @override
+  String get engineSubscriptionUsageRefresh => '刷新用量';
+
+  @override
+  String get engineSubscriptionCheckin => '每日签到';
+
+  @override
+  String get engineSubscriptionCheckinRunning => '签到中…';
+
+  @override
+  String get engineSubscriptionCheckinDone => '签到完成';
+
+  @override
+  String get engineSubscriptionOptionsSection => '插件选项';
+
+  @override
+  String get engineSubscriptionOpenBrowser => '打开授权网页';
+
+  @override
   String get featuresCordisSubtitle => '动态插件 · 引擎重启后清空';
 
   @override
