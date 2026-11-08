@@ -36,7 +36,7 @@ void main() {
     var cy = 0.0;
     var box = Rect.zero;
     var first = true;
-    for (final path in [BrandGlyph.body, BrandGlyph.bubble]) {
+    for (final path in [BrandGlyph.body]) {
       for (final poly in _outline(path)) {
         for (var i = 0; i < poly.length; i++) {
           final a = poly[i];
@@ -59,18 +59,11 @@ void main() {
     expect(box.right, closeTo(BrandGlyph.box.right, 0.01));
     expect(box.bottom, closeTo(BrandGlyph.box.bottom, 0.01));
     expect(BrandGlyph.aspect, closeTo(BrandGlyph.box.width / BrandGlyph.box.height, 1e-5));
-    // The fin and the belly lie on the silhouette.
-    final body = BrandGlyph.body.getBounds();
-    for (final layer in [BrandGlyph.fin, BrandGlyph.belly]) {
-      final b = layer.getBounds();
-      expect(b.left >= body.left - 1e-3 && b.right <= body.right + 1e-3, isTrue);
-      expect(b.top >= body.top - 1e-3 && b.bottom <= body.bottom + 1e-3, isTrue);
-    }
     // The glyph sits in the tile's visible square like the launcher's glyph.
     expect(BrandGlyph.tileBox.contains(BrandGlyph.box.topLeft), isTrue);
     expect(BrandGlyph.tileBox.contains(BrandGlyph.box.bottomRight), isTrue);
-    // Visual centre: a little below the box's middle, near the middle across.
-    expect(BrandMark.visualCentre.dy, inInclusiveRange(0.5, 0.65));
+    // Visual centre: near the middle of the box.
+    expect(BrandMark.visualCentre.dy, inInclusiveRange(0.45, 0.65));
     expect((BrandMark.visualCentre.dx - 0.5).abs(), lessThan(0.05));
   });
 
@@ -92,7 +85,7 @@ void main() {
     expect(tester.getSize(find.byKey(const ValueKey('mono'))), Size(18 * BrandMark.aspect, 18));
     expect(tester.getSize(find.byKey(const ValueKey('tile'))), const Size(52, 52));
     final shift = BrandMark.opticalShift(40);
-    expect(shift.dy, lessThan(0));
+    expect(shift.dy.abs(), lessThan(40 * 0.05));
     expect(shift.dx.abs(), lessThan(40 * BrandMark.aspect * 0.05));
   });
 

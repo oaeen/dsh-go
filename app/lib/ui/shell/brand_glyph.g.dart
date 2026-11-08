@@ -5,88 +5,103 @@
 // launcher layer (android/app/src/main/res/drawable/ic_launcher_monochrome.xml).
 
 // dart format off
-import 'dart:typed_data';
 import 'dart:ui' as ui;
-import 'dart:ui' show Color, Offset, Path, Rect, Shader, TileMode;
+import 'dart:ui' show Color, Offset, Path, Rect, Shader;
 
 /// Paths, gradients and measurements of the brand glyph (see `brand_mark.dart`).
 abstract final class BrandGlyph {
-  /// The glyph's ink box (tail, body and bubble).
-  static const box = Rect.fromLTRB(26.75, 28.015, 81.257, 80.004);
+  /// The glyph's ink box.
+  static const box = Rect.fromLTRB(26.7502, 33.5293, 81.2501, 74.4712);
 
   /// Width / height of [box].
-  static const aspect = 1.048433;
+  static const aspect = 1.331148;
 
   /// Visual centre: the area centroid of the ink, in the grid.
-  static const centroid = Offset(53.5714, 57.7307);
+  static const centroid = Offset(52.4606, 52.7582);
 
   /// The tile: the 72-unit visible square of the launcher icon.
   static const tileBox = Rect.fromLTWH(18, 18, 72, 72);
 
-  /// Tail, fin and body as one shape: the silhouette.
+  /// The DeepSeek Harness whale silhouette (outer contour and cutouts).
   static final Path body = Path()
-    ..moveTo(41.533, 42.237)
-    ..cubicTo(44.542, 35.225, 52.318, 30.559, 59.471, 28.765)
-    ..cubicTo(60.371, 28.538, 62.707, 28.015, 63.555, 28.015)
-    ..cubicTo(64.422, 28.015, 64.421, 28.514, 64.421, 29.29)
-    ..cubicTo(64.421, 31.68, 63.303, 34.553, 62.143, 36.621)
-    ..cubicTo(55.998, 47.579, 48.019, 44.056, 43.838, 46.999)
-    ..cubicTo(43.15, 47.483, 42.766, 48.054, 42.766, 48.912)
-    ..cubicTo(42.766, 50.39, 43.965, 52.011, 44.897, 53.082)
-    ..cubicTo(45.928, 54.267, 47.16, 55.238, 48.469, 56.094)
-    ..cubicTo(55.176, 60.483, 63.472, 60.609, 71.206, 61.347)
-    ..cubicTo(74.082, 61.621, 79.534, 62.636, 79.534, 66.422)
-    ..cubicTo(79.534, 68.215, 78.222, 70.141, 77.075, 71.438)
-    ..cubicTo(71.344, 77.92, 61.895, 80.004, 53.58, 80.004)
-    ..cubicTo(44.713, 80.004, 35.314, 77.576, 31.142, 68.924)
-    ..cubicTo(30.012, 66.582, 29.365, 64.181, 29.365, 61.571)
-    ..cubicTo(29.365, 55.356, 33.535, 50.83, 37.86, 46.956)
-    ..cubicTo(38.345, 46.522, 38.831, 46.123, 39.305, 45.676)
-    ..cubicTo(38.855, 45.728, 38.235, 45.778, 37.786, 45.778)
-    ..cubicTo(33.274, 45.778, 29.511, 43.364, 27.53, 39.337)
-    ..cubicTo(27.273, 38.812, 26.75, 37.645, 26.75, 37.084)
-    ..cubicTo(26.75, 36.858, 26.762, 36.709, 26.938, 36.537)
-    ..cubicTo(27.598, 35.893, 30.489, 35.739, 31.449, 35.739)
-    ..cubicTo(34.863, 35.739, 39.247, 36.73, 40.913, 40.064)
-    ..cubicTo(41.275, 40.789, 41.476, 41.422, 41.533, 42.237)
-    ..close();
-
-  /// The fin, behind the tail's stem (drawn over [body] in the colour glyph).
-  static final Path fin = Path()
-    ..moveTo(39.305, 45.676)
-    ..cubicTo(38.855, 45.728, 38.235, 45.778, 37.786, 45.778)
-    ..cubicTo(33.274, 45.778, 29.511, 43.364, 27.53, 39.337)
-    ..cubicTo(27.273, 38.812, 26.75, 37.645, 26.75, 37.084)
-    ..cubicTo(26.75, 36.858, 26.762, 36.709, 26.938, 36.537)
-    ..cubicTo(27.598, 35.893, 30.489, 35.739, 31.449, 35.739)
-    ..cubicTo(34.863, 35.739, 39.247, 36.73, 40.913, 40.064)
-    ..cubicTo(41.275, 40.789, 41.476, 41.422, 41.533, 42.237)
-    ..cubicTo(40.939, 43.623, 40.431, 44.616, 39.305, 45.676)
-    ..close();
-
-  /// The belly, in front of the stem (drawn over [body] in the colour glyph).
-  static final Path belly = Path()
-    ..moveTo(71.206, 61.347)
-    ..cubicTo(74.082, 61.621, 79.534, 62.636, 79.534, 66.422)
-    ..cubicTo(79.534, 68.215, 78.222, 70.141, 77.075, 71.438)
-    ..cubicTo(71.344, 77.92, 61.895, 80.004, 53.58, 80.004)
-    ..cubicTo(44.713, 80.004, 35.314, 77.576, 31.142, 68.924)
-    ..cubicTo(30.012, 66.582, 29.365, 64.181, 29.365, 61.571)
-    ..cubicTo(29.365, 55.356, 33.535, 50.83, 37.86, 46.956)
-    ..cubicTo(36.25, 49.744, 34.973, 51.951, 34.973, 55.33)
-    ..cubicTo(34.973, 60.404, 38.211, 65.143, 42.955, 66.973)
-    ..cubicTo(44.549, 67.587, 46.222, 67.824, 47.922, 67.824)
-    ..cubicTo(55.125, 67.824, 60.394, 63.817, 66.806, 62.094)
-    ..cubicTo(68.398, 61.666, 69.588, 61.553, 71.206, 61.347)
-    ..close();
-
-  /// The bubble.
-  static final Path bubble = Path()
-    ..moveTo(72.336, 41.925)
-    ..cubicTo(77.122, 41.925, 81.257, 45.674, 81.257, 50.54)
-    ..cubicTo(81.257, 55.583, 76.554, 58.82, 71.902, 58.82)
-    ..cubicTo(67.179, 58.82, 63.019, 55.302, 63.019, 50.453)
-    ..cubicTo(63.019, 45.66, 67.675, 41.925, 72.336, 41.925)
+    ..moveTo(80.678, 36.965)
+    ..cubicTo(80.101, 36.677, 79.852, 37.227, 79.515, 37.506)
+    ..cubicTo(79.399, 37.597, 79.302, 37.714, 79.204, 37.822)
+    ..cubicTo(78.36, 38.742, 77.375, 39.346, 76.086, 39.274)
+    ..cubicTo(74.204, 39.166, 72.596, 39.77, 71.175, 41.24)
+    ..cubicTo(70.873, 39.427, 69.869, 38.345, 68.342, 37.651)
+    ..cubicTo(67.542, 37.29, 66.734, 36.929, 66.175, 36.144)
+    ..cubicTo(65.784, 35.585, 65.677, 34.963, 65.482, 34.349)
+    ..cubicTo(65.358, 33.98, 65.233, 33.601, 64.816, 33.538)
+    ..cubicTo(64.363, 33.466, 64.185, 33.853, 64.007, 34.178)
+    ..cubicTo(63.297, 35.504, 63.021, 36.965, 63.048, 38.444)
+    ..cubicTo(63.111, 41.772, 64.487, 44.424, 67.223, 46.309)
+    ..cubicTo(67.534, 46.525, 67.613, 46.742, 67.516, 47.058)
+    ..cubicTo(67.329, 47.707, 67.107, 48.338, 66.912, 48.987)
+    ..cubicTo(66.787, 49.403, 66.601, 49.492, 66.166, 49.312)
+    ..cubicTo(64.665, 48.672, 63.368, 47.725, 62.222, 46.579)
+    ..cubicTo(60.277, 44.659, 58.519, 42.539, 56.325, 40.88)
+    ..cubicTo(55.81, 40.491, 55.294, 40.131, 54.762, 39.788)
+    ..cubicTo(52.524, 37.57, 55.055, 35.747, 55.641, 35.531)
+    ..cubicTo(56.254, 35.305, 55.854, 34.53, 53.874, 34.539)
+    ..cubicTo(51.893, 34.548, 50.081, 35.225, 47.772, 36.126)
+    ..cubicTo(47.435, 36.262, 47.079, 36.361, 46.715, 36.442)
+    ..cubicTo(44.619, 36.036, 42.443, 35.946, 40.169, 36.208)
+    ..cubicTo(35.888, 36.694, 32.469, 38.76, 29.955, 42.287)
+    ..cubicTo(26.936, 46.525, 26.225, 51.341, 27.096, 56.365)
+    ..cubicTo(28.01, 61.659, 30.657, 66.042, 34.725, 69.47)
+    ..cubicTo(38.944, 73.023, 43.802, 74.764, 49.344, 74.431)
+    ..cubicTo(52.71, 74.232, 56.458, 73.772, 60.686, 70.119)
+    ..cubicTo(61.751, 70.66, 62.871, 70.877, 64.727, 71.039)
+    ..cubicTo(66.157, 71.174, 67.534, 70.967, 68.599, 70.741)
+    ..cubicTo(70.269, 70.381, 70.153, 68.802, 69.55, 68.514)
+    ..cubicTo(64.656, 66.187, 65.73, 67.134, 64.754, 66.367)
+    ..cubicTo(67.24, 63.364, 70.988, 60.243, 72.454, 50.133)
+    ..cubicTo(72.569, 49.33, 72.471, 48.825, 72.454, 48.176)
+    ..cubicTo(72.445, 47.779, 72.534, 47.626, 72.978, 47.581)
+    ..cubicTo(74.204, 47.436, 75.394, 47.093, 76.486, 46.48)
+    ..cubicTo(79.657, 44.712, 80.936, 41.808, 81.238, 38.327)
+    ..cubicTo(81.282, 37.795, 81.229, 37.245, 80.678, 36.965)
+    ..close()
+    ..moveTo(53.047, 68.297)
+    ..cubicTo(48.305, 64.491, 46.005, 63.238, 45.054, 63.292)
+    ..cubicTo(44.166, 63.346, 44.326, 64.383, 44.521, 65.059)
+    ..cubicTo(44.725, 65.727, 44.992, 66.187, 45.365, 66.773)
+    ..cubicTo(45.622, 67.161, 45.8, 67.738, 45.107, 68.171)
+    ..cubicTo(43.58, 69.136, 40.924, 67.846, 40.8, 67.783)
+    ..cubicTo(37.709, 65.925, 35.124, 63.472, 33.304, 60.117)
+    ..cubicTo(31.545, 56.888, 30.524, 53.425, 30.355, 49.727)
+    ..cubicTo(30.31, 48.834, 30.568, 48.519, 31.438, 48.356)
+    ..cubicTo(32.585, 48.14, 33.766, 48.095, 34.911, 48.266)
+    ..cubicTo(39.752, 48.987, 43.873, 51.197, 47.328, 54.697)
+    ..cubicTo(49.3, 56.69, 50.791, 59.071, 52.328, 61.398)
+    ..cubicTo(53.962, 63.869, 55.721, 66.223, 57.959, 68.153)
+    ..cubicTo(58.75, 68.829, 59.38, 69.344, 59.984, 69.722)
+    ..cubicTo(58.164, 69.93, 55.126, 69.975, 53.047, 68.297)
+    ..close()
+    ..moveTo(55.321, 53.371)
+    ..cubicTo(55.321, 52.974, 55.632, 52.658, 56.023, 52.658)
+    ..cubicTo(56.112, 52.658, 56.192, 52.676, 56.263, 52.703)
+    ..cubicTo(56.361, 52.74, 56.449, 52.794, 56.52, 52.875)
+    ..cubicTo(56.645, 53.001, 56.716, 53.182, 56.716, 53.371)
+    ..cubicTo(56.716, 53.768, 56.405, 54.083, 56.014, 54.083)
+    ..cubicTo(55.623, 54.083, 55.321, 53.768, 55.321, 53.371)
+    ..close()
+    ..moveTo(62.382, 57.069)
+    ..cubicTo(61.929, 57.258, 61.476, 57.42, 61.041, 57.438)
+    ..cubicTo(60.366, 57.474, 59.629, 57.195, 59.229, 56.852)
+    ..cubicTo(58.608, 56.32, 58.164, 56.023, 57.977, 55.093)
+    ..cubicTo(57.897, 54.697, 57.942, 54.083, 58.013, 53.731)
+    ..cubicTo(58.172, 52.974, 57.995, 52.487, 57.47, 52.045)
+    ..cubicTo(57.044, 51.684, 56.503, 51.585, 55.908, 51.585)
+    ..cubicTo(55.685, 51.585, 55.481, 51.486, 55.33, 51.405)
+    ..cubicTo(55.081, 51.279, 54.877, 50.963, 55.073, 50.575)
+    ..cubicTo(55.135, 50.448, 55.437, 50.142, 55.508, 50.088)
+    ..cubicTo(56.316, 49.619, 57.249, 49.772, 58.11, 50.124)
+    ..cubicTo(58.909, 50.458, 59.513, 51.071, 60.384, 51.937)
+    ..cubicTo(61.272, 52.983, 61.432, 53.271, 61.938, 54.056)
+    ..cubicTo(62.338, 54.67, 62.702, 55.301, 62.95, 56.023)
+    ..cubicTo(63.102, 56.473, 62.906, 56.843, 62.382, 57.069)
     ..close();
 
   /// The tile's rounded square (the app icon's outline).
@@ -113,12 +128,6 @@ abstract final class BrandGlyph {
   static final Shader tileFill = ui.Gradient.linear(Offset(7.57, -5.87), Offset(100.43, 113.87), const [Color(0xFF9AB0E8), Color(0xFF405AAD)], const [0, 1]);
 
   /// Gradients of the colour glyph: for light backgrounds, then for dark ones.
-  static final Shader tailLight = ui.Gradient.linear(Offset(36.3, 57), Offset(66.5, 40), const [Color(0xFF4261CD), Color(0xFF5E93E1)], const [0, 1]);
-  static final Shader finLight = ui.Gradient.linear(Offset(40.2, 41.5), Offset(28.1, 39.4), const [Color(0xFF4E68CE), Color(0xFF6692DB)], const [0, 1]);
-  static final Shader bellyLight = ui.Gradient.radial(Offset(0, 0), 1, const [Color(0xFF839AE6), Color(0xFF7B8DE0), Color(0xFF7075D2)], const [0, 0.6, 1], TileMode.clamp, Float64List.fromList(const [27, 0, 0, 0, 0, 13.5, 0, 0, 0, 0, 1, 0, 52.7, 71, 0, 1]));
-  static final Shader bubbleLight = ui.Gradient.radial(Offset(74.773, 47.737), 11.858, const [Color(0xFF779EE6), Color(0xFF6F91E0), Color(0xFF7075D2)], const [0, 0.55, 1]);
-  static final Shader tailDark = ui.Gradient.linear(Offset(36.3, 57), Offset(66.5, 40), const [Color(0xFF8FAFFA), Color(0xFFDDEEFD)], const [0, 1]);
-  static final Shader finDark = ui.Gradient.linear(Offset(40.2, 41.5), Offset(28.1, 39.4), const [Color(0xFF8EADFB), Color(0xFFCDE2FB)], const [0, 1]);
-  static final Shader bellyDark = ui.Gradient.radial(Offset(0, 0), 1, const [Color(0xFFBFCCFA), Color(0xFFCCD8FB), Color(0xFFECEAFE)], const [0, 0.6, 1], TileMode.clamp, Float64List.fromList(const [27, 0, 0, 0, 0, 13.5, 0, 0, 0, 0, 1, 0, 52.7, 71, 0, 1]));
-  static final Shader bubbleDark = ui.Gradient.radial(Offset(74.773, 47.737), 11.858, const [Color(0xFFA6C3FA), Color(0xFFB7CCFA), Color(0xFFECE5FC)], const [0, 0.55, 1]);
+  static final Shader tailLight = ui.Gradient.linear(Offset(28, 68), Offset(78, 36), const [Color(0xFF4261CD), Color(0xFF5E93E1)], const [0, 1]);
+  static final Shader tailDark = ui.Gradient.linear(Offset(28, 68), Offset(78, 36), const [Color(0xFF8FAFFA), Color(0xFFDDEEFD)], const [0, 1]);
 }

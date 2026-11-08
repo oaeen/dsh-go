@@ -151,13 +151,11 @@ def main():
     p = paths(light)
     pt = paths(tile)
     gl, gd, gt = gradients(light), gradients(dark), gradients(tile)
-    need = {'body': 'body', 'fin': 'fin-layer', 'belly': 'belly-layer', 'bubble': 'bubble-layer'}
-    for key in need.values():
-        if key not in p:
-            sys.exit(f'glyph-light.svg: path id="{key}" missing')
+    if 'body' not in p:
+        sys.exit('glyph-light.svg: path id="body" missing')
 
-    # ink box and visual centre: tail/body and bubble (the fin and belly lie inside the body)
-    ink = flatten(p['body']) + flatten(p['bubble-layer'])
+    # ink box and visual centre of the whale silhouette (outer contour + inner cutouts)
+    ink = flatten(p['body'])
     xs = [x for poly in ink for x, _ in poly]
     ys = [y for poly in ink for _, y in poly]
     box = (min(xs), min(ys), max(xs), max(ys))
@@ -177,13 +175,12 @@ def main():
 // launcher layer (android/app/src/main/res/drawable/ic_launcher_monochrome.xml).
 
 // dart format off
-import 'dart:typed_data';
 import 'dart:ui' as ui;
-import 'dart:ui' show Color, Offset, Path, Rect, Shader, TileMode;
+import 'dart:ui' show Color, Offset, Path, Rect, Shader;
 
 /// Paths, gradients and measurements of the brand glyph (see `brand_mark.dart`).
 abstract final class BrandGlyph {{
-  /// The glyph's ink box (tail, body and bubble).
+  /// The glyph's ink box.
   static const box = Rect.fromLTRB({f(box[0])}, {f(box[1])}, {f(box[2])}, {f(box[3])});
 
   /// Width / height of [box].
@@ -195,17 +192,8 @@ abstract final class BrandGlyph {{
   /// The tile: the 72-unit visible square of the launcher icon.
   static const tileBox = Rect.fromLTWH(18, 18, 72, 72);
 
-  /// Tail, fin and body as one shape: the silhouette.
+  /// The DeepSeek Harness whale silhouette (outer contour and cutouts).
   static final Path body = {dart_path(p['body'])};
-
-  /// The fin, behind the tail's stem (drawn over [body] in the colour glyph).
-  static final Path fin = {dart_path(p['fin-layer'])};
-
-  /// The belly, in front of the stem (drawn over [body] in the colour glyph).
-  static final Path belly = {dart_path(p['belly-layer'])};
-
-  /// The bubble.
-  static final Path bubble = {dart_path(p['bubble-layer'])};
 
   /// The tile's rounded square (the app icon's outline).
   static final Path tile = {dart_path(pt['tile'])};
@@ -214,13 +202,7 @@ abstract final class BrandGlyph {{
 
   /// Gradients of the colour glyph: for light backgrounds, then for dark ones.
   static final Shader tailLight = {dart_gradient(gl['tail'])};
-  static final Shader finLight = {dart_gradient(gl['fin'])};
-  static final Shader bellyLight = {dart_gradient(gl['belly'])};
-  static final Shader bubbleLight = {dart_gradient(gl['bubble'])};
   static final Shader tailDark = {dart_gradient(gd['tail'])};
-  static final Shader finDark = {dart_gradient(gd['fin'])};
-  static final Shader bellyDark = {dart_gradient(gd['belly'])};
-  static final Shader bubbleDark = {dart_gradient(gd['bubble'])};
 }}
 '''
     open(OUT, 'w', encoding='utf-8').write(out)

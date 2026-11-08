@@ -284,8 +284,8 @@ void main() {
         final frame = await (await ui.instantiateImageCodec(bytes)).getNextFrame();
         return (await frame.image.toByteData())!;
       });
-      // Inside the body (108 grid (53.5, 70)), at 4 px per unit.
-      final at = (280 * 432 + 214) * 4;
+      // Inside the body (108 grid (45, 45)), at 4 px per unit.
+      final at = (180 * 432 + 180) * 4;
       final pixel = [for (var i = 0; i < 4; i++) rgba!.getUint8(at + i)];
       final mono = AppIconArt.of(AppIcon.ink).mono!;
       expect(pixel[3], 255);

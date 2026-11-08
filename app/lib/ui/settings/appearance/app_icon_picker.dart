@@ -264,16 +264,10 @@ class _IconPainter extends CustomPainter {
     switch (art.glyph) {
       case AppIconGlyph.mono:
         final paint = Paint()..color = art.mono!;
-        canvas
-          ..drawPath(BrandGlyph.body, paint)
-          ..drawPath(BrandGlyph.bubble, paint);
+        canvas.drawPath(BrandGlyph.body, paint);
       case AppIconGlyph.glassDark || AppIconGlyph.glassLight:
         final dark = art.glyph == AppIconGlyph.glassDark;
-        canvas
-          ..drawPath(BrandGlyph.body, Paint()..shader = dark ? BrandGlyph.tailDark : BrandGlyph.tailLight)
-          ..drawPath(BrandGlyph.fin, Paint()..shader = dark ? BrandGlyph.finDark : BrandGlyph.finLight)
-          ..drawPath(BrandGlyph.belly, Paint()..shader = dark ? BrandGlyph.bellyDark : BrandGlyph.bellyLight)
-          ..drawPath(BrandGlyph.bubble, Paint()..shader = dark ? BrandGlyph.bubbleDark : BrandGlyph.bubbleLight);
+        canvas.drawPath(BrandGlyph.body, Paint()..shader = dark ? BrandGlyph.tailDark : BrandGlyph.tailLight);
     }
     canvas
       ..restore()

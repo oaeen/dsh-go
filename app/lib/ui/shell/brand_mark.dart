@@ -90,7 +90,6 @@ class _BrandPainter extends CustomPainter {
       if (style == _Style.mono) {
         final paint = Paint()..color = color!;
         canvas.drawPath(BrandGlyph.body, paint);
-        canvas.drawPath(BrandGlyph.bubble, paint);
       } else {
         _glass(canvas, dark: style == _Style.dark);
       }
@@ -98,14 +97,9 @@ class _BrandPainter extends CustomPainter {
     canvas.restore();
   }
 
-  /// The colour glyph: the tail's gradient over the whole silhouette, the fin (behind
-  /// the stem) and the belly (in front of it) over that, then the bubble.
+  /// The colour glyph: the whale silhouette shaded by its theme gradient.
   static void _glass(Canvas canvas, {required bool dark}) {
-    canvas
-      ..drawPath(BrandGlyph.body, Paint()..shader = dark ? BrandGlyph.tailDark : BrandGlyph.tailLight)
-      ..drawPath(BrandGlyph.fin, Paint()..shader = dark ? BrandGlyph.finDark : BrandGlyph.finLight)
-      ..drawPath(BrandGlyph.belly, Paint()..shader = dark ? BrandGlyph.bellyDark : BrandGlyph.bellyLight)
-      ..drawPath(BrandGlyph.bubble, Paint()..shader = dark ? BrandGlyph.bubbleDark : BrandGlyph.bubbleLight);
+    canvas.drawPath(BrandGlyph.body, Paint()..shader = dark ? BrandGlyph.tailDark : BrandGlyph.tailLight);
   }
 
   @override
