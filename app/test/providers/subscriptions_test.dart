@@ -599,7 +599,7 @@ void main() {
       expect(bridge.calls, contains('setOption:workbuddy:lite_routing:true'));
     });
 
-    testWidgets('plugin market page lists market plugins and installs / removes', (tester) async {
+    testWidgets('plugin market page supports search and installs / removes plugins', (tester) async {
       final bridge = FakeSubscriptionBackend(
         marketPlugins: [
           const SubscriptionMarketPlugin(
@@ -607,6 +607,13 @@ void main() {
             package: '@magpie-community/opencode-workbuddy-auth',
             summaryZh: '腾讯 WorkBuddy 订阅登录',
             summaryEn: 'Tencent WorkBuddy subscription auth',
+            installed: false,
+          ),
+          const SubscriptionMarketPlugin(
+            name: 'Kiro',
+            package: '@magpie-community/opencode-kiro-auth',
+            summaryZh: 'Kiro 订阅登录',
+            summaryEn: 'Kiro subscription auth',
             installed: false,
           ),
         ],
@@ -619,9 +626,14 @@ void main() {
       await tester.tap(find.text(appL10n.engineSubscriptionPluginMarket));
       await settle(tester);
       expect(find.text('WorkBuddy (Tencent)'), findsOneWidget);
-      expect(find.text('腾讯 WorkBuddy 订阅登录'), findsOneWidget);
+      expect(find.text('Kiro'), findsOneWidget);
 
-      await tester.tap(find.widgetWithText(FilledButton, appL10n.engineSubscriptionPluginInstall).last);
+      await tester.enterText(find.byType(TextField).first, 'work');
+      await settle(tester);
+      expect(find.text('WorkBuddy (Tencent)'), findsOneWidget);
+      expect(find.text('Kiro'), findsNothing);
+
+      await tester.tap(find.widgetWithText(FilledButton, appL10n.engineSubscriptionPluginInstall).first);
       await settle(tester);
       expect(bridge.calls, contains('installPlugin:@magpie-community/opencode-workbuddy-auth'));
     });

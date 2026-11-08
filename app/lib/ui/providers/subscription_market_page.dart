@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/l10n.dart';
 import '../../state/subscriptions_state.dart';
 import '../common/list_page_row.dart';
+import '../common/search_capsule.dart';
 import '../features/feature_kit.dart';
 import '../features/feature_widgets.dart';
 import '../shell/page_frame.dart';
@@ -24,14 +25,29 @@ class SubscriptionMarketPage extends ConsumerStatefulWidget {
 }
 
 class _SubscriptionMarketPageState extends ConsumerState<SubscriptionMarketPage> {
+  final _searchController = TextEditingController();
   final _customSpecController = TextEditingController();
   final _busySpecs = <String>{};
+  String _searchQuery = '';
   bool _installingCustom = false;
 
   @override
   void dispose() {
+    _searchController.dispose();
     _customSpecController.dispose();
     super.dispose();
+  }
+
+  static bool _matchesQuery(SubscriptionMarketPlugin plugin, List<String> terms) {
+    if (terms.isEmpty) return true;
+    final haystack = [
+      plugin.name,
+      plugin.package,
+      plugin.summaryZh,
+      plugin.summaryEn,
+      ...plugin.providers,
+    ].join('\n').toLowerCase();
+    return terms.every(haystack.contains);
   }
 
   Future<void> _installSpec(String spec, {String? label, bool clearInput = false}) async {
@@ -100,10 +116,66 @@ class _SubscriptionMarketPageState extends ConsumerState<SubscriptionMarketPage>
     final isEn = Localizations.localeOf(context).languageCode == 'en';
     const gap = SizedBox(height: 24);
 
+    final terms = _searchQuery
+        .trim()
+        .toLowerCase()
+        .split(RegExp(r'\s+'))
+        .where((s) => s.isNotEmpty)
+        .toList(growable: false);
+
     return AppPage.list(
       title: l10n.engineSubscriptionPluginMarket,
       subtitle: Text(l10n.engineSubscriptionPluginMarketSubtitle),
       children: [
+        SearchCapsule(
+          controller: _searchController,
+          hint: l10n.pluginsSearch,
+          onChanged: (text) => setState(() => _searchQuery = text),
+          onClear: () {
+            _searchController.clear();
+            setState(() => _searchQuery = '');
+          },
+        ),
+        const SizedBox(height: 16),
+        marketAsync.when(
+          loading: () => const QuietSpinner(padding: EdgeInsets.symmetric(vertical: 40)),
+          error: (error, _) => FeatureMessage.error(
+            title: l10n.engineSubscriptionPluginMarket,
+            error: error,
+            onRetry: () => ref.invalidate(subscriptionMarketProvider),
+          ),
+          data: (plugins) {
+            if (plugins.isEmpty) {
+              return FeatureMessage(
+                icon: AppIcons.plugin,
+                title: l10n.engineSubscriptionPluginMarket,
+                body: l10n.engineSubscriptionPluginMarketSubtitle,
+              );
+            }
+            final filtered = plugins.where((p) => _matchesQuery(p, terms)).toList(growable: false);
+            if (filtered.isEmpty) {
+              return FeatureMessage(
+                icon: AppIcons.noResults,
+                title: l10n.pluginsNoSearchResults(_searchQuery.trim()),
+                body: l10n.engineSubscriptionPluginMarketSubtitle,
+              );
+            }
+            return ListPageCard(
+              title: l10n.engineSubscriptionPluginMarket,
+              children: [
+                for (final plugin in filtered)
+                  _MarketPluginRow(
+                    plugin: plugin,
+                    isEn: isEn,
+                    busy: _busySpecs.contains(plugin.package),
+                    onInstall: () => _installSpec(plugin.package, label: plugin.name),
+                    onRemove: () => _removeSpec(plugin.package, label: plugin.name),
+                  ),
+              ],
+            );
+          },
+        ),
+        gap,
         ListPageCard(
           title: l10n.engineSubscriptionPluginCustomTitle,
           children: [
@@ -157,37 +229,6 @@ class _SubscriptionMarketPageState extends ConsumerState<SubscriptionMarketPage>
               ),
             ),
           ],
-        ),
-        gap,
-        marketAsync.when(
-          loading: () => const QuietSpinner(padding: EdgeInsets.symmetric(vertical: 40)),
-          error: (error, _) => FeatureMessage.error(
-            title: l10n.engineSubscriptionPluginMarket,
-            error: error,
-            onRetry: () => ref.invalidate(subscriptionMarketProvider),
-          ),
-          data: (plugins) {
-            if (plugins.isEmpty) {
-              return FeatureMessage(
-                icon: AppIcons.plugin,
-                title: l10n.engineSubscriptionPluginMarket,
-                body: l10n.engineSubscriptionPluginMarketSubtitle,
-              );
-            }
-            return ListPageCard(
-              title: l10n.engineSubscriptionPluginMarket,
-              children: [
-                for (final plugin in plugins)
-                  _MarketPluginRow(
-                    plugin: plugin,
-                    isEn: isEn,
-                    busy: _busySpecs.contains(plugin.package),
-                    onInstall: () => _installSpec(plugin.package, label: plugin.name),
-                    onRemove: () => _removeSpec(plugin.package, label: plugin.name),
-                  ),
-              ],
-            );
-          },
         ),
       ],
     );

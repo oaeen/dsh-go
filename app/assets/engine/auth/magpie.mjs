@@ -516,11 +516,10 @@ export class MagpieManager {
     rl.on('line', (line) => this.#onLine(line))
 
     child.on('close', (code) => {
-      if (this.#child === child) {
-        this.#child = null
-        this.#rl = null
-        this.#initPromise = null
-      }
+      if (this.#child !== child) return
+      this.#child = null
+      this.#rl = null
+      this.#initPromise = null
       const err = new Error(`Magpie plugin host exited (${code ?? 'signal'})`)
       for (const [, p] of this.#pending) {
         p.reject(err)
@@ -538,6 +537,22 @@ export class MagpieManager {
       plugins: items,
     })
     this.#loadedPlugins = Array.isArray(initRes?.plugins) ? initRes.plugins : []
+    const brokenNonCommunity = new Set(
+      this.#loadedPlugins
+        .filter(
+          (l) =>
+            l?.error &&
+            !String(l.spec ?? '').startsWith(DIST_SCOPE) &&
+            (!Array.isArray(l.provides) || l.provides.length === 0),
+        )
+        .map((l) => l.spec),
+    )
+    if (brokenNonCommunity.size > 0) {
+      const cleaned = list.plugins.filter((p) => !brokenNonCommunity.has(p.spec))
+      if (cleaned.length !== list.plugins.length) {
+        this.saveList({ ...list, plugins: cleaned })
+      }
+    }
     return this.#loadedPlugins
   }
 
@@ -547,6 +562,11 @@ export class MagpieManager {
     this.#rl?.close()
     this.#rl = null
     this.#initPromise = null
+    const stopErr = new Error('Magpie plugin host stopped')
+    for (const [, p] of this.#pending) {
+      p.reject(stopErr)
+    }
+    this.#pending.clear()
     if (child && child.exitCode === null) {
       try {
         child.stdin.end()
@@ -879,6 +899,7 @@ export class MagpieManager {
     }
     const key = name.toLowerCase().trim()
     const listings = await this.fetchMarketListings()
+    const fuzzyMatches = []
     for (const l of listings) {
       if (!l.community) continue
       const names = [
@@ -896,8 +917,16 @@ export class MagpieManager {
       if (names.includes(key)) {
         return l.package + version
       }
+      if (key.length >= 2 && names.some((n) => n.startsWith(key) || n.includes(key))) {
+        fuzzyMatches.push(l.package)
+      }
     }
-    if (PKG_NAME_RE.test(name)) return trimmed
+    if (fuzzyMatches.length === 1) {
+      return fuzzyMatches[0] + version
+    }
+    if (PKG_NAME_RE.test(name) && (/^(?:opencode|magpie)-|-(?:auth|plugin)$/.test(name) || name.includes('/'))) {
+      return trimmed
+    }
     throw new Error(`未找到名为 "${trimmed}" 的订阅插件`)
   }
 
@@ -934,8 +963,10 @@ export class MagpieManager {
     }
 
     const list = this.readList()
+    const prevPlugins = list.plugins.map((p) => ({ ...p }))
     const pkgName = this.packageNameOf(spec)
     const idx = list.plugins.findIndex((p) => p.spec === spec || this.packageNameOf(p.spec) === pkgName)
+    const hadPkg = idx >= 0
     if (idx >= 0) {
       list.plugins[idx] = { ...list.plugins[idx], spec, off: false }
     } else {
@@ -943,10 +974,35 @@ export class MagpieManager {
     }
     this.saveList(list)
 
-    const providers = await this.reloadHost()
+    let providers
+    try {
+      providers = await this.reloadHost()
+    } catch (reloadErr) {
+      this.saveList({ ...list, plugins: prevPlugins })
+      throw reloadErr
+    }
     const loaded = this.#loadedPlugins.find((l) => l.spec === spec || this.packageNameOf(l.spec) === pkgName)
     if (loaded?.error) {
+      this.saveList({ ...list, plugins: prevPlugins })
+      if (!hadPkg && !isPathSpec(spec) && !this.#runInstaller) {
+        try {
+          await this.#runNpm(['uninstall', '--ignore-scripts', '--no-audit', '--no-fund', pkgName])
+        } catch {}
+      }
+      await this.reloadHost().catch(() => {})
       throw new Error(`插件加载失败: ${loaded.error}`)
+    }
+    // Prune any stale broken entries from earlier failed attempts so they don't linger in plugins.json.
+    const brokenSpecs = new Set(
+      this.#loadedPlugins
+        .filter((l) => l.error && (!Array.isArray(l.provides) || l.provides.length === 0))
+        .map((l) => l.spec),
+    )
+    if (brokenSpecs.size > 0) {
+      const cleaned = list.plugins.filter((p) => !brokenSpecs.has(p.spec))
+      if (cleaned.length !== list.plugins.length) {
+        this.saveList({ ...list, plugins: cleaned })
+      }
     }
     return {
       spec,

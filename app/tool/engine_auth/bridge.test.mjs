@@ -717,9 +717,11 @@ export default async function WorkBuddyPlugin({ magpie }) {
   assert.ok(wbMarketEntry, 'WorkBuddy should be in built-in market.json')
   assert.equal(wbMarketEntry.installed, false)
 
-  // 2. Install local plugin spec
+  // 2. Install local plugin spec (and reinstall while host is already running to verify reload race safety)
   const installRes = await bridge.installPlugin(pluginDir)
   assert.deepEqual(installRes.providers, ['workbuddy'])
+  const reinstallRes = await bridge.installPlugin(pluginDir)
+  assert.deepEqual(reinstallRes.providers, ['workbuddy'])
 
   // 3. `list()` now includes `workbuddy` alongside built-in `openai-codex` and `anthropic`
   const listBefore = await bridge.list()
