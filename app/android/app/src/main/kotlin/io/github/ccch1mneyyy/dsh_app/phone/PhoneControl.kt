@@ -129,6 +129,7 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
     val prompts = PhonePrompts(app, tasks, ::isEnabled, ::isLocked, notificationGate, ::reopen)
     private val server = McpServer(PhoneToolCatalog.listJson(), core::call, SERVER_VERSION)
     private val bridge = PhoneBridge(server) { line -> logger(line) }
+    private val rootCli = RootCliBridge { line -> logger(line) }
 
     @Volatile private var logger: (String) -> Unit = {}
     @Volatile private var rootfs: File? = null
@@ -222,10 +223,25 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
         logger = log
         tasks.invalidateOwners()
         stopBridge()
+        stopRootCli()
         this.rootfs = rootfs
-        if (!isEnabled() || safe) {
+        if (safe) {
             PhoneGuest.clearConfig(rootfs)
+            RootCliGuest.clearConfig(rootfs)
             if (isEnabled()) log("[dsh-app] phone control stays off in safe mode")
+            emitStatus()
+            return false
+        }
+        try {
+            RootCliGuest.writeFiles(rootfs)
+            val rootEp = rootCli.start(withTcp = true)
+            RootCliGuest.writeConfig(rootfs, rootEp)
+        } catch (e: Exception) {
+            log("[dsh-app] root cli bridge: setup failed (${e.message}); starting without host-su")
+            stopRootCli()
+        }
+        if (!isEnabled()) {
+            PhoneGuest.clearConfig(rootfs)
             emitStatus()
             return false
         }
@@ -283,6 +299,7 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
     fun onEngineStopped() {
         tasks.invalidateOwners()
         stopBridge()
+        stopRootCli()
         core.worker.retire()
         tasks.endTask()
         emitStatus()
@@ -294,7 +311,13 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
         unregisterScreenOff()
     }
 
+    private fun stopRootCli() {
+        rootCli.stop()
+        rootfs?.let { RootCliGuest.clearConfig(it) }
+    }
+
     val bridgeListening: Boolean get() = bridge.listening
+    val rootCliListening: Boolean get() = rootCli.listening
 
     // ── Task ────────────────────────────────────────────────────────────────────────
 
@@ -445,6 +468,7 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
     fun status(): Map<String, Any?> = linkedMapOf(
         "enabled" to isEnabled(),
         "bridgeListening" to bridge.listening,
+        "rootCliListening" to rootCli.listening,
         "a11y" to linkedMapOf("enabled" to a11yEnabledInSettings(), "serviceConnected" to (PhoneRegistry.mainDriver != null)),
         "overlay" to (PhoneRegistry.overlayGate != null),
         "notifications" to nm.areNotificationsEnabled(),

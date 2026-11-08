@@ -65,5 +65,16 @@ internal class RootProcess private constructor(private val process: Process) : C
     companion object {
         fun launch(command: List<String>, spawn: (List<String>) -> Process = { ProcessBuilder(it).start() }): RootProcess =
             try { RootProcess(spawn(command)) } catch (_: Exception) { throw IOException("rootStartFailed") }
+
+        /** Reviewed launcher for `host-su` / local ADB bootstrap: strips PRoot/direct env and closes inherited fds. */
+        fun spawnHostSu(cmd: String, hostPath: String): Process {
+            val pb = ProcessBuilder("su", "-c", cmd)
+            pb.environment().keys.removeAll {
+                it.startsWith("PROOT_") || it.startsWith("DSH_GO_") ||
+                    it == "LD_LIBRARY_PATH" || it == "LD_PRELOAD"
+            }
+            pb.environment()["PATH"] = hostPath
+            return pb.start()
+        }
     }
 }

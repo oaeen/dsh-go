@@ -8,6 +8,7 @@ import android.net.ConnectivityManager
 import android.system.ErrnoException
 import android.system.Os
 import io.github.ccch1mneyyy.dsh_app.phone.PhoneGuest
+import io.github.ccch1mneyyy.dsh_app.phone.RootCliGuest
 import java.io.File
 import java.io.IOException
 import java.net.Inet4Address
@@ -128,6 +129,7 @@ object GuestSetup {
                 },
             ) + (if (visualReplies) DSH_UI_SECTION else "") +
                 (if (phoneControl) PhoneGuest.AGENTS_SECTION else "") +
+                RootCliGuest.AGENTS_SECTION +
                 DIAGNOSTICS_SECTION.replace(
                     "{PATH}",
                     if (directEngine) "${rootfs.canonicalPath}/root/.dsh/dsh-app/diagnostics.md"
