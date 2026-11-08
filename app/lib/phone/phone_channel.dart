@@ -88,6 +88,41 @@ class PhoneRootStatus {
   final String? reasonCode;
 }
 
+/// Host Root CLI & local loopback ADB bridge (`host-su`, `dsh-adb-bootstrap`,
+/// `dsh-android-cli-install`).
+class PhoneRootCliStatus {
+  const PhoneRootCliStatus({
+    this.supported = false,
+    this.enabled = false,
+    this.listening = false,
+    this.checked = false,
+    this.granted,
+    this.adbReady = false,
+    this.reason,
+  });
+
+  factory PhoneRootCliStatus.fromMap(Map<Object?, Object?> m) {
+    if (m.isEmpty) return const PhoneRootCliStatus();
+    return PhoneRootCliStatus(
+      supported: m['v'] == 1 || m.isNotEmpty,
+      enabled: _flag(m['enabled']),
+      listening: _flag(m['listening']),
+      checked: _flag(m['checked']),
+      granted: _maybeFlag(m['granted']),
+      adbReady: _flag(m['adbReady']),
+      reason: _text(m['reason']),
+    );
+  }
+
+  final bool supported;
+  final bool enabled;
+  final bool listening;
+  final bool checked;
+  final bool? granted;
+  final bool adbReady;
+  final String? reason;
+}
+
 enum PhoneKeepPhase {
   disabled,
   idle,
@@ -381,6 +416,7 @@ class PhoneStatus {
     this.error,
     this.enabled = false,
     this.bridgeListening = false,
+    this.rootCli = const PhoneRootCliStatus(),
     this.a11y = const PhoneA11yStatus(),
     this.a11yKeeper = const A11yKeeperStatus(),
     this.overlay = false,
@@ -396,6 +432,7 @@ class PhoneStatus {
     : ready = false,
       enabled = false,
       bridgeListening = false,
+      rootCli = const PhoneRootCliStatus(),
       a11y = const PhoneA11yStatus(),
       a11yKeeper = const A11yKeeperStatus(),
       overlay = false,
@@ -408,6 +445,7 @@ class PhoneStatus {
   factory PhoneStatus.fromMap(Map<Object?, Object?> m) => PhoneStatus(
     enabled: _flag(m['enabled']),
     bridgeListening: _flag(m['bridgeListening']),
+    rootCli: PhoneRootCliStatus.fromMap(_map(m['rootCli'])),
     a11y: PhoneA11yStatus.fromMap(_map(m['a11y'])),
     a11yKeeper: A11yKeeperStatus.fromMap(_map(m['a11yKeeper'])),
     overlay: _flag(m['overlay']),
@@ -427,6 +465,7 @@ class PhoneStatus {
   /// The master switch 「手机操控」.
   final bool enabled;
   final bool bridgeListening;
+  final PhoneRootCliStatus rootCli;
   final PhoneA11yStatus a11y;
   final A11yKeeperStatus a11yKeeper;
   final bool overlay;
@@ -441,11 +480,12 @@ class PhoneStatus {
   final PhoneTaskStatus task;
   final PhoneDevice device;
 
-  PhoneStatus copyWith({bool? enabled}) => PhoneStatus(
+  PhoneStatus copyWith({bool? enabled, PhoneRootCliStatus? rootCli}) => PhoneStatus(
     ready: ready,
     error: error,
     enabled: enabled ?? this.enabled,
     bridgeListening: bridgeListening,
+    rootCli: rootCli ?? this.rootCli,
     a11y: a11y,
     a11yKeeper: a11yKeeper,
     overlay: overlay,
@@ -965,6 +1005,13 @@ class PhoneChannel {
       _result('setBackgroundKeep', {'mode': mode.name, 'enabled': enabled});
 
   Future<PhoneResult> prepareRoot() => _result('prepareRoot');
+
+  Future<PhoneResult> setRootCliEnabled(bool enabled) => _result('setRootCliEnabled', {'enabled': enabled});
+
+  Future<PhoneResult> testRootCli() => _result('testRootCli');
+
+  Future<PhoneResult> bootstrapRootAdb({int? port}) =>
+      _result('bootstrapRootAdb', port == null ? null : {'port': port});
 
   Future<bool> requestPrivilegedPermission(String provider) =>
       _bool('requestShizukuPermission', {'provider': provider});

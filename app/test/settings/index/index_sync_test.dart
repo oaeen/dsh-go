@@ -86,8 +86,9 @@ const _sections = {
 /// An entry may also sit on another page than its home (one page, more
 /// than one way in; the name is the same).
 const _aliases = {
-  SettingsPageId.phone: {'page:background'},
-  SettingsPageId.engine: {'page:background', 'page:diagnostics'},
+  SettingsPageId.hub: {'page:phoneRoot'},
+  SettingsPageId.phone: {'page:background', 'page:phoneRoot'},
+  SettingsPageId.engine: {'page:background', 'page:diagnostics', 'page:phoneRoot'},
 };
 
 /// Pumps the page in Chinese, checks it, then again in English.

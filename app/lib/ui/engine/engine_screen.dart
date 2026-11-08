@@ -8,11 +8,13 @@ import '../../runtime/runtime_bridge.dart';
 import '../../runtime/runtime_state.dart';
 import '../../runtime/local_footprint.dart';
 import '../../state/engine_control.dart';
+import '../../state/phone_state.dart';
 import '../../state/safe_mode_state.dart';
 import '../../state/settings_state.dart';
 import '../common/app_dialog.dart';
 import '../common/page_hero.dart';
 import '../onboarding/local_install.dart';
+import '../phone/root_mode_screen.dart';
 import '../safe_mode/engine_failure_card.dart';
 import '../safe_mode/safe_mode_card.dart';
 import '../safe_mode/safe_mode_settings.dart';
@@ -153,6 +155,13 @@ class EngineScreen extends ConsumerWidget {
             SettingsSection(
               title: l10n.commonMore,
               children: [
+                if (ref.watch(phoneProvider.select((s) => s.status.rootCli.supported)))
+                  SettingsTile(
+                    key: const Key('engine-root-mode'),
+                    spot: SettingsIndex.entry(SettingsPageId.phoneRoot),
+                    subtitle: l10n.phoneRootModeCardHint,
+                    onTap: () => _push(context, const RootModeScreen()),
+                  ),
                 SettingsTile(
                   spot: SettingsIndex.entry(SettingsPageId.background),
                   subtitle: l10n.phoneEngineKeepAliveHint,

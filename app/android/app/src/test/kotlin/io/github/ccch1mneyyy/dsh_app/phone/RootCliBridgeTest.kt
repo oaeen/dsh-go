@@ -90,6 +90,25 @@ class RootCliBridgeTest {
         assertFalse(marker.exists())
     }
 
+    @Test fun runDirectAndBootstrapLoopbackAdbWithoutKey() {
+        val captured = AtomicReference<String>()
+        val bridge = RootCliBridge({ cmd, _ ->
+            captured.set(cmd)
+            RootCliBridge.ExecResult(0, "ADB_LOOPBACK_READY:5555\n", "")
+        })
+        val direct = bridge.runDirect("id -u", 5_000L)
+        assertEquals(0, direct.exitCode)
+        assertEquals("id -u", captured.get())
+
+        val scriptNoKey = RootCliBridge.bootstrapLoopbackAdbScript(null, 5555)
+        assertFalse(scriptNoKey.contains("/data/misc/adb/adb_keys"))
+        assertTrue(scriptNoKey.contains("setprop service.adb.tcp.port 5555"))
+        assertTrue(scriptNoKey.contains("iptables -C INPUT -p tcp --dport 5555 ! -s 127.0.0.1 -j DROP"))
+
+        val scriptWithKey = RootCliBridge.bootstrapLoopbackAdbScript(samplePubKey, 5555)
+        assertTrue(scriptWithKey.contains("/data/misc/adb/adb_keys"))
+    }
+
     @Test fun writesGuestFilesAndServesRequestsOverLoopbackSocket() {
         val root = Files.createTempDirectory("root-cli-guest").toFile()
         val lastCmd = AtomicReference<String>()

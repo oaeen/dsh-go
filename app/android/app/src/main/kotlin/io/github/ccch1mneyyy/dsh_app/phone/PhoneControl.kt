@@ -137,6 +137,10 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
     @Volatile private var statusLine: String? = null
     @Volatile private var lastStatus: Map<String, Any?>? = null
     @Volatile private var keptTask = 0L
+    @Volatile private var rootCliChecked = false
+    @Volatile private var rootCliGranted: Boolean? = null
+    @Volatile private var rootCliAdbReady = false
+    @Volatile private var rootCliReason: String? = null
     private var screenReceiver: BroadcastReceiver? = null
     private val sinks = CopyOnWriteArraySet<(Map<String, Any?>) -> Unit>()
     val background: BackgroundControl = BackgroundControl.get(app)
@@ -234,8 +238,12 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
         }
         try {
             RootCliGuest.writeFiles(rootfs)
-            val rootEp = rootCli.start(withTcp = true)
-            RootCliGuest.writeConfig(rootfs, rootEp)
+            if (isRootCliEnabled()) {
+                val rootEp = rootCli.start(withTcp = true)
+                RootCliGuest.writeConfig(rootfs, rootEp)
+            } else {
+                RootCliGuest.clearConfig(rootfs)
+            }
         } catch (e: Exception) {
             log("[dsh-app] root cli bridge: setup failed (${e.message}); starting without host-su")
             stopRootCli()
@@ -318,6 +326,128 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
 
     val bridgeListening: Boolean get() = bridge.listening
     val rootCliListening: Boolean get() = rootCli.listening
+
+    fun isRootCliEnabled(): Boolean = prefs.getBoolean(K_ROOT_CLI_ENABLED, false)
+
+    private fun resolveRootfs(): File? =
+        rootfs?.takeIf { it.isDirectory } ?: File(app.filesDir, "runtime/rootfs").takeIf { it.isDirectory }
+
+    private fun ensureRootCliStarted(): Boolean {
+        return try {
+            val rf = resolveRootfs()
+            if (rf != null) RootCliGuest.writeFiles(rf)
+            val ep = rootCli.endpoint?.takeIf { rootCli.listening } ?: rootCli.start(withTcp = true)
+            if (rf != null) RootCliGuest.writeConfig(rf, ep)
+            true
+        } catch (e: Exception) {
+            rootCliReason = e.message ?: e.javaClass.simpleName
+            stopRootCli()
+            false
+        }
+    }
+
+    /**
+     * Toggles Root CLI mode (`host-su` / `dsh-adb-bootstrap` / `dsh-android-cli-install`).
+     * Turning on verifies `su -c "id -u"` first so the root manager prompts immediately and
+     * refuses to enable if the device is not rooted or permission was denied.
+     */
+    fun setRootCliEnabled(enabled: Boolean): Map<String, Any?> {
+        if (!enabled) {
+            prefs.edit().putBoolean(K_ROOT_CLI_ENABLED, false).apply()
+            stopRootCli()
+            rootCliReason = null
+            emitStatus()
+            return linkedMapOf("ok" to true)
+        }
+        val probe = testRootCliInternal()
+        if (probe["ok"] != true) {
+            prefs.edit().putBoolean(K_ROOT_CLI_ENABLED, false).apply()
+            stopRootCli()
+            emitStatus()
+            return probe
+        }
+        prefs.edit().putBoolean(K_ROOT_CLI_ENABLED, true).apply()
+        val started = ensureRootCliStarted()
+        emitStatus()
+        return if (started) {
+            linkedMapOf("ok" to true)
+        } else {
+            linkedMapOf("ok" to false, "errorCode" to "bridge_start_failed", "reason" to rootCliReason)
+        }
+    }
+
+    /** Runs `su -c "id -u"` to trigger the root manager prompt and verify uid 0. */
+    fun testRootCli(): Map<String, Any?> {
+        val res = testRootCliInternal()
+        if (res["ok"] == true && isRootCliEnabled() && !rootCli.listening) {
+            ensureRootCliStarted()
+        }
+        emitStatus()
+        return res
+    }
+
+    private fun testRootCliInternal(): Map<String, Any?> {
+        val res = rootCli.runDirect("id -u", 15_000L)
+        val ok = res.exitCode == 0 && !res.timedOut && res.stdout.lineSequence().map { it.trim() }.any { it == "0" }
+        rootCliChecked = true
+        rootCliGranted = ok
+        rootCliReason = if (ok) {
+            null
+        } else {
+            res.stderr.trim().ifEmpty { res.stdout.trim() }.ifEmpty {
+                AppStrings.get(app, if (res.timedOut) R.string.background_root_timeout else R.string.background_root_failed)
+            }
+        }
+        return if (ok) {
+            linkedMapOf("ok" to true)
+        } else {
+            linkedMapOf("ok" to false, "errorCode" to "root_denied", "reason" to rootCliReason)
+        }
+    }
+
+    /** Bootstraps local loopback `adbd` on `127.0.0.1:[port]` and injects the container's `adbkey.pub` if present. */
+    fun bootstrapRootAdb(port: Int = RootCliBridge.DEFAULT_ADB_PORT): Map<String, Any?> {
+        val pubKey = resolveRootfs()
+            ?.let { File(it, "root/.android/adbkey.pub") }
+            ?.takeIf { it.isFile }
+            ?.let { runCatching { it.readText().trim() }.getOrNull() }
+        val script = try {
+            RootCliBridge.bootstrapLoopbackAdbScript(pubKey, port)
+        } catch (e: IllegalArgumentException) {
+            return linkedMapOf("ok" to false, "errorCode" to "invalid_adb_params", "reason" to e.message)
+        }
+        val res = rootCli.runDirect(script, RootCliBridge.ADB_BOOTSTRAP_TIMEOUT_MS)
+        val ok = res.exitCode == 0 && !res.timedOut
+        rootCliChecked = true
+        if (ok) rootCliGranted = true
+        rootCliAdbReady = ok
+        rootCliReason = if (ok) {
+            null
+        } else {
+            res.stderr.trim().ifEmpty { res.stdout.trim() }.ifEmpty {
+                AppStrings.get(app, if (res.timedOut) R.string.background_root_timeout else R.string.background_root_failed)
+            }
+        }
+        if (ok && isRootCliEnabled() && !rootCli.listening) {
+            ensureRootCliStarted()
+        }
+        emitStatus()
+        return if (ok) {
+            linkedMapOf("ok" to true, "port" to port)
+        } else {
+            linkedMapOf("ok" to false, "errorCode" to "adb_bootstrap_failed", "reason" to rootCliReason)
+        }
+    }
+
+    private fun rootCliStatus(): Map<String, Any?> = linkedMapOf(
+        "v" to 1,
+        "enabled" to isRootCliEnabled(),
+        "listening" to rootCli.listening,
+        "checked" to rootCliChecked,
+        "granted" to rootCliGranted,
+        "adbReady" to rootCliAdbReady,
+        "reason" to rootCliReason,
+    )
 
     // ── Task ────────────────────────────────────────────────────────────────────────
 
@@ -469,6 +599,7 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
         "enabled" to isEnabled(),
         "bridgeListening" to bridge.listening,
         "rootCliListening" to rootCli.listening,
+        "rootCli" to rootCliStatus(),
         "a11y" to linkedMapOf("enabled" to a11yEnabledInSettings(), "serviceConnected" to (PhoneRegistry.mainDriver != null)),
         "overlay" to (PhoneRegistry.overlayGate != null),
         "notifications" to nm.areNotificationsEnabled(),
@@ -667,6 +798,7 @@ class PhoneControl private constructor(private val app: Context) : PhoneEnv, Con
         internal val keeperSwitchLock = Any()
         private const val K_POLICIES = "policies"
         private const val K_TCP_FALLBACK = "tcpFallback"
+        private const val K_ROOT_CLI_ENABLED = "rootCliEnabled"
         private const val CHANNEL_FIX = "dsh-phone-fix"
         private const val NOTIFY_FIX_ID = 4099
 

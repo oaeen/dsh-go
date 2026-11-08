@@ -37,6 +37,7 @@ import '../features/permission_page.dart';
 import '../onboarding/api_key_page.dart' show maskApiKey;
 import '../pets/pet_settings_page.dart';
 import '../phone/phone_control_screen.dart';
+import '../phone/root_mode_screen.dart';
 import '../plugins/plugins_screen.dart';
 import '../plugins/seats/plugin_settings_tiles.dart';
 import '../plugins/seats/seat_probe.dart';
@@ -173,6 +174,15 @@ class SettingsScreen extends ConsumerWidget {
               value: text(phoneValue, color: phoneValue == l10n.hubValueOneStep ? colors.warning : null),
               onTap: () => _push(context, const PhoneControlScreen()),
             ),
+            if (phone.status.rootCli.supported)
+              SettingsTile(
+                key: const Key('settings-root-mode'),
+                icon: AppIcons.terminal,
+                tint: SettingsHues.abilities,
+                spot: SettingsIndex.entry(SettingsPageId.phoneRoot),
+                value: text(phone.status.rootCli.enabled ? l10n.pluginsTurnedOn : l10n.hubValueOff),
+                onTap: () => _push(context, const RootModeScreen()),
+              ),
             SettingsTile(
               icon: AppIcons.webSearch,
               tint: SettingsHues.abilities,

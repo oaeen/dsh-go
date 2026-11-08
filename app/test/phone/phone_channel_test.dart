@@ -178,4 +178,26 @@ void main() {
     expect(log[5].decision, PhoneDecision.blocked);
     expect(log[6].decision, PhoneDecision.stopped);
   });
+
+  test('rootCli parses v1 contract and encodes method arguments', () async {
+    final native = FakePhoneNative(
+      status: phoneStatus(
+        rootCli: rootCliStatus(enabled: true, listening: true, checked: true, granted: true, adbReady: true),
+      ),
+    )..install();
+    final s = await channel.status();
+    expect(s.rootCli.supported, isTrue);
+    expect(s.rootCli.enabled, isTrue);
+    expect(s.rootCli.listening, isTrue);
+    expect(s.rootCli.checked, isTrue);
+    expect(s.rootCli.granted, isTrue);
+    expect(s.rootCli.adbReady, isTrue);
+
+    expect((await channel.setRootCliEnabled(false)).ok, isTrue);
+    expect(native.callsOf('setRootCliEnabled').single.arguments, {'enabled': false});
+    expect((await channel.testRootCli()).ok, isTrue);
+    expect(native.callsOf('testRootCli'), hasLength(1));
+    expect((await channel.bootstrapRootAdb(port: 5555)).ok, isTrue);
+    expect(native.callsOf('bootstrapRootAdb').single.arguments, {'port': 5555});
+  });
 }

@@ -11334,6 +11334,78 @@ class L10nEn extends L10n {
       'On the main Wireless debugging settings page, find “IP address & port” and enter the port after the colon. Do not use the pairing-code dialog’s port.';
 
   @override
+  String get phoneRootModeTitle => 'Root mode';
+
+  @override
+  String get phoneRootModeSubtitle =>
+      'Let the local engine run host root commands, local ADB and Android CLI without pairing';
+
+  @override
+  String get phoneRootModeCardHint => 'Host su, local ADB (5555) and Android CLI';
+
+  @override
+  String get phoneRootModeReady => 'Ready · Root authorized';
+
+  @override
+  String get phoneRootModeReadyWithAdb => 'Ready · Root and local ADB (5555) active';
+
+  @override
+  String get phoneRootModeEnabledPending => 'On · Root authorization not checked yet';
+
+  @override
+  String get phoneRootModeSectionStatus => 'Status and authorization';
+
+  @override
+  String get phoneRootModeSuTitle => 'Host root access (host-su)';
+
+  @override
+  String get phoneRootModeSuGranted => 'Root access granted (uid=0)';
+
+  @override
+  String get phoneRootModeSuHint => 'Authorize host su via Magisk, KernelSU or APatch';
+
+  @override
+  String get phoneRootModeSuTest => 'Test access';
+
+  @override
+  String get phoneRootModeSuGrant => 'Authorize';
+
+  @override
+  String get phoneRootModeAdbTitle => 'Local loopback ADB (127.0.0.1:5555)';
+
+  @override
+  String get phoneRootModeAdbReady => '127.0.0.1:5555 is ready for container adb and android CLI';
+
+  @override
+  String get phoneRootModeAdbHint =>
+      'Start local loopback adbd and authorize the container key without wireless pairing';
+
+  @override
+  String get phoneRootModeAdbStart => 'Start ADB';
+
+  @override
+  String get phoneRootModeAdbRestart => 'Restart';
+
+  @override
+  String get phoneRootModeAdbSuccess => 'Local ADB (127.0.0.1:5555) started';
+
+  @override
+  String get phoneRootModeCommandsSection => 'Tools in the container';
+
+  @override
+  String get phoneRootModeCmdHostSuHint =>
+      'Run commands in the host Android root environment (pm, am, dumpsys, setprop, etc.)';
+
+  @override
+  String get phoneRootModeCmdAdbHint => 'Start adbd on 127.0.0.1:5555 and authorize the container key';
+
+  @override
+  String get phoneRootModeCmdAndroidCliHint => 'Install official Google Android CLI (ARM64) and local adb';
+
+  @override
+  String get phoneRootModeCommandCopied => 'Command copied';
+
+  @override
   String get phoneTaskResultReady => 'Task complete · View result';
 
   @override
@@ -15651,6 +15723,9 @@ class L10nEn extends L10n {
 
   @override
   String get searchKwQuickPanel => 'swipe,left swipe,shortcuts,gesture,quick panel,quick access';
+
+  @override
+  String get searchKwRootMode => 'root,su,host-su,adb,android-cli,magisk,kernelsu,apatch,privileged,local adb';
 
   @override
   String get shellDeletePermanently => 'Delete permanently';

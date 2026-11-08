@@ -57,6 +57,9 @@ class RootCliBridge(
     val listening: Boolean get() = running.get()
     val authenticatedConnections: Int get() = connections.get()
 
+    /** Runs [cmd] directly through [runner] (used by Settings UI to test/grant root or bootstrap ADB). */
+    fun runDirect(cmd: String, timeoutMs: Long = 15_000L): ExecResult = runner.run(cmd, timeoutMs)
+
     @Synchronized
     fun start(withTcp: Boolean = true, bindAbstractSocket: Boolean = true): Endpoint {
         stop()
@@ -369,6 +372,31 @@ class RootCliBridge(
                   ip6tables -C INPUT -p tcp --dport $port ! -s ::1 -j DROP 2>/dev/null || ip6tables -I INPUT -p tcp --dport $port ! -s ::1 -j DROP 2>/dev/null || true
                 fi
                 if [ "${'$'}(getprop service.adb.tcp.port)" != "$port" ] || [ "${'$'}(getprop init.svc.adbd)" != "running" ] || [ "${'$'}NEED_RESTART" = "1" ]; then
+                  setprop service.adb.tcp.port $port
+                  stop adbd
+                  start adbd
+                fi
+                printf 'adb_loopback_ready=127.0.0.1:%d\n' $port
+            """.trimIndent()
+        }
+
+        /**
+         * Like [bootstrapAdbScript], but allows an empty [pubKey] when triggered from the Settings UI
+         * before the guest container has generated `/root/.android/adbkey.pub`.
+         */
+        fun bootstrapLoopbackAdbScript(pubKey: String? = null, port: Int = DEFAULT_ADB_PORT): String {
+            val trimmed = pubKey?.trim().orEmpty()
+            if (trimmed.isNotEmpty()) return bootstrapAdbScript(trimmed, port)
+            require(port in 1024..65535) { "adb port out of range: $port" }
+            return """
+                set -e
+                if command -v iptables >/dev/null 2>&1; then
+                  iptables -C INPUT -p tcp --dport $port ! -s 127.0.0.1 -j DROP 2>/dev/null || iptables -I INPUT -p tcp --dport $port ! -s 127.0.0.1 -j DROP 2>/dev/null || true
+                fi
+                if command -v ip6tables >/dev/null 2>&1; then
+                  ip6tables -C INPUT -p tcp --dport $port ! -s ::1 -j DROP 2>/dev/null || ip6tables -I INPUT -p tcp --dport $port ! -s ::1 -j DROP 2>/dev/null || true
+                fi
+                if [ "${'$'}(getprop service.adb.tcp.port)" != "$port" ] || [ "${'$'}(getprop init.svc.adbd)" != "running" ]; then
                   setprop service.adb.tcp.port $port
                   stop adbd
                   start adbd

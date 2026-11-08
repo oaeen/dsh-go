@@ -19946,6 +19946,144 @@ abstract class L10n {
   /// **'在系统「无线调试」首页查看「IP 地址和端口」，填写冒号后的端口。请不要使用配对码页面的端口。'**
   String get phoneDndConnectPortHint;
 
+  /// No description provided for @phoneRootModeTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'Root 模式'**
+  String get phoneRootModeTitle;
+
+  /// No description provided for @phoneRootModeSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'供本机引擎直接调用宿主机 Root、本机 ADB 与 Android CLI，免配对'**
+  String get phoneRootModeSubtitle;
+
+  /// No description provided for @phoneRootModeCardHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'宿主机 su、本机 ADB (5555) 与 Android CLI'**
+  String get phoneRootModeCardHint;
+
+  /// No description provided for @phoneRootModeReady.
+  ///
+  /// In zh, this message translates to:
+  /// **'已就绪 · Root 已授权'**
+  String get phoneRootModeReady;
+
+  /// No description provided for @phoneRootModeReadyWithAdb.
+  ///
+  /// In zh, this message translates to:
+  /// **'已就绪 · Root 与本机 ADB (5555) 可用'**
+  String get phoneRootModeReadyWithAdb;
+
+  /// No description provided for @phoneRootModeEnabledPending.
+  ///
+  /// In zh, this message translates to:
+  /// **'已开启 · 待检查 Root 授权'**
+  String get phoneRootModeEnabledPending;
+
+  /// No description provided for @phoneRootModeSectionStatus.
+  ///
+  /// In zh, this message translates to:
+  /// **'状态与授权'**
+  String get phoneRootModeSectionStatus;
+
+  /// No description provided for @phoneRootModeSuTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'宿主机 Root 权限 (host-su)'**
+  String get phoneRootModeSuTitle;
+
+  /// No description provided for @phoneRootModeSuGranted.
+  ///
+  /// In zh, this message translates to:
+  /// **'已获 Root 授权 (uid=0)'**
+  String get phoneRootModeSuGranted;
+
+  /// No description provided for @phoneRootModeSuHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'通过 Magisk、KernelSU 或 APatch 授权宿主机 su'**
+  String get phoneRootModeSuHint;
+
+  /// No description provided for @phoneRootModeSuTest.
+  ///
+  /// In zh, this message translates to:
+  /// **'测试授权'**
+  String get phoneRootModeSuTest;
+
+  /// No description provided for @phoneRootModeSuGrant.
+  ///
+  /// In zh, this message translates to:
+  /// **'申请授权'**
+  String get phoneRootModeSuGrant;
+
+  /// No description provided for @phoneRootModeAdbTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'本机环回 ADB (127.0.0.1:5555)'**
+  String get phoneRootModeAdbTitle;
+
+  /// No description provided for @phoneRootModeAdbReady.
+  ///
+  /// In zh, this message translates to:
+  /// **'127.0.0.1:5555 已就绪，容器内 adb 与 android 直连'**
+  String get phoneRootModeAdbReady;
+
+  /// No description provided for @phoneRootModeAdbHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'一键开启本机 adbd 环回端口并自动注入容器公钥，免无线调试配对'**
+  String get phoneRootModeAdbHint;
+
+  /// No description provided for @phoneRootModeAdbStart.
+  ///
+  /// In zh, this message translates to:
+  /// **'启动 ADB'**
+  String get phoneRootModeAdbStart;
+
+  /// No description provided for @phoneRootModeAdbRestart.
+  ///
+  /// In zh, this message translates to:
+  /// **'重新启动'**
+  String get phoneRootModeAdbRestart;
+
+  /// No description provided for @phoneRootModeAdbSuccess.
+  ///
+  /// In zh, this message translates to:
+  /// **'本机 ADB (127.0.0.1:5555) 已启动'**
+  String get phoneRootModeAdbSuccess;
+
+  /// No description provided for @phoneRootModeCommandsSection.
+  ///
+  /// In zh, this message translates to:
+  /// **'容器内可用工具'**
+  String get phoneRootModeCommandsSection;
+
+  /// No description provided for @phoneRootModeCmdHostSuHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'在宿主机 Android Root 环境执行命令（pm、am、dumpsys、setprop 等）'**
+  String get phoneRootModeCmdHostSuHint;
+
+  /// No description provided for @phoneRootModeCmdAdbHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'启动本机 127.0.0.1:5555 的 adbd 并注入容器公钥'**
+  String get phoneRootModeCmdAdbHint;
+
+  /// No description provided for @phoneRootModeCmdAndroidCliHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'一键安装官方 Google Android CLI (ARM64) 与本机 adb'**
+  String get phoneRootModeCmdAndroidCliHint;
+
+  /// No description provided for @phoneRootModeCommandCopied.
+  ///
+  /// In zh, this message translates to:
+  /// **'命令已复制'**
+  String get phoneRootModeCommandCopied;
+
   /// No description provided for @phoneTaskResultReady.
   ///
   /// In zh, this message translates to:
@@ -27385,6 +27523,12 @@ abstract class L10n {
   /// In zh, this message translates to:
   /// **'左滑,快捷入口,手势,滑动,目录,自定义目录,快捷,常用入口'**
   String get searchKwQuickPanel;
+
+  /// No description provided for @searchKwRootMode.
+  ///
+  /// In zh, this message translates to:
+  /// **'root,su,host-su,adb,android-cli,magisk,kernelsu,apatch,特权,本机adb,免配对'**
+  String get searchKwRootMode;
 
   /// No description provided for @shellDeletePermanently.
   ///

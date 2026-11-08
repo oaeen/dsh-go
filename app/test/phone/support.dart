@@ -35,6 +35,7 @@ Map<String, Object?> phoneStatus({
   bool taskStopped = false,
   bool taskWaived = false,
   Map<String, Object?>? device = const {'manufacturer': 'vivo', 'sdkInt': 35, 'sideloaded': true},
+  Map<String, Object?>? rootCli,
 }) => {
   'enabled': enabled,
   'bridgeListening': bridgeListening,
@@ -58,6 +59,24 @@ Map<String, Object?> phoneStatus({
     'waived': taskWaived,
   },
   'device': ?device,
+  'rootCli': ?rootCli,
+};
+
+Map<String, Object?> rootCliStatus({
+  bool enabled = false,
+  bool listening = false,
+  bool checked = false,
+  bool? granted,
+  bool adbReady = false,
+  String? reason,
+}) => {
+  'v': 1,
+  'enabled': enabled,
+  'listening': listening,
+  'checked': checked,
+  'granted': granted,
+  'adbReady': adbReady,
+  'reason': reason,
 };
 
 /// [phoneStatus] from a native module with the versioned five-channel block
@@ -271,6 +290,53 @@ class FakePhoneNative {
         return true;
       case 'adbStartPairing' || 'adbPair' || 'adbConnect' || 'prepareRoot':
         return results[call.method] ?? {'ok': true};
+      case 'setRootCliEnabled':
+        final r = results[call.method] ?? {'ok': true};
+        final enabled = args['enabled'] == true;
+        final prev = (status['rootCli'] as Map?)?.cast<String, Object?>() ?? rootCliStatus();
+        status = {
+          ...status,
+          'rootCli': {
+            ...prev,
+            'v': 1,
+            'enabled': enabled,
+            'listening': enabled && r['ok'] == true,
+            'checked': enabled ? true : prev['checked'],
+            'granted': enabled ? (r['ok'] == true) : prev['granted'],
+            'adbReady': enabled ? prev['adbReady'] : false,
+            'reason': r['reason'] as String?,
+          },
+        };
+        return r;
+      case 'testRootCli':
+        final r = results[call.method] ?? {'ok': true};
+        final prev = (status['rootCli'] as Map?)?.cast<String, Object?>() ?? rootCliStatus();
+        status = {
+          ...status,
+          'rootCli': {
+            ...prev,
+            'v': 1,
+            'checked': true,
+            'granted': r['ok'] == true,
+            'reason': r['reason'] as String?,
+          },
+        };
+        return r;
+      case 'bootstrapRootAdb':
+        final r = results[call.method] ?? {'ok': true};
+        final prev = (status['rootCli'] as Map?)?.cast<String, Object?>() ?? rootCliStatus();
+        status = {
+          ...status,
+          'rootCli': {
+            ...prev,
+            'v': 1,
+            'checked': true,
+            'granted': r['ok'] == true ? true : prev['granted'],
+            'adbReady': r['ok'] == true,
+            'reason': r['reason'] as String?,
+          },
+        };
+        return r;
       case 'grantSecureSettings':
         final result = results[call.method] ?? {'ok': true};
         if (result['ok'] == true) {

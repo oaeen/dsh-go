@@ -10776,6 +10776,75 @@ class L10nZh extends L10n {
   String get phoneDndConnectPortHint => '在系统「无线调试」首页查看「IP 地址和端口」，填写冒号后的端口。请不要使用配对码页面的端口。';
 
   @override
+  String get phoneRootModeTitle => 'Root 模式';
+
+  @override
+  String get phoneRootModeSubtitle => '供本机引擎直接调用宿主机 Root、本机 ADB 与 Android CLI，免配对';
+
+  @override
+  String get phoneRootModeCardHint => '宿主机 su、本机 ADB (5555) 与 Android CLI';
+
+  @override
+  String get phoneRootModeReady => '已就绪 · Root 已授权';
+
+  @override
+  String get phoneRootModeReadyWithAdb => '已就绪 · Root 与本机 ADB (5555) 可用';
+
+  @override
+  String get phoneRootModeEnabledPending => '已开启 · 待检查 Root 授权';
+
+  @override
+  String get phoneRootModeSectionStatus => '状态与授权';
+
+  @override
+  String get phoneRootModeSuTitle => '宿主机 Root 权限 (host-su)';
+
+  @override
+  String get phoneRootModeSuGranted => '已获 Root 授权 (uid=0)';
+
+  @override
+  String get phoneRootModeSuHint => '通过 Magisk、KernelSU 或 APatch 授权宿主机 su';
+
+  @override
+  String get phoneRootModeSuTest => '测试授权';
+
+  @override
+  String get phoneRootModeSuGrant => '申请授权';
+
+  @override
+  String get phoneRootModeAdbTitle => '本机环回 ADB (127.0.0.1:5555)';
+
+  @override
+  String get phoneRootModeAdbReady => '127.0.0.1:5555 已就绪，容器内 adb 与 android 直连';
+
+  @override
+  String get phoneRootModeAdbHint => '一键开启本机 adbd 环回端口并自动注入容器公钥，免无线调试配对';
+
+  @override
+  String get phoneRootModeAdbStart => '启动 ADB';
+
+  @override
+  String get phoneRootModeAdbRestart => '重新启动';
+
+  @override
+  String get phoneRootModeAdbSuccess => '本机 ADB (127.0.0.1:5555) 已启动';
+
+  @override
+  String get phoneRootModeCommandsSection => '容器内可用工具';
+
+  @override
+  String get phoneRootModeCmdHostSuHint => '在宿主机 Android Root 环境执行命令（pm、am、dumpsys、setprop 等）';
+
+  @override
+  String get phoneRootModeCmdAdbHint => '启动本机 127.0.0.1:5555 的 adbd 并注入容器公钥';
+
+  @override
+  String get phoneRootModeCmdAndroidCliHint => '一键安装官方 Google Android CLI (ARM64) 与本机 adb';
+
+  @override
+  String get phoneRootModeCommandCopied => '命令已复制';
+
+  @override
   String get phoneTaskResultReady => '任务完成 · 查看结果';
 
   @override
@@ -14904,6 +14973,9 @@ class L10nZh extends L10n {
 
   @override
   String get searchKwQuickPanel => '左滑,快捷入口,手势,滑动,目录,自定义目录,快捷,常用入口';
+
+  @override
+  String get searchKwRootMode => 'root,su,host-su,adb,android-cli,magisk,kernelsu,apatch,特权,本机adb,免配对';
 
   @override
   String get shellDeletePermanently => '永久删除';

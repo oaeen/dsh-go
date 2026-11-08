@@ -35,6 +35,7 @@ import 'phone_background_guide.dart';
 import 'phone_unlock_page.dart';
 import 'phone_widgets.dart';
 import 'restricted_settings_guide.dart';
+import 'root_mode_screen.dart';
 import 'screen_text_sheet.dart';
 
 extension PhoneConfirmModeText on PhoneConfirmMode {
@@ -325,6 +326,22 @@ class _PhoneControlScreenState extends ConsumerState<PhoneControlScreen> {
         if (!state.loaded)
           const QuietSpinner(padding: EdgeInsets.symmetric(vertical: 32))
         else if (ready) ...[
+          if (blocker == null && status.rootCli.supported) ...[
+            ListPageCard(
+              children: [
+                ListPageRow(
+                  key: const Key('phone-root-mode'),
+                  icon: AppIcons.terminal,
+                  spot: SettingsIndex.entry(SettingsPageId.phoneRoot),
+                  subtitle: status.rootCli.enabled
+                      ? rootModeSummary(status.rootCli, l10n)
+                      : l10n.phoneRootModeCardHint,
+                  onTap: () => _push(const RootModeScreen()),
+                ),
+              ],
+            ),
+            gap,
+          ],
           if (status.enabled) ..._setup(status) else const _WhatItDoes(),
           gap,
           ..._rules(state),

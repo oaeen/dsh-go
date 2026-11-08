@@ -216,6 +216,12 @@ class PhoneController extends Notifier<PhoneState> {
   /// Only an explicit tap: refresh, build and status events never prepare root.
   Future<PhoneResult> prepareRoot() => _ifSupported(PhonePrivilegedMode.root, _channel.prepareRoot);
 
+  Future<PhoneResult> setRootCliEnabled(bool enabled) => _thenRefresh(_channel.setRootCliEnabled(enabled));
+
+  Future<PhoneResult> testRootCli() => _thenRefresh(_channel.testRootCli());
+
+  Future<PhoneResult> bootstrapRootAdb({int? port}) => _thenRefresh(_channel.bootstrapRootAdb(port: port));
+
   Future<PhoneResult> _ifSupported(PhonePrivilegedMode mode, Future<PhoneResult> Function() action) =>
       state.status.background.supportedModes.contains(mode)
       ? _thenRefresh(action())
