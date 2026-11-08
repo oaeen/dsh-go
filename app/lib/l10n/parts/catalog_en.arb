@@ -70,7 +70,7 @@
   "catalogAccountSummary": "Sign in, balance and top-ups",
   "catalogRemoteSummary": "Connect to a computer or server",
   "catalogPhoneControl": "Phone control",
-  "catalogPhoneControlSummary": "See your screen and tap for you",
+  "catalogPhoneControlSummary": "Read screen and perform touch actions",
   "catalogEngine": "Local engine",
   "catalogEngineSummary": "Engine status and logs on this phone",
   "catalogDiagnostics": "Diagnostics",
@@ -79,7 +79,7 @@
   "catalogPluginPanel": "Plugin panel",
   "catalogHostPluginMissing": "This host doesn’t have this plugin",
   "catalogAllFeatures": "All features",
-  "catalogAllFeaturesSubtitle": "DSH Web features, all here",
+  "catalogAllFeaturesSubtitle": "All chat, tool, and host capabilities",
   "catalogOpenChatFirst": "Open a chat first",
   "catalogNoOpenChat": "No chat open",
   "catalogOpenChat": "Currently open chat",
@@ -104,7 +104,7 @@
   "catalogToolsSection": "Tools",
   "catalogAllSettings": "All settings",
   "diagnosticsForAi": "Let the AI read diagnostics",
-  "diagnosticsForAiHint": "Write the snapshot where the engine can read it",
-  "diagnosticsForAiDone": "Written — ask the AI to \"check the diagnostics\"",
+  "diagnosticsForAiHint": "Write environment snapshot to the engine for AI inspection",
+  "diagnosticsForAiDone": "Diagnostics written; ask AI in chat to inspect",
   "diagnosticsForAiFailed": "Not written: the local runtime is not installed"
 }

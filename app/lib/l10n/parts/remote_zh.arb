@@ -574,9 +574,9 @@
   "remotePassword": "密码",
   "remoteRestoreServer": "改回默认服务器 dsh.r2049.cn",
   "remoteConsole": "远程控制台",
-  "remoteHostsIntro": "在手机上接着用电脑或服务器上的 DSH",
+  "remoteHostsIntro": "连接并使用电脑或服务器上的 DSH",
   "remoteSshHosts": "SSH 主机",
-  "remoteSshRequirements": "需要那台主机开着 SSH，并装好 DSH",
+  "remoteSshRequirements": "需主机已开启 SSH 服务并安装 DSH",
   "remoteAddSshHost": "添加 SSH 主机",
   "remoteSshDirect": "不经过第三方服务器",
   "remoteOtherMethods": "其他方式",
@@ -843,7 +843,7 @@
   "remoteWorkspaceManage": "管理工作区",
   "remoteWorkspaceErrLoad": "没能读取工作区",
   "remoteWorkspaceEmpty": "还没有工作区",
-  "remoteWorkspaceEmptyHint": "把常用的文件夹加进来",
+  "remoteWorkspaceEmptyHint": "添加常用目录作为工作区",
   "remoteWorkspaceCount": "{count} 个工作区",
   "@remoteWorkspaceCount": {
     "placeholders": {

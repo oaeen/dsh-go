@@ -5753,7 +5753,7 @@ abstract class L10n {
   /// No description provided for @catalogPhoneControlSummary.
   ///
   /// In zh, this message translates to:
-  /// **'看屏幕、帮你点按'**
+  /// **'读取屏幕并执行辅助触控'**
   String get catalogPhoneControlSummary;
 
   /// No description provided for @catalogEngine.
@@ -5807,7 +5807,7 @@ abstract class L10n {
   /// No description provided for @catalogAllFeaturesSubtitle.
   ///
   /// In zh, this message translates to:
-  /// **'网页版的功能，也都在这里'**
+  /// **'汇总对话、工具与主机设置入口'**
   String get catalogAllFeaturesSubtitle;
 
   /// No description provided for @catalogOpenChatFirst.
@@ -5957,13 +5957,13 @@ abstract class L10n {
   /// No description provided for @diagnosticsForAiHint.
   ///
   /// In zh, this message translates to:
-  /// **'把环境快照写进引擎，AI 自己读'**
+  /// **'将当前环境快照写入引擎供模型读取'**
   String get diagnosticsForAiHint;
 
   /// No description provided for @diagnosticsForAiDone.
   ///
   /// In zh, this message translates to:
-  /// **'已写入诊断，问 AI「看下诊断」就行'**
+  /// **'诊断快照已写入，可在对话中让 AI 查看'**
   String get diagnosticsForAiDone;
 
   /// No description provided for @diagnosticsForAiFailed.
@@ -6167,7 +6167,7 @@ abstract class L10n {
   /// No description provided for @chatSteerHint.
   ///
   /// In zh, this message translates to:
-  /// **'不打断，AI 下一步会看到'**
+  /// **'不中断当前执行，在下一步生效'**
   String get chatSteerHint;
 
   /// No description provided for @chatInterruptAndSend.
@@ -6179,7 +6179,7 @@ abstract class L10n {
   /// No description provided for @chatInterruptHint.
   ///
   /// In zh, this message translates to:
-  /// **'停下当前任务，先处理这条'**
+  /// **'中止当前步骤并立即处理此消息'**
   String get chatInterruptHint;
 
   /// No description provided for @chatQueue.
@@ -6389,7 +6389,7 @@ abstract class L10n {
   /// No description provided for @chatPauseGoalHint.
   ///
   /// In zh, this message translates to:
-  /// **'先不自动推进'**
+  /// **'暂停自动推进'**
   String get chatPauseGoalHint;
 
   /// No description provided for @chatResumeGoal.
@@ -7385,19 +7385,19 @@ abstract class L10n {
   /// No description provided for @chatRegenerateHint.
   ///
   /// In zh, this message translates to:
-  /// **'在新对话中重新生成，原对话不变'**
+  /// **'在新对话中重新生成，保留原对话'**
   String get chatRegenerateHint;
 
   /// No description provided for @chatBranchHint.
   ///
   /// In zh, this message translates to:
-  /// **'在新对话中继续，原对话不变'**
+  /// **'从此处创建新对话，保留原对话'**
   String get chatBranchHint;
 
   /// No description provided for @chatEditResendHint.
   ///
   /// In zh, this message translates to:
-  /// **'在新对话中改写，原对话不变'**
+  /// **'修改后在新对话中发送，保留原对话'**
   String get chatEditResendHint;
 
   /// No description provided for @chatSaveToPhotos.
@@ -11855,7 +11855,7 @@ abstract class L10n {
   /// No description provided for @featuresPresetDeleteHint.
   ///
   /// In zh, this message translates to:
-  /// **'新对话不能再选它，已开始的对话不受影响。'**
+  /// **'删除后不可用于新对话，已有对话不受影响。'**
   String get featuresPresetDeleteHint;
 
   /// No description provided for @featuresDeleted.
@@ -12029,25 +12029,25 @@ abstract class L10n {
   /// No description provided for @featuresPermissionReadOnlyHint.
   ///
   /// In zh, this message translates to:
-  /// **'只看文件，不做修改'**
+  /// **'仅读取文件，不作修改'**
   String get featuresPermissionReadOnlyHint;
 
   /// No description provided for @featuresPermissionWorkspaceWriteHint.
   ///
   /// In zh, this message translates to:
-  /// **'可改工作区内的文件，越界先问你'**
+  /// **'允许修改工作区内文件，跨目录操作需确认'**
   String get featuresPermissionWorkspaceWriteHint;
 
   /// No description provided for @featuresPermissionFullAccessHint.
   ///
   /// In zh, this message translates to:
-  /// **'不再确认，直接执行'**
+  /// **'直接执行命令与文件修改，无需确认'**
   String get featuresPermissionFullAccessHint;
 
   /// No description provided for @featuresPermissionAutoReviewHint.
   ///
   /// In zh, this message translates to:
-  /// **'由模型逐次审查，拿不准再问你'**
+  /// **'由模型评估操作风险，不确定时请求确认'**
   String get featuresPermissionAutoReviewHint;
 
   /// No description provided for @featuresPresetStandard.
@@ -12095,7 +12095,7 @@ abstract class L10n {
   /// No description provided for @featuresPresetCreatorDescription.
   ///
   /// In zh, this message translates to:
-  /// **'让 Agent 写插件，定制 DSH 本身'**
+  /// **'编写并调试插件以扩展 DSH'**
   String get featuresPresetCreatorDescription;
 
   /// No description provided for @featuresHostUnreachable.
@@ -12137,7 +12137,7 @@ abstract class L10n {
   /// No description provided for @featuresJobsEmptyHint.
   ///
   /// In zh, this message translates to:
-  /// **'开发服务器这类命令会在这里'**
+  /// **'显示后台运行的命令与服务'**
   String get featuresJobsEmptyHint;
 
   /// No description provided for @featuresJobsEndedCount.
@@ -12215,7 +12215,7 @@ abstract class L10n {
   /// No description provided for @featuresPermissionAutoWarning.
   ///
   /// In zh, this message translates to:
-  /// **'每次操作由模型判断放不放行，可能误判。'**
+  /// **'由模型自动评估并放行操作，存在误判可能。'**
   String get featuresPermissionAutoWarning;
 
   /// No description provided for @featuresSwitchFailed.
@@ -12233,7 +12233,7 @@ abstract class L10n {
   /// No description provided for @featuresPermissionsSubtitle.
   ///
   /// In zh, this message translates to:
-  /// **'执行命令、修改文件前，要不要先问你'**
+  /// **'控制执行命令与修改文件前的确认策略'**
   String get featuresPermissionsSubtitle;
 
   /// No description provided for @featuresPermissionsReadFailed.
@@ -12245,7 +12245,7 @@ abstract class L10n {
   /// No description provided for @featuresPermissionCustomHint.
   ///
   /// In zh, this message translates to:
-  /// **'当前用的是自定义权限，选预设会替换它'**
+  /// **'选择预设将覆盖当前自定义权限'**
   String get featuresPermissionCustomHint;
 
   /// No description provided for @featuresModuleInstructions.
@@ -13583,7 +13583,7 @@ abstract class L10n {
   /// No description provided for @featuresSchedulesEmptyHint.
   ///
   /// In zh, this message translates to:
-  /// **'到点自动发进对话，替你跑一遍'**
+  /// **'按设定时间自动向对话发送指令并执行'**
   String get featuresSchedulesEmptyHint;
 
   /// No description provided for @featuresScheduleNewTask.
@@ -13619,7 +13619,7 @@ abstract class L10n {
   /// No description provided for @featuresSchedulesSubtitle.
   ///
   /// In zh, this message translates to:
-  /// **'到点自动发进原来的对话'**
+  /// **'按计划在关联对话中自动执行'**
   String get featuresSchedulesSubtitle;
 
   /// No description provided for @featuresSchedulesSearch.
@@ -13667,7 +13667,7 @@ abstract class L10n {
   /// No description provided for @featuresScheduleDeleteHint.
   ///
   /// In zh, this message translates to:
-  /// **'会停止之后的运行，并删掉它的运行记录。原来的对话不受影响。'**
+  /// **'停止后续调度并清除运行记录，关联对话不受影响。'**
   String get featuresScheduleDeleteHint;
 
   /// No description provided for @featuresScheduleDeleted.
@@ -13775,7 +13775,7 @@ abstract class L10n {
   /// No description provided for @featuresExportSubtitle.
   ///
   /// In zh, this message translates to:
-  /// **'打包成一个 ZIP，用于反馈或备份'**
+  /// **'导出为 ZIP 压缩包，用于问题反馈或备份'**
   String get featuresExportSubtitle;
 
   /// No description provided for @featuresExportUnavailable.
@@ -13787,7 +13787,7 @@ abstract class L10n {
   /// No description provided for @featuresExportRemoteHint.
   ///
   /// In zh, this message translates to:
-  /// **'经 DSH Remote 中转时拿不到日志，可以在电脑上的网页版导出'**
+  /// **'DSH Remote 连接不支持导出日志，请在主机网页版中操作'**
   String get featuresExportRemoteHint;
 
   /// No description provided for @featuresExportShareHint.
@@ -13901,7 +13901,7 @@ abstract class L10n {
   /// No description provided for @featuresArtifactsTotal.
   ///
   /// In zh, this message translates to:
-  /// **'{count} 个文件 · 交付的和生成的'**
+  /// **'{count} 个文件 · 交付与生成'**
   String featuresArtifactsTotal(int count);
 
   /// No description provided for @featuresArtifactsEmpty.
@@ -14111,7 +14111,7 @@ abstract class L10n {
   /// No description provided for @hubSessionTrajectoryHint.
   ///
   /// In zh, this message translates to:
-  /// **'每一轮的步骤和用时会排在这里'**
+  /// **'按轮次显示执行步骤与耗时'**
   String get hubSessionTrajectoryHint;
 
   /// No description provided for @hubSessionLoadEarlier.
@@ -14147,7 +14147,7 @@ abstract class L10n {
   /// No description provided for @hubSessionShellChangesHint.
   ///
   /// In zh, this message translates to:
-  /// **'用 shell 命令改的文件不在这里'**
+  /// **'不包含通过 Shell 命令修改的文件'**
   String get hubSessionShellChangesHint;
 
   /// No description provided for @hubSessionChanges.
@@ -14159,7 +14159,7 @@ abstract class L10n {
   /// No description provided for @hubSessionChangesNote.
   ///
   /// In zh, this message translates to:
-  /// **'只统计已加载的记录里，用写入和编辑工具做的改动'**
+  /// **'仅统计已加载记录中通过读写工具产生的修改'**
   String get hubSessionChangesNote;
 
   /// No description provided for @hubSessionNoGoal.
@@ -14171,7 +14171,7 @@ abstract class L10n {
   /// No description provided for @hubSessionGoalHint.
   ///
   /// In zh, this message translates to:
-  /// **'复杂任务里 AI 会列出待办，进度在这里看'**
+  /// **'显示复杂任务的目标与待办进度'**
   String get hubSessionGoalHint;
 
   /// No description provided for @hubSessionGoal.
@@ -14195,7 +14195,7 @@ abstract class L10n {
   /// No description provided for @hubSessionPlanHint.
   ///
   /// In zh, this message translates to:
-  /// **'AI 先出方案，不改文件'**
+  /// **'仅生成执行方案，不修改文件'**
   String get hubSessionPlanHint;
 
   /// No description provided for @hubSessionTodos.
@@ -14279,7 +14279,7 @@ abstract class L10n {
   /// No description provided for @hubSettingsFullAccessBody.
   ///
   /// In zh, this message translates to:
-  /// **'AI 执行命令、改动文件前不再问你。'**
+  /// **'执行命令与修改文件前不再请求确认。'**
   String get hubSettingsFullAccessBody;
 
   /// No description provided for @hubSettingsStorageTitle.
@@ -14363,7 +14363,7 @@ abstract class L10n {
   /// No description provided for @hubSettingsPhoneControlHint.
   ///
   /// In zh, this message translates to:
-  /// **'看屏幕、帮你点按'**
+  /// **'读取屏幕并执行辅助触控'**
   String get hubSettingsPhoneControlHint;
 
   /// No description provided for @hubSettingsPreferences.
@@ -14393,7 +14393,7 @@ abstract class L10n {
   /// No description provided for @hubSettingsCollapseStepsHint.
   ///
   /// In zh, this message translates to:
-  /// **'思考与工具调用收成一行'**
+  /// **'将思考过程与工具调用折叠为单行'**
   String get hubSettingsCollapseStepsHint;
 
   /// No description provided for @hubSettingsWebPhoneLayout.
@@ -14921,19 +14921,19 @@ abstract class L10n {
   /// No description provided for @hubTableTintFillHint.
   ///
   /// In zh, this message translates to:
-  /// **'隔行淡一档，长表格更好扫读'**
+  /// **'隔行着色，便于阅读长表格'**
   String get hubTableTintFillHint;
 
   /// No description provided for @hubTableTintFollowHint.
   ///
   /// In zh, this message translates to:
-  /// **'表头浅底，表身跟随正文'**
+  /// **'仅表头着色，表身跟随正文背景'**
   String get hubTableTintFollowHint;
 
   /// No description provided for @hubTableTintNoneHint.
   ///
   /// In zh, this message translates to:
-  /// **'只剩网格线，最轻'**
+  /// **'仅保留边框线'**
   String get hubTableTintNoneHint;
 
   /// No description provided for @hubAbout.
@@ -15053,7 +15053,7 @@ abstract class L10n {
   /// No description provided for @hubHardwareEnterSendsHint.
   ///
   /// In zh, this message translates to:
-  /// **'开启后，Shift+Enter 换行。屏幕键盘仍换行；Ctrl/⌘+Enter 始终可发送。'**
+  /// **'开启后按 Shift+Enter 换行；屏幕键盘与 Ctrl/⌘+Enter 保持不变'**
   String get hubHardwareEnterSendsHint;
 
   /// No description provided for @hubQuickPanel.
@@ -15071,7 +15071,7 @@ abstract class L10n {
   /// No description provided for @hubQuickPanelSwipeHint.
   ///
   /// In zh, this message translates to:
-  /// **'在对话里从右向左滑。代码块、表格这些能横向滚动的内容不受影响。'**
+  /// **'在对话页左滑唤出，不影响代码块与表格横向滚动'**
   String get hubQuickPanelSwipeHint;
 
   /// No description provided for @hubQuickPanelItems.
@@ -15431,7 +15431,7 @@ abstract class L10n {
   /// No description provided for @liveSettingsSubtitle.
   ///
   /// In zh, this message translates to:
-  /// **'干活、等你处理、操作手机时，显示在状态栏胶囊和锁屏上；支持的手机会放进灵动岛'**
+  /// **'任务执行、等待确认或操控手机时，在状态栏与锁屏显示实时进度'**
   String get liveSettingsSubtitle;
 
   /// No description provided for @liveSettingsFooter.
@@ -17879,7 +17879,7 @@ abstract class L10n {
   /// No description provided for @phoneDndSubtitle.
   ///
   /// In zh, this message translates to:
-  /// **'在看不见的屏幕上操作，不耽误你用手机'**
+  /// **'在后台虚拟屏幕执行操作，不干扰前台使用'**
   String get phoneDndSubtitle;
 
   /// No description provided for @phoneDndUnsupported.
@@ -18365,7 +18365,7 @@ abstract class L10n {
   /// No description provided for @phoneControlSubtitle.
   ///
   /// In zh, this message translates to:
-  /// **'看屏幕、帮你点按，随时可以停'**
+  /// **'读取屏幕并执行辅助操作，可随时中止'**
   String get phoneControlSubtitle;
 
   /// No description provided for @phoneControlWorking.
@@ -18719,7 +18719,7 @@ abstract class L10n {
   /// No description provided for @phoneDisclosureIntro.
   ///
   /// In zh, this message translates to:
-  /// **'DSH 会像你一样看屏幕、点按，帮你把事办完。开启前，先了解这几点：'**
+  /// **'启用后，DSH 可读取屏幕内容并执行辅助触控。开启前请确认以下事项：'**
   String get phoneDisclosureIntro;
 
   /// No description provided for @phoneDisclosureRestartNote.
@@ -21347,13 +21347,13 @@ abstract class L10n {
   /// No description provided for @pluginsPluginsDescription.
   ///
   /// In zh, this message translates to:
-  /// **'插件能给 DSH 加工具、记忆和模型'**
+  /// **'为 DSH 扩展工具、记忆与模型能力'**
   String get pluginsPluginsDescription;
 
   /// No description provided for @pluginsBrowseMarket.
   ///
   /// In zh, this message translates to:
-  /// **'逛逛插件市场'**
+  /// **'浏览插件市场'**
   String get pluginsBrowseMarket;
 
   /// No description provided for @pluginsLoading.
@@ -21863,7 +21863,7 @@ abstract class L10n {
   /// No description provided for @pluginsOfflineDescription.
   ///
   /// In zh, this message translates to:
-  /// **'引擎运行后显示已装插件，插件市场现在就能逛'**
+  /// **'启动引擎后可管理已装插件；当前仍可浏览插件市场'**
   String get pluginsOfflineDescription;
 
   /// No description provided for @pluginsIconChanged.
@@ -22325,7 +22325,7 @@ abstract class L10n {
   /// No description provided for @pluginsNotificationsDescription.
   ///
   /// In zh, this message translates to:
-  /// **'对话完成或需要你时提醒你'**
+  /// **'对话完成或等待确认时发送提醒'**
   String get pluginsNotificationsDescription;
 
   /// No description provided for @pluginsAllowNotifications.
@@ -22427,7 +22427,7 @@ abstract class L10n {
   /// No description provided for @pluginsPreferencesDescription.
   ///
   /// In zh, this message translates to:
-  /// **'新对话会照这里的要求回答'**
+  /// **'新建对话将默认遵循此处设定的偏好'**
   String get pluginsPreferencesDescription;
 
   /// No description provided for @pluginsPreferencesHint.
@@ -25169,7 +25169,7 @@ abstract class L10n {
   /// No description provided for @remoteHostsIntro.
   ///
   /// In zh, this message translates to:
-  /// **'在手机上接着用电脑或服务器上的 DSH'**
+  /// **'连接并使用电脑或服务器上的 DSH'**
   String get remoteHostsIntro;
 
   /// No description provided for @remoteSshHosts.
@@ -25181,7 +25181,7 @@ abstract class L10n {
   /// No description provided for @remoteSshRequirements.
   ///
   /// In zh, this message translates to:
-  /// **'需要那台主机开着 SSH，并装好 DSH'**
+  /// **'需主机已开启 SSH 服务并安装 DSH'**
   String get remoteSshRequirements;
 
   /// No description provided for @remoteAddSshHost.
@@ -26069,7 +26069,7 @@ abstract class L10n {
   /// No description provided for @remoteWorkspaceEmptyHint.
   ///
   /// In zh, this message translates to:
-  /// **'把常用的文件夹加进来'**
+  /// **'添加常用目录作为工作区'**
   String get remoteWorkspaceEmptyHint;
 
   /// No description provided for @remoteWorkspaceCount.
@@ -27569,7 +27569,7 @@ abstract class L10n {
   /// No description provided for @shellConnectDeepSeekMessage.
   ///
   /// In zh, this message translates to:
-  /// **'登录 DeepSeek 账号即可开始，无需 API Key'**
+  /// **'登录 DeepSeek 账号即可使用，无需配置 API Key'**
   String get shellConnectDeepSeekMessage;
 
   /// No description provided for @shellAccountSignInUnsupported.
@@ -28061,7 +28061,7 @@ abstract class L10n {
   /// No description provided for @shellSearchDifferentKeywords.
   ///
   /// In zh, this message translates to:
-  /// **'换个关键词，或用空格分开多个词'**
+  /// **'请尝试其他关键词，或以空格分隔多个词'**
   String get shellSearchDifferentKeywords;
 
   /// No description provided for @shellArchived.
@@ -28175,7 +28175,7 @@ abstract class L10n {
   /// No description provided for @shellWorkspaceNewChatsHint.
   ///
   /// In zh, this message translates to:
-  /// **'新对话会放进这个工作区。旧对话不会自动移入，可在「全部对话」中找到。'**
+  /// **'新建对话归入此工作区；历史对话仍在「全部对话」中'**
   String get shellWorkspaceNewChatsHint;
 
   /// No description provided for @shellNewChatsHint.
@@ -28967,7 +28967,7 @@ abstract class L10n {
   /// No description provided for @shellInstallInterfaceSkillMessage.
   ///
   /// In zh, this message translates to:
-  /// **'装好后，可以让 AI 按你的话调整 App 界面'**
+  /// **'安装后可通过对话调整应用界面配置'**
   String get shellInstallInterfaceSkillMessage;
 
   /// No description provided for @shellNoUiJson.
@@ -32843,187 +32843,187 @@ abstract class L10n {
   /// No description provided for @viewTipSteer.
   ///
   /// In zh, this message translates to:
-  /// **'生成中长按发送键，可以插话、排队或打断'**
+  /// **'生成期间长按发送键，可选择插话、排队或中断'**
   String get viewTipSteer;
 
   /// No description provided for @viewTipMidRun.
   ///
   /// In zh, this message translates to:
-  /// **'AI 干活时也能发消息，它下一步就会看到'**
+  /// **'模型执行期间可直接发消息，将于下一步生效'**
   String get viewTipMidRun;
 
   /// No description provided for @viewTipSlash.
   ///
   /// In zh, this message translates to:
-  /// **'输入 / 唤出指令：压缩上下文、切换模型等'**
+  /// **'输入 / 唤出指令面板，可压缩上下文或切换模型'**
   String get viewTipSlash;
 
   /// No description provided for @viewTipMention.
   ///
   /// In zh, this message translates to:
-  /// **'输入 @ 可以引用工作区里的文件或别的对话'**
+  /// **'输入 @ 引用工作区文件或其他对话'**
   String get viewTipMention;
 
   /// No description provided for @viewTipReplyMenu.
   ///
   /// In zh, this message translates to:
-  /// **'长按 AI 的回复，可以复制、引用或重新生成'**
+  /// **'长按回复可复制、引用或重新生成'**
   String get viewTipReplyMenu;
 
   /// No description provided for @viewTipEditResend.
   ///
   /// In zh, this message translates to:
-  /// **'长按自己的消息，可以改写后重发，原对话不动'**
+  /// **'长按已发送消息可修改并重发，原对话保持不变'**
   String get viewTipEditResend;
 
   /// No description provided for @viewTipQuote.
   ///
   /// In zh, this message translates to:
-  /// **'选中回复里的一段，点「引用」就只追问那一段'**
+  /// **'选中回复片段后点按「引用」，可针对该段内容追问'**
   String get viewTipQuote;
 
   /// No description provided for @viewTipTitleDetails.
   ///
   /// In zh, this message translates to:
-  /// **'点顶部的对话标题，能看改动、文件和终端'**
+  /// **'点按顶部对话标题，查看改动、文件与终端'**
   String get viewTipTitleDetails;
 
   /// No description provided for @viewTipContextRing.
   ///
   /// In zh, this message translates to:
-  /// **'发送键旁的小圆环是上下文用量，点开看详情'**
+  /// **'发送键旁的圆环显示上下文用量，点按可查看详情'**
   String get viewTipContextRing;
 
   /// No description provided for @viewTipDrawerMenu.
   ///
   /// In zh, this message translates to:
-  /// **'长按侧栏里的对话，可以置顶、改名或归档'**
+  /// **'长按侧栏中的对话，可置顶、重命名或归档'**
   String get viewTipDrawerMenu;
 
   /// No description provided for @viewTipSearch.
   ///
   /// In zh, this message translates to:
-  /// **'主机支持时，搜索对话还能搜到聊天内容，不只是标题'**
+  /// **'主机支持时，搜索可同时匹配对话标题与消息内容'**
   String get viewTipSearch;
 
   /// No description provided for @viewTipSettingsSearch.
   ///
   /// In zh, this message translates to:
-  /// **'长按侧栏的设置键，可以直接搜索设置项'**
+  /// **'长按侧栏设置按钮，可直接搜索设置项'**
   String get viewTipSettingsSearch;
 
   /// No description provided for @viewTipQuickPanel.
   ///
   /// In zh, this message translates to:
-  /// **'在对话页向左滑，打开快捷入口'**
+  /// **'在对话页向左滑动，可打开快捷入口'**
   String get viewTipQuickPanel;
 
   /// No description provided for @viewTipFolderNewChat.
   ///
   /// In zh, this message translates to:
-  /// **'长按侧栏的文件夹，可以直接在里面开新对话'**
+  /// **'长按侧栏文件夹，可直接在该分组内新建对话'**
   String get viewTipFolderNewChat;
 
   /// No description provided for @viewTipSwitchHost.
   ///
   /// In zh, this message translates to:
-  /// **'点侧栏底部的主机名，可以切到电脑上的 DSH'**
+  /// **'点按侧栏底部主机名称，可切换至远程主机'**
   String get viewTipSwitchHost;
 
   /// No description provided for @viewTipPasteImage.
   ///
   /// In zh, this message translates to:
-  /// **'输入法里的截图和贴图，可以直接贴进输入框'**
+  /// **'支持将输入法中的截图与图片直接粘贴至输入框'**
   String get viewTipPasteImage;
 
   /// No description provided for @viewTipLauncher.
   ///
   /// In zh, this message translates to:
-  /// **'长按桌面图标，可以直接语音提问或开新对话'**
+  /// **'长按桌面应用图标，可快速发起语音提问或新建对话'**
   String get viewTipLauncher;
 
   /// No description provided for @viewTipPetBubble.
   ///
   /// In zh, this message translates to:
-  /// **'宠物冒泡时点一下，就跳到等你的那个对话'**
+  /// **'桌宠显示气泡时点按，可直接跳转至待处理对话'**
   String get viewTipPetBubble;
 
   /// No description provided for @viewTipPetPlay.
   ///
   /// In zh, this message translates to:
-  /// **'连点宠物三下会挠痒痒，长按可以换宠物'**
+  /// **'连续点按桌宠三次可触发互动，长按可切换形象'**
   String get viewTipPetPlay;
 
   /// No description provided for @viewTipActivityStrip.
   ///
   /// In zh, this message translates to:
-  /// **'生成时点一下状态条，看这一轮的完整轨迹'**
+  /// **'生成期间点按状态条，可查看本轮完整执行轨迹'**
   String get viewTipActivityStrip;
 
   /// No description provided for @viewTipImageZoom.
   ///
   /// In zh, this message translates to:
-  /// **'看图时双击放大、双指缩放，长按可以保存'**
+  /// **'查看图片时支持双击或双指缩放，长按可保存'**
   String get viewTipImageZoom;
 
   /// No description provided for @viewTipQueuedRecall.
   ///
   /// In zh, this message translates to:
-  /// **'排队中的消息可以撤回到输入框再改'**
+  /// **'排队中的消息可撤回至输入框重新编辑'**
   String get viewTipQueuedRecall;
 
   /// No description provided for @viewTipKeyboard.
   ///
   /// In zh, this message translates to:
-  /// **'接了键盘：Ctrl+Enter 发送，连按两次 Esc 停止'**
+  /// **'连接外接键盘时，按 Ctrl+Enter 发送，连按两次 Esc 停止'**
   String get viewTipKeyboard;
 
   /// No description provided for @viewTipShareIn.
   ///
   /// In zh, this message translates to:
-  /// **'在别的 App 里分享文字或图片给 DSH Go，会填进新对话'**
+  /// **'从其他应用分享文本或图片至 DSH Go，可直接带入新对话'**
   String get viewTipShareIn;
 
   /// No description provided for @viewTipShareSelect.
   ///
   /// In zh, this message translates to:
-  /// **'分享对话时长按再滑动，可以一次选中多条消息'**
+  /// **'分享对话时长按并滑动，可连续选择多条消息'**
   String get viewTipShareSelect;
 
   /// No description provided for @viewTipChartDrag.
   ///
   /// In zh, this message translates to:
-  /// **'回复里的图表可以左右拖动，看每个点的数值'**
+  /// **'左右拖动回复中的图表，可查看各数据点数值'**
   String get viewTipChartDrag;
 
   /// No description provided for @viewTipCopyPath.
   ///
   /// In zh, this message translates to:
-  /// **'改动卡里长按某个文件，可以复制它的路径'**
+  /// **'在改动卡片中长按文件，可复制其完整路径'**
   String get viewTipCopyPath;
 
   /// No description provided for @viewTipCompanion.
   ///
   /// In zh, this message translates to:
-  /// **'「伙伴小屋」藏在切换主机的面板里'**
+  /// **'在「切换主机」面板中可打开「伙伴小屋」'**
   String get viewTipCompanion;
 
   /// No description provided for @viewTipAnswerInline.
   ///
   /// In zh, this message translates to:
-  /// **'AI 向你提问时，直接在输入框里打字就是回答'**
+  /// **'模型发起提问时，可直接在底部输入框中输入回答'**
   String get viewTipAnswerInline;
 
   /// No description provided for @viewTipWallpaper.
   ///
   /// In zh, this message translates to:
-  /// **'壁纸可以拖动、缩放，还能调模糊和明暗'**
+  /// **'自定义壁纸支持拖动、缩放，以及调节模糊度与明暗'**
   String get viewTipWallpaper;
 
   /// No description provided for @viewTipModelHere.
   ///
   /// In zh, this message translates to:
-  /// **'这里就能换模型、预设和权限，只对这次对话生效'**
+  /// **'此处可切换当前对话的模型、预设与权限，不影响全局默认'**
   String get viewTipModelHere;
 
   /// No description provided for @viewNewChatFolder.

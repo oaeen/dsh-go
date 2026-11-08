@@ -3267,7 +3267,7 @@ class L10nEn extends L10n {
   String get catalogPhoneControl => 'Phone control';
 
   @override
-  String get catalogPhoneControlSummary => 'See your screen and tap for you';
+  String get catalogPhoneControlSummary => 'Read screen and perform touch actions';
 
   @override
   String get catalogEngine => 'Local engine';
@@ -3294,7 +3294,7 @@ class L10nEn extends L10n {
   String get catalogAllFeatures => 'All features';
 
   @override
-  String get catalogAllFeaturesSubtitle => 'DSH Web features, all here';
+  String get catalogAllFeaturesSubtitle => 'All chat, tool, and host capabilities';
 
   @override
   String get catalogOpenChatFirst => 'Open a chat first';
@@ -3382,10 +3382,10 @@ class L10nEn extends L10n {
   String get diagnosticsForAi => 'Let the AI read diagnostics';
 
   @override
-  String get diagnosticsForAiHint => 'Write the snapshot where the engine can read it';
+  String get diagnosticsForAiHint => 'Write environment snapshot to the engine for AI inspection';
 
   @override
-  String get diagnosticsForAiDone => 'Written — ask the AI to \"check the diagnostics\"';
+  String get diagnosticsForAiDone => 'Diagnostics written; ask AI in chat to inspect';
 
   @override
   String get diagnosticsForAiFailed => 'Not written: the local runtime is not installed';
@@ -3512,13 +3512,13 @@ class L10nEn extends L10n {
   String get chatSteer => 'Steer';
 
   @override
-  String get chatSteerHint => 'The AI sees it next step, without interrupting';
+  String get chatSteerHint => 'Delivered at the next step without interrupting';
 
   @override
   String get chatInterruptAndSend => 'Interrupt and send';
 
   @override
-  String get chatInterruptHint => 'Stop the current task and handle this first';
+  String get chatInterruptHint => 'Stop current execution and process this message immediately';
 
   @override
   String get chatQueue => 'Queue';
@@ -4255,13 +4255,13 @@ class L10nEn extends L10n {
   String get chatEditAndResend => 'Edit and resend';
 
   @override
-  String get chatRegenerateHint => 'Regenerate in a new chat. The original stays as is.';
+  String get chatRegenerateHint => 'Regenerate in a new chat while keeping the original';
 
   @override
-  String get chatBranchHint => 'Continue in a new chat. The original stays as is.';
+  String get chatBranchHint => 'Continue in a new chat from this point';
 
   @override
-  String get chatEditResendHint => 'Rewrite in a new chat. The original stays as is.';
+  String get chatEditResendHint => 'Edit and send in a new chat while keeping the original';
 
   @override
   String get chatSaveToPhotos => 'Save to Photos';
@@ -6763,7 +6763,7 @@ class L10nEn extends L10n {
   }
 
   @override
-  String get featuresPresetDeleteHint => 'It won’t be available for new chats. Existing chats stay as they are.';
+  String get featuresPresetDeleteHint => 'Removed from new chats; existing chats are unaffected.';
 
   @override
   String get featuresDeleted => 'Deleted';
@@ -6864,16 +6864,16 @@ class L10nEn extends L10n {
   String get featuresPermissionCustom => 'Custom';
 
   @override
-  String get featuresPermissionReadOnlyHint => 'View files without changing them';
+  String get featuresPermissionReadOnlyHint => 'Read files without modifying them';
 
   @override
-  String get featuresPermissionWorkspaceWriteHint => 'Edit workspace files; ask before going beyond';
+  String get featuresPermissionWorkspaceWriteHint => 'Modify workspace files; ask before accessing outside paths';
 
   @override
-  String get featuresPermissionFullAccessHint => 'Run without asking';
+  String get featuresPermissionFullAccessHint => 'Execute commands and file edits without confirmation';
 
   @override
-  String get featuresPermissionAutoReviewHint => 'The model reviews each action and asks when unsure';
+  String get featuresPermissionAutoReviewHint => 'Model reviews each action and asks when uncertain';
 
   @override
   String get featuresPresetStandard => 'Standard mode';
@@ -6897,7 +6897,7 @@ class L10nEn extends L10n {
   String get featuresPresetMinimalDescription => 'Terminal and image viewing only, for testing and comparison';
 
   @override
-  String get featuresPresetCreatorDescription => 'Have the agent write plugins to customize DSH';
+  String get featuresPresetCreatorDescription => 'Develop and customize DSH plugins';
 
   @override
   String featuresHostUnreachable(String name) {
@@ -6922,7 +6922,7 @@ class L10nEn extends L10n {
   String get featuresJobsEmpty => 'No background jobs';
 
   @override
-  String get featuresJobsEmptyHint => 'Commands such as dev servers appear here';
+  String get featuresJobsEmptyHint => 'Background commands and services appear here';
 
   @override
   String featuresJobsEndedCount(int count) {
@@ -6967,7 +6967,8 @@ class L10nEn extends L10n {
   String get featuresPermissionAutoTitle => 'Turn on Auto review?';
 
   @override
-  String get featuresPermissionAutoWarning => 'The model decides whether to allow each action. It may get it wrong.';
+  String get featuresPermissionAutoWarning =>
+      'The model automatically reviews and approves actions, which may be inaccurate.';
 
   @override
   String get featuresSwitchFailed => 'Couldn’t switch';
@@ -6976,13 +6977,13 @@ class L10nEn extends L10n {
   String get featuresPermissions => 'Permissions';
 
   @override
-  String get featuresPermissionsSubtitle => 'Choose when to ask before running commands or editing files';
+  String get featuresPermissionsSubtitle => 'Confirmation policy before running commands or editing files';
 
   @override
   String get featuresPermissionsReadFailed => 'Couldn’t load permissions';
 
   @override
-  String get featuresPermissionCustomHint => 'Choosing a preset replaces your custom permissions';
+  String get featuresPermissionCustomHint => 'Selecting a preset replaces custom permissions';
 
   @override
   String get featuresModuleInstructions => 'Workspace instructions';
@@ -7722,7 +7723,7 @@ class L10nEn extends L10n {
   String get featuresSchedulesEmpty => 'No automations yet';
 
   @override
-  String get featuresSchedulesEmptyHint => 'Send to a chat and run automatically at the scheduled time';
+  String get featuresSchedulesEmptyHint => 'Automatically send and run instructions on schedule';
 
   @override
   String get featuresScheduleNewTask => 'New automation';
@@ -7740,7 +7741,7 @@ class L10nEn extends L10n {
   String get featuresSchedules => 'Automations';
 
   @override
-  String get featuresSchedulesSubtitle => 'Send to the original chat at the scheduled time';
+  String get featuresSchedulesSubtitle => 'Run scheduled instructions in linked chats';
 
   @override
   String get featuresSchedulesSearch => 'Search automations';
@@ -7767,8 +7768,7 @@ class L10nEn extends L10n {
   String get featuresScheduleDeleteTitle => 'Delete this automation?';
 
   @override
-  String get featuresScheduleDeleteHint =>
-      'Future runs will stop and run history will be deleted. The original chat stays as it is.';
+  String get featuresScheduleDeleteHint => 'Stops future runs and clears run history; the linked chat is unaffected.';
 
   @override
   String get featuresScheduleDeleted => 'Automation deleted';
@@ -7824,14 +7824,13 @@ class L10nEn extends L10n {
   String get featuresExportTitle => 'Export chat logs';
 
   @override
-  String get featuresExportSubtitle => 'A ZIP for feedback or backup';
+  String get featuresExportSubtitle => 'Export as a ZIP archive for feedback or backup';
 
   @override
   String get featuresExportUnavailable => 'Can’t export over this connection';
 
   @override
-  String get featuresExportRemoteHint =>
-      'Logs aren’t available over DSH Remote. Export them from DSH Web on your computer.';
+  String get featuresExportRemoteHint => 'Log export is unavailable over DSH Remote; export from DSH Web on the host';
 
   @override
   String get featuresExportShareHint => 'Attach to feedback or send to yourself';
@@ -8077,7 +8076,7 @@ class L10nEn extends L10n {
   String get hubSessionChangedFiles => 'Files changed';
 
   @override
-  String get hubSessionTrajectoryHint => 'Steps and time for each turn appear here';
+  String get hubSessionTrajectoryHint => 'Shows steps and duration for each turn';
 
   @override
   String get hubSessionLoadEarlier => 'Load earlier turns';
@@ -8095,19 +8094,19 @@ class L10nEn extends L10n {
   String get hubSessionNoChanges => 'No files changed yet';
 
   @override
-  String get hubSessionShellChangesHint => 'Files changed with shell commands aren’t shown here';
+  String get hubSessionShellChangesHint => 'Excludes files modified via shell commands';
 
   @override
   String get hubSessionChanges => 'Chat changes';
 
   @override
-  String get hubSessionChangesNote => 'Only changes made with write and edit tools in loaded history are included';
+  String get hubSessionChangesNote => 'Includes only write and edit tool changes in loaded history';
 
   @override
   String get hubSessionNoGoal => 'No goal or to-dos yet';
 
   @override
-  String get hubSessionGoalHint => 'AI lists to-dos for complex tasks. Follow their progress here';
+  String get hubSessionGoalHint => 'Tracks goals and to-do progress for complex tasks';
 
   @override
   String get hubSessionGoal => 'Goal';
@@ -8119,7 +8118,7 @@ class L10nEn extends L10n {
   String get hubSessionPlanSwitching => 'Switching plan mode';
 
   @override
-  String get hubSessionPlanHint => 'AI plans first, without changing files';
+  String get hubSessionPlanHint => 'Plans without modifying files';
 
   @override
   String get hubSessionTodos => 'To-dos';
@@ -8161,7 +8160,7 @@ class L10nEn extends L10n {
   String get hubSettingsFullAccessTitle => 'Turn on Full access?';
 
   @override
-  String get hubSettingsFullAccessBody => 'AI won’t ask before running commands or changing files.';
+  String get hubSettingsFullAccessBody => 'Runs commands and edits files without asking for confirmation.';
 
   @override
   String get hubSettingsStorageTitle => 'Let AI access phone files?';
@@ -8204,7 +8203,7 @@ class L10nEn extends L10n {
   String get hubSettingsPhoneControl => 'Phone control';
 
   @override
-  String get hubSettingsPhoneControlHint => 'See your screen and tap for you';
+  String get hubSettingsPhoneControlHint => 'Read screen content and perform touch actions';
 
   @override
   String get hubSettingsPreferences => 'Personal preferences';
@@ -8219,7 +8218,7 @@ class L10nEn extends L10n {
   String get hubSettingsCollapseSteps => 'Collapse steps when done';
 
   @override
-  String get hubSettingsCollapseStepsHint => 'Fold thinking and tool calls into one line';
+  String get hubSettingsCollapseStepsHint => 'Fold thinking and tool calls into a single line';
 
   @override
   String get hubSettingsWebPhoneLayout => 'Web phone layout';
@@ -8555,13 +8554,13 @@ class L10nEn extends L10n {
   String get hubTableTintNone => 'Plain';
 
   @override
-  String get hubTableTintFillHint => 'Alternating rows, easier to scan long tables';
+  String get hubTableTintFillHint => 'Alternating row tint for readability';
 
   @override
-  String get hubTableTintFollowHint => 'Header tint only, body follows the reply';
+  String get hubTableTintFollowHint => 'Tinted header only; body matches reply background';
 
   @override
-  String get hubTableTintNoneHint => 'Grid lines only, the lightest';
+  String get hubTableTintNoneHint => 'Grid lines only';
 
   @override
   String get hubAbout => 'About DSH Go';
@@ -8628,7 +8627,7 @@ class L10nEn extends L10n {
 
   @override
   String get hubHardwareEnterSendsHint =>
-      'When on, Shift+Enter inserts a new line. The on-screen keyboard keeps newlines; Ctrl/⌘+Enter always sends.';
+      'Shift+Enter inserts a newline; on-screen keyboard and Ctrl/⌘+Enter are unchanged';
 
   @override
   String get hubQuickPanel => 'Swipe-left shortcuts';
@@ -8638,7 +8637,7 @@ class L10nEn extends L10n {
 
   @override
   String get hubQuickPanelSwipeHint =>
-      'Swipe right to left over the chat. Code blocks, tables and other content that scrolls sideways aren’t affected.';
+      'Swipe left in chat to open; horizontal scrolling in code blocks and tables is unaffected';
 
   @override
   String get hubQuickPanelItems => 'What it lists';
@@ -8831,7 +8830,7 @@ class L10nEn extends L10n {
 
   @override
   String get liveSettingsSubtitle =>
-      'While DSH works, waits on you or controls the phone: in the status bar chip and on the lock screen, and in the island on phones that have one';
+      'Show live progress in the status bar and lock screen while tasks run, await confirmation, or control the phone';
 
   @override
   String get liveSettingsFooter =>
@@ -10150,7 +10149,7 @@ class L10nEn extends L10n {
   String get phoneDndTitle => 'Non-disruptive mode';
 
   @override
-  String get phoneDndSubtitle => 'Works on a hidden screen while you use your phone';
+  String get phoneDndSubtitle => 'Operate on a background virtual display without interrupting foreground use';
 
   @override
   String get phoneDndUnsupported => 'This phone needs Android 14 or later to use this feature.';
@@ -10406,7 +10405,7 @@ class L10nEn extends L10n {
   String get phoneControlTitle => 'Phone control';
 
   @override
-  String get phoneControlSubtitle => 'Reads the screen and taps for you. Stop anytime.';
+  String get phoneControlSubtitle => 'Read screen and assist with actions; stop anytime';
 
   @override
   String get phoneControlWorking => 'Operating your phone';
@@ -10590,7 +10589,7 @@ class L10nEn extends L10n {
 
   @override
   String get phoneDisclosureIntro =>
-      'DSH reads the screen and taps like you do to get things done. Before turning it on, here’s what to know:';
+      'When enabled, DSH can read screen content and perform touch actions. Review the following before enabling:';
 
   @override
   String get phoneDisclosureRestartNote => 'The engine will restart, interrupting any reply in progress';
@@ -12092,10 +12091,10 @@ class L10nEn extends L10n {
   String get pluginsNoThirdParty => 'No third-party plugins yet';
 
   @override
-  String get pluginsPluginsDescription => 'Add tools, memory, and models to DSH';
+  String get pluginsPluginsDescription => 'Extend DSH with tools, memory, and models';
 
   @override
-  String get pluginsBrowseMarket => 'Browse plugins';
+  String get pluginsBrowseMarket => 'Browse plugin market';
 
   @override
   String get pluginsLoading => 'Loading';
@@ -12413,8 +12412,7 @@ class L10nEn extends L10n {
   }
 
   @override
-  String get pluginsOfflineDescription =>
-      'Installed plugins appear when the engine is running. You can browse the market now.';
+  String get pluginsOfflineDescription => 'Start the engine to manage installed plugins; the market is available now';
 
   @override
   String get pluginsIconChanged => 'Icon selected. Return to your home screen to see the change.';
@@ -12667,7 +12665,7 @@ class L10nEn extends L10n {
   String get pluginsTurnOn => 'Turn on';
 
   @override
-  String get pluginsNotificationsDescription => 'Get alerts when chats finish or need you';
+  String get pluginsNotificationsDescription => 'Notify when chats complete or require confirmation';
 
   @override
   String get pluginsAllowNotifications => 'Allow notifications';
@@ -12718,7 +12716,7 @@ class L10nEn extends L10n {
   String get pluginsPersonalPreferences => 'Personal preferences';
 
   @override
-  String get pluginsPreferencesDescription => 'New chats will follow these instructions';
+  String get pluginsPreferencesDescription => 'New chats follow these preferences by default';
 
   @override
   String get pluginsPreferencesHint => 'For example: Reply in Chinese. I mainly write Flutter.';
@@ -14387,13 +14385,13 @@ class L10nEn extends L10n {
   String get remoteConsole => 'Remote console';
 
   @override
-  String get remoteHostsIntro => 'Keep using DSH from your computer or server on your phone';
+  String get remoteHostsIntro => 'Connect to and use DSH on a computer or server';
 
   @override
   String get remoteSshHosts => 'SSH hosts';
 
   @override
-  String get remoteSshRequirements => 'Host needs SSH enabled and DSH installed';
+  String get remoteSshRequirements => 'Requires SSH enabled and DSH installed on the host';
 
   @override
   String get remoteAddSshHost => 'Add SSH host';
@@ -14882,7 +14880,7 @@ class L10nEn extends L10n {
   String get remoteWorkspaceEmpty => 'No workspaces yet';
 
   @override
-  String get remoteWorkspaceEmptyHint => 'Add the folders you use most';
+  String get remoteWorkspaceEmptyHint => 'Add frequently used folders as workspaces';
 
   @override
   String remoteWorkspaceCount(int count) {
@@ -15776,7 +15774,7 @@ class L10nEn extends L10n {
   String get shellConnectDeepSeek => 'Connect DeepSeek';
 
   @override
-  String get shellConnectDeepSeekMessage => 'Sign in to DeepSeek to start. No API key needed.';
+  String get shellConnectDeepSeekMessage => 'Sign in with a DeepSeek account to start without an API key.';
 
   @override
   String get shellAccountSignInUnsupported => 'This engine doesn’t support account sign-in';
@@ -16097,7 +16095,7 @@ class L10nEn extends L10n {
   String get shellNoMatchingChats => 'No matching chats';
 
   @override
-  String get shellSearchDifferentKeywords => 'Try another keyword, or separate words with spaces';
+  String get shellSearchDifferentKeywords => 'Try another keyword or separate terms with spaces';
 
   @override
   String get shellArchived => 'Archived';
@@ -16161,8 +16159,7 @@ class L10nEn extends L10n {
   String get shellWorkspaceNoChats => 'No chats here yet';
 
   @override
-  String get shellWorkspaceNewChatsHint =>
-      'New chats go in this workspace. Earlier chats are not moved here automatically; find them in All chats.';
+  String get shellWorkspaceNewChatsHint => 'New chats use this workspace; existing chats remain in All chats';
 
   @override
   String get shellNewChatsHint => 'New chats appear here';
@@ -16633,7 +16630,7 @@ class L10nEn extends L10n {
   String get shellInstallInterfaceSkill => 'Install interface skill';
 
   @override
-  String get shellInstallInterfaceSkillMessage => 'Once installed, AI can adjust the app’s interface as you ask';
+  String get shellInstallInterfaceSkillMessage => 'Allows AI to adjust app UI settings via chat';
 
   @override
   String get shellNoUiJson => 'No ui.json';
@@ -19015,97 +19012,97 @@ class L10nEn extends L10n {
   }
 
   @override
-  String get viewTipSteer => 'While it works, long-press Send to steer, queue or interrupt';
+  String get viewTipSteer => 'Long-press Send while generating to steer, queue, or interrupt';
 
   @override
-  String get viewTipMidRun => 'You can message mid-run — it reads it at the next step';
+  String get viewTipMidRun => 'Messages sent during execution take effect at the next step';
 
   @override
-  String get viewTipSlash => 'Type / for commands: compact the context, switch models and more';
+  String get viewTipSlash => 'Type / for commands such as context compaction and model switching';
 
   @override
-  String get viewTipMention => 'Type @ to reference a workspace file or another chat';
+  String get viewTipMention => 'Type @ to reference workspace files or other chats';
 
   @override
-  String get viewTipReplyMenu => 'Long-press a reply to copy, quote or regenerate it';
+  String get viewTipReplyMenu => 'Long-press a reply to copy, quote, or regenerate';
 
   @override
-  String get viewTipEditResend => 'Long-press your own message to edit and resend — the original stays';
+  String get viewTipEditResend => 'Long-press your message to edit and resend in a new chat';
 
   @override
-  String get viewTipQuote => 'Select part of a reply and tap Quote to ask about just that';
+  String get viewTipQuote => 'Select text in a reply and tap Quote to follow up on that passage';
 
   @override
-  String get viewTipTitleDetails => 'Tap the chat title for changes, files and a terminal';
+  String get viewTipTitleDetails => 'Tap the chat title to view changes, files, and the terminal';
 
   @override
-  String get viewTipContextRing => 'The ring by Send shows context use — tap it for details';
+  String get viewTipContextRing => 'The ring next to Send indicates context usage; tap for details';
 
   @override
-  String get viewTipDrawerMenu => 'Long-press a chat in the sidebar to pin, rename or archive it';
+  String get viewTipDrawerMenu => 'Long-press a chat in the sidebar to pin, rename, or archive';
 
   @override
-  String get viewTipSearch => 'Where the host supports it, chat search matches message content, not just titles';
+  String get viewTipSearch => 'On supported hosts, search matches both chat titles and message content';
 
   @override
-  String get viewTipSettingsSearch => 'Long-press Settings in the sidebar to search settings';
+  String get viewTipSettingsSearch => 'Long-press Settings in the sidebar to search setting items';
 
   @override
-  String get viewTipQuickPanel => 'Swipe left on a chat to open the quick panel';
+  String get viewTipQuickPanel => 'Swipe left in a chat to open the quick panel';
 
   @override
-  String get viewTipFolderNewChat => 'Long-press a folder in the sidebar to start a chat inside it';
+  String get viewTipFolderNewChat => 'Long-press a sidebar folder to start a new chat inside it';
 
   @override
-  String get viewTipSwitchHost => 'Tap the host name at the sidebar\'s foot to switch to DSH on your computer';
+  String get viewTipSwitchHost => 'Tap the host name at the bottom of the sidebar to switch hosts';
 
   @override
-  String get viewTipPasteImage => 'Screenshots and stickers from your keyboard can go straight into the composer';
+  String get viewTipPasteImage => 'Paste screenshots and images from the keyboard directly into the composer';
 
   @override
-  String get viewTipLauncher => 'Long-press the app icon to ask by voice or start a new chat';
+  String get viewTipLauncher => 'Long-press the app icon to start voice input or a new chat';
 
   @override
-  String get viewTipPetBubble => 'When the pet pops a bubble, tap it to jump to the chat that\'s waiting';
+  String get viewTipPetBubble => 'Tap the pet’s bubble to jump to the chat awaiting action';
 
   @override
-  String get viewTipPetPlay => 'Tap the pet three times to tickle it; long-press to swap it';
+  String get viewTipPetPlay => 'Triple-tap the pet to interact; long-press to switch pets';
 
   @override
-  String get viewTipActivityStrip => 'While it works, tap the status strip to see this turn\'s full trace';
+  String get viewTipActivityStrip => 'Tap the status strip while generating to view the turn trajectory';
 
   @override
-  String get viewTipImageZoom => 'In the image viewer, double-tap or pinch to zoom; long-press to save';
+  String get viewTipImageZoom => 'Double-tap or pinch to zoom images; long-press to save';
 
   @override
-  String get viewTipQueuedRecall => 'A queued message can be pulled back into the composer to edit';
+  String get viewTipQueuedRecall => 'Recall a queued message to the composer to edit it';
 
   @override
-  String get viewTipKeyboard => 'With a keyboard: Ctrl+Enter sends, Esc twice stops';
+  String get viewTipKeyboard => 'With a hardware keyboard: Ctrl+Enter sends, double-press Esc stops';
 
   @override
-  String get viewTipShareIn => 'Share text or images to DSH Go from another app to start a new chat with them';
+  String get viewTipShareIn => 'Share text or images from other apps to DSH Go to start a new chat';
 
   @override
-  String get viewTipShareSelect => 'When sharing a chat, long-press and slide to pick several messages at once';
+  String get viewTipShareSelect => 'Long-press and drag when sharing a chat to select multiple messages';
 
   @override
-  String get viewTipChartDrag => 'Drag across a chart in a reply to read each point';
+  String get viewTipChartDrag => 'Drag across a chart in a reply to inspect data points';
 
   @override
-  String get viewTipCopyPath => 'Long-press a file in a changes card to copy its path';
+  String get viewTipCopyPath => 'Long-press a file in the changes card to copy its path';
 
   @override
-  String get viewTipCompanion => 'The Companion Room lives in the Switch Host sheet';
+  String get viewTipCompanion => 'Open the Companion Room from the Switch Host sheet';
 
   @override
-  String get viewTipAnswerInline => 'When the AI asks you something, just type the answer in the composer';
+  String get viewTipAnswerInline => 'When prompted by the AI, type directly in the composer to reply';
 
   @override
-  String get viewTipWallpaper => 'Wallpapers can be dragged, zoomed, blurred and dimmed';
+  String get viewTipWallpaper => 'Drag, zoom, blur, and dim custom wallpapers';
 
   @override
-  String get viewTipModelHere => 'Pick the model, preset and permissions right here — for this chat only';
+  String get viewTipModelHere => 'Switch model, preset, and permissions for the current chat only';
 
   @override
   String get viewNewChatFolder => 'Folder';

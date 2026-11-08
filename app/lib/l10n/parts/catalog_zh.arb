@@ -70,7 +70,7 @@
   "catalogAccountSummary": "登录、余额与充值",
   "catalogRemoteSummary": "连接电脑或服务器",
   "catalogPhoneControl": "手机操控",
-  "catalogPhoneControlSummary": "看屏幕、帮你点按",
+  "catalogPhoneControlSummary": "读取屏幕并执行辅助触控",
   "catalogEngine": "本机引擎",
   "catalogEngineSummary": "本机引擎状态与日志",
   "catalogDiagnostics": "诊断",
@@ -79,7 +79,7 @@
   "catalogPluginPanel": "插件面板",
   "catalogHostPluginMissing": "这台主机没有这个插件",
   "catalogAllFeatures": "全部功能",
-  "catalogAllFeaturesSubtitle": "网页版的功能，也都在这里",
+  "catalogAllFeaturesSubtitle": "汇总对话、工具与主机设置入口",
   "catalogOpenChatFirst": "先打开一个对话",
   "catalogNoOpenChat": "还没打开对话",
   "catalogOpenChat": "当前打开的对话",
@@ -125,7 +125,7 @@
   "catalogToolsSection": "工具",
   "catalogAllSettings": "全部设置",
   "diagnosticsForAi": "让 AI 看诊断",
-  "diagnosticsForAiHint": "把环境快照写进引擎，AI 自己读",
-  "diagnosticsForAiDone": "已写入诊断，问 AI「看下诊断」就行",
+  "diagnosticsForAiHint": "将当前环境快照写入引擎供模型读取",
+  "diagnosticsForAiDone": "诊断快照已写入，可在对话中让 AI 查看",
   "diagnosticsForAiFailed": "写不进去：本机运行时还没装好"
 }

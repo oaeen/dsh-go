@@ -3113,7 +3113,7 @@ class L10nZh extends L10n {
   String get catalogPhoneControl => '手机操控';
 
   @override
-  String get catalogPhoneControlSummary => '看屏幕、帮你点按';
+  String get catalogPhoneControlSummary => '读取屏幕并执行辅助触控';
 
   @override
   String get catalogEngine => '本机引擎';
@@ -3140,7 +3140,7 @@ class L10nZh extends L10n {
   String get catalogAllFeatures => '全部功能';
 
   @override
-  String get catalogAllFeaturesSubtitle => '网页版的功能，也都在这里';
+  String get catalogAllFeaturesSubtitle => '汇总对话、工具与主机设置入口';
 
   @override
   String get catalogOpenChatFirst => '先打开一个对话';
@@ -3221,10 +3221,10 @@ class L10nZh extends L10n {
   String get diagnosticsForAi => '让 AI 看诊断';
 
   @override
-  String get diagnosticsForAiHint => '把环境快照写进引擎，AI 自己读';
+  String get diagnosticsForAiHint => '将当前环境快照写入引擎供模型读取';
 
   @override
-  String get diagnosticsForAiDone => '已写入诊断，问 AI「看下诊断」就行';
+  String get diagnosticsForAiDone => '诊断快照已写入，可在对话中让 AI 查看';
 
   @override
   String get diagnosticsForAiFailed => '写不进去：本机运行时还没装好';
@@ -3332,13 +3332,13 @@ class L10nZh extends L10n {
   String get chatSteer => '插话';
 
   @override
-  String get chatSteerHint => '不打断，AI 下一步会看到';
+  String get chatSteerHint => '不中断当前执行，在下一步生效';
 
   @override
   String get chatInterruptAndSend => '中断并发送';
 
   @override
-  String get chatInterruptHint => '停下当前任务，先处理这条';
+  String get chatInterruptHint => '中止当前步骤并立即处理此消息';
 
   @override
   String get chatQueue => '排队';
@@ -3449,7 +3449,7 @@ class L10nZh extends L10n {
   String get chatPauseGoal => '暂停';
 
   @override
-  String get chatPauseGoalHint => '先不自动推进';
+  String get chatPauseGoalHint => '暂停自动推进';
 
   @override
   String get chatResumeGoal => '恢复';
@@ -4007,13 +4007,13 @@ class L10nZh extends L10n {
   String get chatEditAndResend => '编辑后重发';
 
   @override
-  String get chatRegenerateHint => '在新对话中重新生成，原对话不变';
+  String get chatRegenerateHint => '在新对话中重新生成，保留原对话';
 
   @override
-  String get chatBranchHint => '在新对话中继续，原对话不变';
+  String get chatBranchHint => '从此处创建新对话，保留原对话';
 
   @override
-  String get chatEditResendHint => '在新对话中改写，原对话不变';
+  String get chatEditResendHint => '修改后在新对话中发送，保留原对话';
 
   @override
   String get chatSaveToPhotos => '保存到相册';
@@ -6410,7 +6410,7 @@ class L10nZh extends L10n {
   }
 
   @override
-  String get featuresPresetDeleteHint => '新对话不能再选它，已开始的对话不受影响。';
+  String get featuresPresetDeleteHint => '删除后不可用于新对话，已有对话不受影响。';
 
   @override
   String get featuresDeleted => '已删除';
@@ -6511,16 +6511,16 @@ class L10nZh extends L10n {
   String get featuresPermissionCustom => '自定义';
 
   @override
-  String get featuresPermissionReadOnlyHint => '只看文件，不做修改';
+  String get featuresPermissionReadOnlyHint => '仅读取文件，不作修改';
 
   @override
-  String get featuresPermissionWorkspaceWriteHint => '可改工作区内的文件，越界先问你';
+  String get featuresPermissionWorkspaceWriteHint => '允许修改工作区内文件，跨目录操作需确认';
 
   @override
-  String get featuresPermissionFullAccessHint => '不再确认，直接执行';
+  String get featuresPermissionFullAccessHint => '直接执行命令与文件修改，无需确认';
 
   @override
-  String get featuresPermissionAutoReviewHint => '由模型逐次审查，拿不准再问你';
+  String get featuresPermissionAutoReviewHint => '由模型评估操作风险，不确定时请求确认';
 
   @override
   String get featuresPresetStandard => '标准模式';
@@ -6544,7 +6544,7 @@ class L10nZh extends L10n {
   String get featuresPresetMinimalDescription => '只用终端和读图，适合测试对比';
 
   @override
-  String get featuresPresetCreatorDescription => '让 Agent 写插件，定制 DSH 本身';
+  String get featuresPresetCreatorDescription => '编写并调试插件以扩展 DSH';
 
   @override
   String featuresHostUnreachable(String name) {
@@ -6569,7 +6569,7 @@ class L10nZh extends L10n {
   String get featuresJobsEmpty => '没有后台任务';
 
   @override
-  String get featuresJobsEmptyHint => '开发服务器这类命令会在这里';
+  String get featuresJobsEmptyHint => '显示后台运行的命令与服务';
 
   @override
   String featuresJobsEndedCount(int count) {
@@ -6612,7 +6612,7 @@ class L10nZh extends L10n {
   String get featuresPermissionAutoTitle => '开启自动审查？';
 
   @override
-  String get featuresPermissionAutoWarning => '每次操作由模型判断放不放行，可能误判。';
+  String get featuresPermissionAutoWarning => '由模型自动评估并放行操作，存在误判可能。';
 
   @override
   String get featuresSwitchFailed => '没能切换';
@@ -6621,13 +6621,13 @@ class L10nZh extends L10n {
   String get featuresPermissions => '权限';
 
   @override
-  String get featuresPermissionsSubtitle => '执行命令、修改文件前，要不要先问你';
+  String get featuresPermissionsSubtitle => '控制执行命令与修改文件前的确认策略';
 
   @override
   String get featuresPermissionsReadFailed => '没能读取权限设置';
 
   @override
-  String get featuresPermissionCustomHint => '当前用的是自定义权限，选预设会替换它';
+  String get featuresPermissionCustomHint => '选择预设将覆盖当前自定义权限';
 
   @override
   String get featuresModuleInstructions => '工作区指令加载';
@@ -7348,7 +7348,7 @@ class L10nZh extends L10n {
   String get featuresSchedulesEmpty => '还没有自动化任务';
 
   @override
-  String get featuresSchedulesEmptyHint => '到点自动发进对话，替你跑一遍';
+  String get featuresSchedulesEmptyHint => '按设定时间自动向对话发送指令并执行';
 
   @override
   String get featuresScheduleNewTask => '新建任务';
@@ -7366,7 +7366,7 @@ class L10nZh extends L10n {
   String get featuresSchedules => '自动化任务';
 
   @override
-  String get featuresSchedulesSubtitle => '到点自动发进原来的对话';
+  String get featuresSchedulesSubtitle => '按计划在关联对话中自动执行';
 
   @override
   String get featuresSchedulesSearch => '搜索任务';
@@ -7392,7 +7392,7 @@ class L10nZh extends L10n {
   String get featuresScheduleDeleteTitle => '删除这个任务？';
 
   @override
-  String get featuresScheduleDeleteHint => '会停止之后的运行，并删掉它的运行记录。原来的对话不受影响。';
+  String get featuresScheduleDeleteHint => '停止后续调度并清除运行记录，关联对话不受影响。';
 
   @override
   String get featuresScheduleDeleted => '任务已删除';
@@ -7448,13 +7448,13 @@ class L10nZh extends L10n {
   String get featuresExportTitle => '导出对话日志';
 
   @override
-  String get featuresExportSubtitle => '打包成一个 ZIP，用于反馈或备份';
+  String get featuresExportSubtitle => '导出为 ZIP 压缩包，用于问题反馈或备份';
 
   @override
   String get featuresExportUnavailable => '这个连接导不了';
 
   @override
-  String get featuresExportRemoteHint => '经 DSH Remote 中转时拿不到日志，可以在电脑上的网页版导出';
+  String get featuresExportRemoteHint => 'DSH Remote 连接不支持导出日志，请在主机网页版中操作';
 
   @override
   String get featuresExportShareHint => '附在问题反馈里，或发给自己';
@@ -7520,7 +7520,7 @@ class L10nZh extends L10n {
 
   @override
   String featuresArtifactsTotal(int count) {
-    return '$count 个文件 · 交付的和生成的';
+    return '$count 个文件 · 交付与生成';
   }
 
   @override
@@ -7662,7 +7662,7 @@ class L10nZh extends L10n {
   String get hubSessionChangedFiles => '改动文件';
 
   @override
-  String get hubSessionTrajectoryHint => '每一轮的步骤和用时会排在这里';
+  String get hubSessionTrajectoryHint => '按轮次显示执行步骤与耗时';
 
   @override
   String get hubSessionLoadEarlier => '加载更早的轮次';
@@ -7680,19 +7680,19 @@ class L10nZh extends L10n {
   String get hubSessionNoChanges => '还没有改过文件';
 
   @override
-  String get hubSessionShellChangesHint => '用 shell 命令改的文件不在这里';
+  String get hubSessionShellChangesHint => '不包含通过 Shell 命令修改的文件';
 
   @override
   String get hubSessionChanges => '对话改动';
 
   @override
-  String get hubSessionChangesNote => '只统计已加载的记录里，用写入和编辑工具做的改动';
+  String get hubSessionChangesNote => '仅统计已加载记录中通过读写工具产生的修改';
 
   @override
   String get hubSessionNoGoal => '还没有目标或待办';
 
   @override
-  String get hubSessionGoalHint => '复杂任务里 AI 会列出待办，进度在这里看';
+  String get hubSessionGoalHint => '显示复杂任务的目标与待办进度';
 
   @override
   String get hubSessionGoal => '目标';
@@ -7704,7 +7704,7 @@ class L10nZh extends L10n {
   String get hubSessionPlanSwitching => '正在切换计划模式';
 
   @override
-  String get hubSessionPlanHint => 'AI 先出方案，不改文件';
+  String get hubSessionPlanHint => '仅生成执行方案，不修改文件';
 
   @override
   String get hubSessionTodos => '待办';
@@ -7746,7 +7746,7 @@ class L10nZh extends L10n {
   String get hubSettingsFullAccessTitle => '开启完全权限？';
 
   @override
-  String get hubSettingsFullAccessBody => 'AI 执行命令、改动文件前不再问你。';
+  String get hubSettingsFullAccessBody => '执行命令与修改文件前不再请求确认。';
 
   @override
   String get hubSettingsStorageTitle => '让 AI 访问手机文件？';
@@ -7788,7 +7788,7 @@ class L10nZh extends L10n {
   String get hubSettingsPhoneControl => '手机操控';
 
   @override
-  String get hubSettingsPhoneControlHint => '看屏幕、帮你点按';
+  String get hubSettingsPhoneControlHint => '读取屏幕并执行辅助触控';
 
   @override
   String get hubSettingsPreferences => '个人偏好';
@@ -7803,7 +7803,7 @@ class L10nZh extends L10n {
   String get hubSettingsCollapseSteps => '完成后收起过程';
 
   @override
-  String get hubSettingsCollapseStepsHint => '思考与工具调用收成一行';
+  String get hubSettingsCollapseStepsHint => '将思考过程与工具调用折叠为单行';
 
   @override
   String get hubSettingsWebPhoneLayout => '网页版手机布局';
@@ -8107,13 +8107,13 @@ class L10nZh extends L10n {
   String get hubTableTintNone => '无底色';
 
   @override
-  String get hubTableTintFillHint => '隔行淡一档，长表格更好扫读';
+  String get hubTableTintFillHint => '隔行着色，便于阅读长表格';
 
   @override
-  String get hubTableTintFollowHint => '表头浅底，表身跟随正文';
+  String get hubTableTintFollowHint => '仅表头着色，表身跟随正文背景';
 
   @override
-  String get hubTableTintNoneHint => '只剩网格线，最轻';
+  String get hubTableTintNoneHint => '仅保留边框线';
 
   @override
   String get hubAbout => '关于 DSH Go';
@@ -8177,7 +8177,7 @@ class L10nZh extends L10n {
   String get hubHardwareEnterSends => '外接键盘按 Enter 发送';
 
   @override
-  String get hubHardwareEnterSendsHint => '开启后，Shift+Enter 换行。屏幕键盘仍换行；Ctrl/⌘+Enter 始终可发送。';
+  String get hubHardwareEnterSendsHint => '开启后按 Shift+Enter 换行；屏幕键盘与 Ctrl/⌘+Enter 保持不变';
 
   @override
   String get hubQuickPanel => '左滑快捷入口';
@@ -8186,7 +8186,7 @@ class L10nZh extends L10n {
   String get hubQuickPanelSwipe => '左滑打开';
 
   @override
-  String get hubQuickPanelSwipeHint => '在对话里从右向左滑。代码块、表格这些能横向滚动的内容不受影响。';
+  String get hubQuickPanelSwipeHint => '在对话页左滑唤出，不影响代码块与表格横向滚动';
 
   @override
   String get hubQuickPanelItems => '显示的入口';
@@ -8370,7 +8370,7 @@ class L10nZh extends L10n {
   String get liveSettingsSwitch => '显示实时活动';
 
   @override
-  String get liveSettingsSubtitle => '干活、等你处理、操作手机时，显示在状态栏胶囊和锁屏上；支持的手机会放进灵动岛';
+  String get liveSettingsSubtitle => '任务执行、等待确认或操控手机时，在状态栏与锁屏显示实时进度';
 
   @override
   String get liveSettingsFooter =>
@@ -9661,7 +9661,7 @@ class L10nZh extends L10n {
   String get phoneDndTitle => '不打扰模式';
 
   @override
-  String get phoneDndSubtitle => '在看不见的屏幕上操作，不耽误你用手机';
+  String get phoneDndSubtitle => '在后台虚拟屏幕执行操作，不干扰前台使用';
 
   @override
   String get phoneDndUnsupported => '这台手机用不了：需要 Android 14 及以上。';
@@ -9904,7 +9904,7 @@ class L10nZh extends L10n {
   String get phoneControlTitle => '手机操控';
 
   @override
-  String get phoneControlSubtitle => '看屏幕、帮你点按，随时可以停';
+  String get phoneControlSubtitle => '读取屏幕并执行辅助操作，可随时中止';
 
   @override
   String get phoneControlWorking => '正在操作手机';
@@ -10081,7 +10081,7 @@ class L10nZh extends L10n {
   String get phoneDisclosureTitle => '开启手机操控前';
 
   @override
-  String get phoneDisclosureIntro => 'DSH 会像你一样看屏幕、点按，帮你把事办完。开启前，先了解这几点：';
+  String get phoneDisclosureIntro => '启用后，DSH 可读取屏幕内容并执行辅助触控。开启前请确认以下事项：';
 
   @override
   String get phoneDisclosureRestartNote => '开启后引擎会重启一次，进行中的回复会中断';
@@ -11512,10 +11512,10 @@ class L10nZh extends L10n {
   String get pluginsNoThirdParty => '还没装第三方插件';
 
   @override
-  String get pluginsPluginsDescription => '插件能给 DSH 加工具、记忆和模型';
+  String get pluginsPluginsDescription => '为 DSH 扩展工具、记忆与模型能力';
 
   @override
-  String get pluginsBrowseMarket => '逛逛插件市场';
+  String get pluginsBrowseMarket => '浏览插件市场';
 
   @override
   String get pluginsLoading => '正在加载';
@@ -11822,7 +11822,7 @@ class L10nZh extends L10n {
   }
 
   @override
-  String get pluginsOfflineDescription => '引擎运行后显示已装插件，插件市场现在就能逛';
+  String get pluginsOfflineDescription => '启动引擎后可管理已装插件；当前仍可浏览插件市场';
 
   @override
   String get pluginsIconChanged => '桌面图标已选择，回到桌面后更新';
@@ -12073,7 +12073,7 @@ class L10nZh extends L10n {
   String get pluginsTurnOn => '去开启';
 
   @override
-  String get pluginsNotificationsDescription => '对话完成或需要你时提醒你';
+  String get pluginsNotificationsDescription => '对话完成或等待确认时发送提醒';
 
   @override
   String get pluginsAllowNotifications => '允许通知';
@@ -12124,7 +12124,7 @@ class L10nZh extends L10n {
   String get pluginsPersonalPreferences => '个人偏好';
 
   @override
-  String get pluginsPreferencesDescription => '新对话会照这里的要求回答';
+  String get pluginsPreferencesDescription => '新建对话将默认遵循此处设定的偏好';
 
   @override
   String get pluginsPreferencesHint => '比如：用中文回答，我主要写 Flutter';
@@ -13712,13 +13712,13 @@ class L10nZh extends L10n {
   String get remoteConsole => '远程控制台';
 
   @override
-  String get remoteHostsIntro => '在手机上接着用电脑或服务器上的 DSH';
+  String get remoteHostsIntro => '连接并使用电脑或服务器上的 DSH';
 
   @override
   String get remoteSshHosts => 'SSH 主机';
 
   @override
-  String get remoteSshRequirements => '需要那台主机开着 SSH，并装好 DSH';
+  String get remoteSshRequirements => '需主机已开启 SSH 服务并安装 DSH';
 
   @override
   String get remoteAddSshHost => '添加 SSH 主机';
@@ -14196,7 +14196,7 @@ class L10nZh extends L10n {
   String get remoteWorkspaceEmpty => '还没有工作区';
 
   @override
-  String get remoteWorkspaceEmptyHint => '把常用的文件夹加进来';
+  String get remoteWorkspaceEmptyHint => '添加常用目录作为工作区';
 
   @override
   String remoteWorkspaceCount(int count) {
@@ -15003,7 +15003,7 @@ class L10nZh extends L10n {
   String get shellConnectDeepSeek => '连接 DeepSeek';
 
   @override
-  String get shellConnectDeepSeekMessage => '登录 DeepSeek 账号即可开始，无需 API Key';
+  String get shellConnectDeepSeekMessage => '登录 DeepSeek 账号即可使用，无需配置 API Key';
 
   @override
   String get shellAccountSignInUnsupported => '当前引擎不支持账号登录';
@@ -15281,7 +15281,7 @@ class L10nZh extends L10n {
   String get shellNoMatchingChats => '没有相关对话';
 
   @override
-  String get shellSearchDifferentKeywords => '换个关键词，或用空格分开多个词';
+  String get shellSearchDifferentKeywords => '请尝试其他关键词，或以空格分隔多个词';
 
   @override
   String get shellArchived => '已归档';
@@ -15344,7 +15344,7 @@ class L10nZh extends L10n {
   String get shellWorkspaceNoChats => '这里还没有对话';
 
   @override
-  String get shellWorkspaceNewChatsHint => '新对话会放进这个工作区。旧对话不会自动移入，可在「全部对话」中找到。';
+  String get shellWorkspaceNewChatsHint => '新建对话归入此工作区；历史对话仍在「全部对话」中';
 
   @override
   String get shellNewChatsHint => '新对话会出现在这里';
@@ -15782,7 +15782,7 @@ class L10nZh extends L10n {
   String get shellInstallInterfaceSkill => '安装界面技能';
 
   @override
-  String get shellInstallInterfaceSkillMessage => '装好后，可以让 AI 按你的话调整 App 界面';
+  String get shellInstallInterfaceSkillMessage => '安装后可通过对话调整应用界面配置';
 
   @override
   String get shellNoUiJson => '没有 ui.json';
@@ -18001,97 +18001,97 @@ class L10nZh extends L10n {
   }
 
   @override
-  String get viewTipSteer => '生成中长按发送键，可以插话、排队或打断';
+  String get viewTipSteer => '生成期间长按发送键，可选择插话、排队或中断';
 
   @override
-  String get viewTipMidRun => 'AI 干活时也能发消息，它下一步就会看到';
+  String get viewTipMidRun => '模型执行期间可直接发消息，将于下一步生效';
 
   @override
-  String get viewTipSlash => '输入 / 唤出指令：压缩上下文、切换模型等';
+  String get viewTipSlash => '输入 / 唤出指令面板，可压缩上下文或切换模型';
 
   @override
-  String get viewTipMention => '输入 @ 可以引用工作区里的文件或别的对话';
+  String get viewTipMention => '输入 @ 引用工作区文件或其他对话';
 
   @override
-  String get viewTipReplyMenu => '长按 AI 的回复，可以复制、引用或重新生成';
+  String get viewTipReplyMenu => '长按回复可复制、引用或重新生成';
 
   @override
-  String get viewTipEditResend => '长按自己的消息，可以改写后重发，原对话不动';
+  String get viewTipEditResend => '长按已发送消息可修改并重发，原对话保持不变';
 
   @override
-  String get viewTipQuote => '选中回复里的一段，点「引用」就只追问那一段';
+  String get viewTipQuote => '选中回复片段后点按「引用」，可针对该段内容追问';
 
   @override
-  String get viewTipTitleDetails => '点顶部的对话标题，能看改动、文件和终端';
+  String get viewTipTitleDetails => '点按顶部对话标题，查看改动、文件与终端';
 
   @override
-  String get viewTipContextRing => '发送键旁的小圆环是上下文用量，点开看详情';
+  String get viewTipContextRing => '发送键旁的圆环显示上下文用量，点按可查看详情';
 
   @override
-  String get viewTipDrawerMenu => '长按侧栏里的对话，可以置顶、改名或归档';
+  String get viewTipDrawerMenu => '长按侧栏中的对话，可置顶、重命名或归档';
 
   @override
-  String get viewTipSearch => '主机支持时，搜索对话还能搜到聊天内容，不只是标题';
+  String get viewTipSearch => '主机支持时，搜索可同时匹配对话标题与消息内容';
 
   @override
-  String get viewTipSettingsSearch => '长按侧栏的设置键，可以直接搜索设置项';
+  String get viewTipSettingsSearch => '长按侧栏设置按钮，可直接搜索设置项';
 
   @override
-  String get viewTipQuickPanel => '在对话页向左滑，打开快捷入口';
+  String get viewTipQuickPanel => '在对话页向左滑动，可打开快捷入口';
 
   @override
-  String get viewTipFolderNewChat => '长按侧栏的文件夹，可以直接在里面开新对话';
+  String get viewTipFolderNewChat => '长按侧栏文件夹，可直接在该分组内新建对话';
 
   @override
-  String get viewTipSwitchHost => '点侧栏底部的主机名，可以切到电脑上的 DSH';
+  String get viewTipSwitchHost => '点按侧栏底部主机名称，可切换至远程主机';
 
   @override
-  String get viewTipPasteImage => '输入法里的截图和贴图，可以直接贴进输入框';
+  String get viewTipPasteImage => '支持将输入法中的截图与图片直接粘贴至输入框';
 
   @override
-  String get viewTipLauncher => '长按桌面图标，可以直接语音提问或开新对话';
+  String get viewTipLauncher => '长按桌面应用图标，可快速发起语音提问或新建对话';
 
   @override
-  String get viewTipPetBubble => '宠物冒泡时点一下，就跳到等你的那个对话';
+  String get viewTipPetBubble => '桌宠显示气泡时点按，可直接跳转至待处理对话';
 
   @override
-  String get viewTipPetPlay => '连点宠物三下会挠痒痒，长按可以换宠物';
+  String get viewTipPetPlay => '连续点按桌宠三次可触发互动，长按可切换形象';
 
   @override
-  String get viewTipActivityStrip => '生成时点一下状态条，看这一轮的完整轨迹';
+  String get viewTipActivityStrip => '生成期间点按状态条，可查看本轮完整执行轨迹';
 
   @override
-  String get viewTipImageZoom => '看图时双击放大、双指缩放，长按可以保存';
+  String get viewTipImageZoom => '查看图片时支持双击或双指缩放，长按可保存';
 
   @override
-  String get viewTipQueuedRecall => '排队中的消息可以撤回到输入框再改';
+  String get viewTipQueuedRecall => '排队中的消息可撤回至输入框重新编辑';
 
   @override
-  String get viewTipKeyboard => '接了键盘：Ctrl+Enter 发送，连按两次 Esc 停止';
+  String get viewTipKeyboard => '连接外接键盘时，按 Ctrl+Enter 发送，连按两次 Esc 停止';
 
   @override
-  String get viewTipShareIn => '在别的 App 里分享文字或图片给 DSH Go，会填进新对话';
+  String get viewTipShareIn => '从其他应用分享文本或图片至 DSH Go，可直接带入新对话';
 
   @override
-  String get viewTipShareSelect => '分享对话时长按再滑动，可以一次选中多条消息';
+  String get viewTipShareSelect => '分享对话时长按并滑动，可连续选择多条消息';
 
   @override
-  String get viewTipChartDrag => '回复里的图表可以左右拖动，看每个点的数值';
+  String get viewTipChartDrag => '左右拖动回复中的图表，可查看各数据点数值';
 
   @override
-  String get viewTipCopyPath => '改动卡里长按某个文件，可以复制它的路径';
+  String get viewTipCopyPath => '在改动卡片中长按文件，可复制其完整路径';
 
   @override
-  String get viewTipCompanion => '「伙伴小屋」藏在切换主机的面板里';
+  String get viewTipCompanion => '在「切换主机」面板中可打开「伙伴小屋」';
 
   @override
-  String get viewTipAnswerInline => 'AI 向你提问时，直接在输入框里打字就是回答';
+  String get viewTipAnswerInline => '模型发起提问时，可直接在底部输入框中输入回答';
 
   @override
-  String get viewTipWallpaper => '壁纸可以拖动、缩放，还能调模糊和明暗';
+  String get viewTipWallpaper => '自定义壁纸支持拖动、缩放，以及调节模糊度与明暗';
 
   @override
-  String get viewTipModelHere => '这里就能换模型、预设和权限，只对这次对话生效';
+  String get viewTipModelHere => '此处可切换当前对话的模型、预设与权限，不影响全局默认';
 
   @override
   String get viewNewChatFolder => '文件夹';

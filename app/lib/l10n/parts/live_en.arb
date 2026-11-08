@@ -18,7 +18,7 @@
   "livePublicFailed": "DSH ran into an error",
   "liveSettingsTitle": "Live activity",
   "liveSettingsSwitch": "Show live activity",
-  "liveSettingsSubtitle": "While DSH works, waits on you or controls the phone: in the status bar chip and on the lock screen, and in the island on phones that have one",
+  "liveSettingsSubtitle": "Show live progress in the status bar and lock screen while tasks run, await confirmation, or control the phone",
   "liveSettingsFooter": "Android 16 Live Updates. Shown on Xiaomi HyperOS 3.1+, OPPO / OnePlus ColorOS 16, Honor MagicOS 10 and Pixel; vivo's Atomic Island and Samsung's Now Bar are open only to apps the maker partners with.",
   "liveUnsupported": "This phone's system doesn't support live activities yet",
   "liveBlockedTitle": "Live activities are off for DSH Go",

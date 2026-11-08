@@ -98,7 +98,7 @@ void main() {
     expect(_labels(tester, groups.at(1)), ['重新回答', '从这里分叉']);
     // The preview drops Markdown marks.
     expect(find.textContaining('是超时重试多发了一次请求'), findsOneWidget);
-    expect(find.text('在新对话中重新生成，原对话不变'), findsOneWidget);
+    expect(find.text('在新对话中重新生成，保留原对话'), findsOneWidget);
 
     await tester.tap(find.widgetWithText(SettingsTile, '重新回答'));
     await tester.pumpAndSettle();
