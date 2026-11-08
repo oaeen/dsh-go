@@ -2,6 +2,22 @@
 
 每个版本先中文、后英文。发版时把对应版本的正文（不含版本标题）作为 Release 正文，见 `docs/release.md`。
 
+## 1.0.14 · 2026-11-08
+
+### 中文
+
+- 品牌图标：全部切换为 DeepSeek Harness 官方鲸鱼标志，覆盖应用内标识、Android 桌面图标与通知栏图标。
+- 本机操控与工具链：新增本机 root CLI、`adbd` 回环桥接与 `android-cli` 自动安装支持。
+- 订阅模型与插件：新增 Magpie 订阅源插件市场与兼容层，支持按订阅渠道配置与管理模型。
+- 界面文案：精简工作区、设置、引导页、连接诊断、自动化与通知提示文案。
+
+### English
+
+- Brand mark: replaced app icons, launcher icons, and notification icons with the official DeepSeek Harness whale mark.
+- On-device control & toolchain: added local root CLI, loopback `adbd` bootstrap, and `android-cli` installer support.
+- Subscription models & plugins: added the Magpie subscription plugin market and compatibility layer.
+- UI copy: streamlined descriptions and hints across workspaces, settings, onboarding, diagnostics, automation, and notifications.
+
 ## 1.0.13 · 2026-11-08
 
 ### 中文
