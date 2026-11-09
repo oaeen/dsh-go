@@ -494,7 +494,7 @@ class _SetupStatusSheet extends ConsumerWidget {
             Center(
               child: ProgressHalo(
                 value: fraction,
-                size: 112,
+                size: failed ? 56 : 112,
                 strokeWidth: 4,
                 color: failed ? colors.danger : null,
                 child: AnimatedSwitcher(
@@ -504,7 +504,7 @@ class _SetupStatusSheet extends ConsumerWidget {
                     SetupRuntime.failed => Icon(
                       AppIcons.attention,
                       key: const ValueKey('failed'),
-                      size: 34,
+                      size: 26,
                       color: colors.danger,
                     ),
                     _ when fraction != null => SetupPercent(key: const ValueKey('pct'), value: fraction, size: 30),
@@ -513,7 +513,7 @@ class _SetupStatusSheet extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: failed ? 16 : 20),
             Text(title, textAlign: TextAlign.center, style: theme.textTheme.titleLarge),
             const SizedBox(height: 6),
             Text(

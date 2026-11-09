@@ -206,6 +206,8 @@ class _RuntimeSetupPageState extends ConsumerState<RuntimeSetupPage> {
 
     // A phone on its side: a smaller ring, so the page fits without scrolling.
     final short = MediaQuery.sizeOf(context).height < WindowClass.compactHeight;
+    final failed = view == _SetupView.failed;
+    final dark = theme.brightness == Brightness.dark;
     return OnboardingScaffold(
       leading: widget.leading,
       children: [
@@ -213,9 +215,9 @@ class _RuntimeSetupPageState extends ConsumerState<RuntimeSetupPage> {
         Center(
           child: ProgressHalo(
             value: fraction,
-            size: short ? 128 : 184,
+            size: failed ? 60 : (short ? 128 : 184),
             strokeWidth: 4,
-            color: view == _SetupView.failed ? colors.danger : null,
+            color: failed ? colors.danger : null,
             child: AnimatedSwitcher(
               duration: AppMotion.of(context, AppMotion.emphasized),
               switchInCurve: AppMotion.enter,
@@ -228,7 +230,7 @@ class _RuntimeSetupPageState extends ConsumerState<RuntimeSetupPage> {
                 _SetupView.failed => Icon(
                   AppIcons.attention,
                   key: const ValueKey('failed'),
-                  size: 44,
+                  size: 28,
                   color: colors.danger,
                 ),
                 _SetupView.waiting || _SetupView.choose => const SizedBox.shrink(key: ValueKey('waiting')),
@@ -237,34 +239,55 @@ class _RuntimeSetupPageState extends ConsumerState<RuntimeSetupPage> {
             ),
           ),
         ),
-        SizedBox(height: short ? 20 : 36),
+        SizedBox(height: failed ? 20 : (short ? 20 : 36)),
         AnimatedSwitcher(
           duration: AppMotion.of(context, AppMotion.standard),
           child: Text(title, key: ValueKey(title), textAlign: TextAlign.center, style: theme.textTheme.headlineSmall),
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: failed ? 12 : 6),
         AnimatedSwitcher(
           duration: AppMotion.of(context, AppMotion.standard),
-          child: Text(
-            body,
-            key: ValueKey(body),
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
-          ),
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: math.max(20, MediaQuery.textScalerOf(context).scale(12) * 1.5),
-          child: meta == null
-              ? null
+          child: failed
+              ? DecoratedBox(
+                  key: ValueKey('failed-$body'),
+                  decoration: ShapeDecoration(
+                    color: dark ? Colors.white.withValues(alpha: 0.04) : scheme.onSurface.withValues(alpha: 0.035),
+                    shape: Squircle.border(
+                      AppShape.md,
+                      side: BorderSide(color: scheme.outlineVariant.withValues(alpha: dark ? 0.35 : 0.55)),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Text(
+                      body,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+                    ),
+                  ),
+                )
               : Text(
-                  meta,
+                  body,
+                  key: ValueKey(body),
                   textAlign: TextAlign.center,
-                  style: AppType.tabular(theme.textTheme.bodySmall!.copyWith(color: colors.textTertiary)),
+                  style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
                 ),
         ),
+        if (!failed) ...[
+          const SizedBox(height: 8),
+          SizedBox(
+            height: math.max(20, MediaQuery.textScalerOf(context).scale(12) * 1.5),
+            child: meta == null
+                ? null
+                : Text(
+                    meta,
+                    textAlign: TextAlign.center,
+                    style: AppType.tabular(theme.textTheme.bodySmall!.copyWith(color: colors.textTertiary)),
+                  ),
+          ),
+        ],
         const Spacer(flex: 2),
-        if (view == _SetupView.failed) ...[
+        if (failed) ...[
           Row(
             children: [
               Expanded(
@@ -280,15 +303,29 @@ class _RuntimeSetupPageState extends ConsumerState<RuntimeSetupPage> {
             ],
           ),
           const SizedBox(height: 8),
-          Center(
-            // Quiet like the links below it: a way to get help, not the next step.
-            child: TextButton(
-              onPressed: () => unawaited(showDiagnosticsExportSheet(context)),
-              style: TextButton.styleFrom(foregroundColor: scheme.onSurfaceVariant),
-              child: Text(l10n.phoneDiagnosticsExport),
+          if (state.status.keepFailed) ...[
+            Center(
+              child: TextButton(
+                onPressed: () => _install(dropKept: true),
+                style: TextButton.styleFrom(foregroundColor: scheme.onSurfaceVariant),
+                child: Text(l10n.shellRuntimeContinueWithoutKept),
+              ),
             ),
-          ),
-        ] else
+            Center(
+              child: TextButton(
+                onPressed: () => unawaited(showDiagnosticsExportSheet(context)),
+                style: TextButton.styleFrom(foregroundColor: scheme.onSurfaceVariant),
+                child: Text(l10n.phoneDiagnosticsExport),
+              ),
+            ),
+          ] else
+            _FailedSecondaryLinks(
+              exportLabel: l10n.phoneDiagnosticsExport,
+              onExport: () => unawaited(showDiagnosticsExportSheet(context)),
+              remoteLabel: widget.onRemote == null ? null : l10n.localEnvUseRemote,
+              onRemote: widget.onRemote,
+            ),
+        ] else ...[
           // One quiet line instead of a card: what matters while it runs.
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -304,33 +341,82 @@ class _RuntimeSetupPageState extends ConsumerState<RuntimeSetupPage> {
               ),
             ],
           ),
-        const SizedBox(height: 8),
-        if (view != _SetupView.failed)
+          const SizedBox(height: 8),
           Center(
             child: TextButton(
               onPressed: () => showRuntimeLogSheet(context, title: l10n.shellInstallLogs),
               style: TextButton.styleFrom(foregroundColor: scheme.onSurfaceVariant),
               child: Text(l10n.commonViewLogs),
             ),
-          )
-        else if (state.status.keepFailed)
-          // The way out when kept files cannot go back: quiet, in the log link's place.
-          Center(
-            child: TextButton(
-              onPressed: () => _install(dropKept: true),
-              style: TextButton.styleFrom(foregroundColor: scheme.onSurfaceVariant),
-              child: Text(l10n.shellRuntimeContinueWithoutKept),
-            ),
-          )
-        else if (widget.onRemote case final onRemote?)
-          // Storage full, a broken package…: the other way in, just as quiet.
-          Center(
-            child: TextButton(
-              onPressed: onRemote,
-              style: TextButton.styleFrom(foregroundColor: scheme.onSurfaceVariant),
-              child: Text(l10n.localEnvUseRemote),
-            ),
           ),
+        ],
+      ],
+    );
+  }
+}
+
+class _FailedSecondaryLinks extends StatelessWidget {
+  const _FailedSecondaryLinks({
+    required this.exportLabel,
+    required this.onExport,
+    this.remoteLabel,
+    this.onRemote,
+  });
+
+  final String exportLabel;
+  final VoidCallback onExport;
+  final String? remoteLabel;
+  final VoidCallback? onRemote;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final colors = DshColors.of(context);
+    final linkStyle = TextButton.styleFrom(
+      foregroundColor: scheme.onSurfaceVariant,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      minimumSize: const Size(0, 36),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+    final exportButton = TextButton(onPressed: onExport, style: linkStyle, child: Text(exportLabel));
+    final onRemote = this.onRemote;
+    final remoteLabel = this.remoteLabel;
+    if (onRemote == null || remoteLabel == null) {
+      return Center(child: exportButton);
+    }
+    final remoteButton = TextButton(onPressed: onRemote, style: linkStyle, child: Text(remoteLabel));
+    double widthOf(String text) {
+      final painter = TextPainter(
+        text: TextSpan(text: text, style: theme.textTheme.labelLarge),
+        textDirection: Directionality.of(context),
+        textScaler: MediaQuery.textScalerOf(context),
+        maxLines: 1,
+      )..layout();
+      final width = painter.width;
+      painter.dispose();
+      return width + 24;
+    }
+
+    final maxWidth = math.min(MediaQuery.sizeOf(context).width, 440.0) - 48.0;
+    if (widthOf(exportLabel) + widthOf(remoteLabel) + 20 <= maxWidth) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          exportButton,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            child: Text('·', style: theme.textTheme.bodySmall?.copyWith(color: colors.textTertiary)),
+          ),
+          remoteButton,
+        ],
+      );
+    }
+    return Column(
+      children: [
+        Center(child: exportButton),
+        const SizedBox(height: 4),
+        Center(child: remoteButton),
       ],
     );
   }

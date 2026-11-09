@@ -52,7 +52,7 @@ class _ProgressHaloState extends State<ProgressHalo> with TickerProviderStateMix
 
   void _sync() {
     final reduced = AppMotion.reduced(context);
-    if (reduced) {
+    if (reduced || widget.value == 0) {
       _breath
         ..stop()
         ..value = 0.5;
@@ -97,7 +97,7 @@ class _ProgressHaloState extends State<ProgressHalo> with TickerProviderStateMix
                 spin: _spin.value,
                 breath: Curves.easeInOut.transform(_breath.value),
                 color: color,
-                glowAlpha: isDark ? 0.16 : 0.20,
+                glowAlpha: isDark ? 0.14 : 0.12,
                 strokeWidth: widget.strokeWidth,
               ),
               child: child,
@@ -129,6 +129,20 @@ class _HaloPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (value == 0) {
+      final corner = (size.shortestSide * 0.28).clamp(14.0, 20.0);
+      final rrect = RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(corner));
+      canvas.drawRRect(rrect, Paint()..color = color.withValues(alpha: glowAlpha * 0.65));
+      canvas.drawRRect(
+        rrect.deflate(0.5),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1
+          ..color = color.withValues(alpha: glowAlpha * 1.15),
+      );
+      return;
+    }
+
     final center = size.center(Offset.zero);
     final radius = (size.shortestSide - strokeWidth) / 2 - 8;
 
