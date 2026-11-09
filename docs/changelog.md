@@ -2,6 +2,18 @@
 
 每个版本先中文、后英文。发版时把对应版本的正文（不含版本标题）作为 Release 正文，见 `docs/release.md`。
 
+## 1.0.16 · 2026-11-10
+
+### 中文
+
+- 界面与图标：首页、侧边栏与设置页全面切换为 Solar Linear 简约线性图标；移除图标底色圆盘、冗余本机状态副标题、「全部功能」入口、功能图标样式与多余桌面图标资源，精简浅色背景、下拉菜单、语义配色与引导页展示。
+- DS Bot：适配官方 `ds-bot` 插件移动端接口，支持在整个 Bot 团队间同步与持久化权限预设，并隐藏顶栏冗余的空闲状态副标题。
+
+### English
+
+- UI & icons: replaced home, drawer, and settings icons with minimalist Solar Linear icons; removed icon background discs, redundant local status subtitles, the All features entry, tile style pickers, and unused launcher icon assets, and refined light backdrops, dropdowns, semantic colors, and onboarding sheets.
+- DS Bot: adapted the mobile client for the official `ds-bot` plugin, added team-wide permission preset syncing and persistence, and hid redundant idle status subtitles in the chat header.
+
 ## 1.0.15 · 2026-11-09
 
 ### 中文
