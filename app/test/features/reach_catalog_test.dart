@@ -1,8 +1,5 @@
-import 'package:dsh_app/state/bots_state.dart';
 import 'package:dsh_app/state/session_search.dart';
 import 'package:dsh_app/state/sessions_state.dart';
-import 'package:dsh_app/ui/common/tile_grid.dart';
-import 'package:dsh_app/ui/features/all_features_page.dart';
 import 'package:dsh_app/ui/features/feature_catalog.dart';
 import 'package:dsh_app/ui/files/files_page.dart';
 import 'package:dsh_app/ui/forum/forum_home_page.dart';
@@ -16,13 +13,6 @@ import '../search/support.dart';
 import '../shell/golden_harness.dart';
 
 FeatureItem item(String id) => featureSections.expand((section) => section.items).singleWhere((item) => item.id == id);
-
-class _Inbox extends DsBotInboxController {
-  @override
-  DsBotInbox build() => const DsBotInbox();
-
-  void counts(Map<String, int> unread) => state = DsBotInbox(unread: unread);
-}
 
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
@@ -48,41 +38,7 @@ void main() {
     expect(webIds, {'voice-input', 'web'});
   });
 
-  testWidgets('DS Bot 徽标实时汇总未读，零隐藏，超过 99 封顶', (tester) async {
-    final inbox = _Inbox();
-    final tile = FeatureTileFor(item: item('ds-bot'), tint: 2, onOpen: () {});
-    await tester.pumpWidget(
-      goldenApp(
-        brightness: Brightness.light,
-        overrides: [dsBotInboxProvider.overrideWith(() => inbox)],
-        home: Scaffold(body: SizedBox(width: 200, child: tile)),
-      ),
-    );
-    await tester.pumpAndSettle();
-    String? badge() => tester.widget<FeatureCard>(find.byType(FeatureCard)).badge;
-    expect(badge(), isNull);
-
-    inbox.counts({'bot': 2, 'room': 5});
-    await tester.pumpAndSettle();
-    expect(badge(), '7');
-    expect(find.text('7'), findsOneWidget);
-
-    inbox.counts({'bot': 99});
-    await tester.pumpAndSettle();
-    expect(badge(), '99');
-    inbox.counts({'bot': 99, 'room': 1});
-    await tester.pumpAndSettle();
-    expect(badge(), '99+');
-    expect(find.text('99+'), findsOneWidget);
-
-    inbox.counts({});
-    await tester.pumpAndSettle();
-    expect(badge(), isNull);
-    expect(find.text('99+'), findsNothing);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('全部功能搜索结果返回首页并选中对应对话', (tester) async {
+  testWidgets('搜索对话 action 返回首页并选中对应对话', (tester) async {
     usePhoneSurface(tester);
     final backend = FakeContentSearch();
     await tester.pumpWidget(
@@ -93,20 +49,12 @@ void main() {
           sessionContentSearchProvider.overrideWithValue(backend),
           currentSessionProvider.overrideWith(() => FakeCurrentSession('s1')),
         ],
-        home: Builder(
-          builder: (context) => Scaffold(
+        home: Consumer(
+          builder: (context, ref, _) => Scaffold(
             body: Center(
               child: TextButton(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => AllFeaturesPage(
-                      sections: [
-                        FeatureSection('主机与设置', [item('search')]),
-                      ],
-                    ),
-                  ),
-                ),
-                child: const Text('首页入口'),
+                onPressed: () => item('search').action!(context, ref, 's1'),
+                child: const Text('搜索对话'),
               ),
             ),
           ),
@@ -114,8 +62,6 @@ void main() {
       ),
     );
     final container = ProviderScope.containerOf(tester.element(find.byType(MaterialApp)));
-    await tester.tap(find.text('首页入口'));
-    await tester.pumpAndSettle();
     await tester.tap(find.text('搜索对话'));
     await tester.pumpAndSettle();
     expect(find.byType(SessionSearchPage), findsOneWidget);
@@ -129,8 +75,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(container.read(currentSessionProvider), 's2');
     expect(find.byType(SessionSearchPage), findsNothing);
-    expect(find.byType(AllFeaturesPage), findsNothing);
-    expect(find.text('首页入口'), findsOneWidget);
+    expect(find.text('搜索对话'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

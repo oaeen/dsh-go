@@ -1,6 +1,6 @@
 # Settings
 
-Tap the gear at the bottom of the chat list to open Settings; touch and hold it to search right away. The round button beside it opens All features, which ends with shortcuts to settings. In Web mode, tap the app logo and choose **App settings**.
+Tap the gear at the bottom of the chat list to open Settings; touch and hold it to search right away. In Web mode, tap the app logo and choose **App settings**.
 
 <!-- nav: commonSettings -->
 `Settings` · [Open](dshgo://open/settings)

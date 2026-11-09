@@ -13,7 +13,6 @@ import 'package:dsh_app/state/settings_state.dart';
 import 'package:dsh_app/ui/chat/empty_state.dart' show chatClock;
 import 'package:dsh_app/ui/chat/widgets/live_clock.dart' show runClock;
 import 'package:dsh_app/ui/cordis/cordis_page.dart';
-import 'package:dsh_app/ui/features/all_features_page.dart';
 import 'package:dsh_app/ui/features/feature_catalog.dart';
 import 'package:dsh_app/ui/plugins/plugin_detail_sheet.dart';
 import 'package:dsh_app/ui/plugins/plugins_screen.dart';
@@ -191,17 +190,6 @@ void main() {
         );
         await _reveal(tester, find.text('桌宠提醒'));
         await match('seat_settings');
-      });
-
-      testWidgets('全部功能: plugin panels in 插件 ($mode)', (tester) async {
-        await _pump(
-          tester,
-          const AllFeaturesPage(),
-          brightness: brightness,
-          seats: seatOverrides(inventory: seatInventory(occupancy: fullOccupancy)),
-        );
-        await _reveal(tester, find.text('探针面板'));
-        await match('seat_all_features');
       });
 
       testWidgets('Cordis: the interactive region over the actions ($mode)', (tester) async {
@@ -475,24 +463,6 @@ void main() {
       final petPanel = section.items.last;
       expect((probePanel.title, probePanel.summary, probePanel.hasNative), ('探针面板', '岛屿探针', true));
       expect((petPanel.title, petPanel.webOnly, petPanel.web), ('桌宠面板', true, const DshWebTarget(sidebar: true)));
-    });
-
-    testWidgets('a panel with an island opens its page; the other opens DSH Web', (tester) async {
-      await _pump(
-        tester,
-        const AllFeaturesPage(),
-        seats: [
-          ...seatOverrides(inventory: seatInventory(occupancy: fullOccupancy)),
-          dshWebOpenerProvider.overrideWithValue((context, ref, target) => openedWeb.add(target)),
-        ],
-      );
-      await _reveal(tester, find.text('桌宠面板'));
-      await tester.tap(find.text('桌宠面板'));
-      expect(openedWeb.single, const DshWebTarget(sidebar: true));
-      await tester.tap(find.text('探针面板'));
-      await _settle(tester);
-      expect(find.byType(PluginSeatPage), findsOneWidget);
-      expect(find.byType(FakeIsland), findsOneWidget);
     });
   });
 

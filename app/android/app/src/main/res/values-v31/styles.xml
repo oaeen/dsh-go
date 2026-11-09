@@ -35,15 +35,6 @@
     <style name="LaunchTheme.Mist">
         <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
     </style>
-    <style name="LaunchTheme.Night">
-        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_night</item>
-    </style>
-    <style name="LaunchTheme.Frost">
-        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_frost</item>
-    </style>
-    <style name="LaunchTheme.Ink">
-        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_ink</item>
-    </style>
     <!-- A custom launch screen on white or black: no icon, that colour (the picture fades in over it). -->
     <style name="LaunchTheme.White">
         <item name="android:windowBackground">@android:color/white</item>

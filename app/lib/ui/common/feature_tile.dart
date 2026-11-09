@@ -1,25 +1,20 @@
-// The big graphics of the nine headline features (全部功能, their empty states,
-// the phone page's overview) in three styles the user picks from.
+// The big graphics of the nine headline features (their empty states,
+// the phone page's overview).
 //
-// - Flat duotone (the default) and minimal geometric are vectors: SVG masters in
-//   assets/tiles/<style>/, turned into paths by tool/make_feature_tiles.py
-//   (feature_tile_shapes.g.dart). Every colour is a tone of the theme's accent.
-// - Glass gradient is the painted set in assets/tiles/glassy/ (288px WebP: 96dp at
-//   3x), turned from the default accent's hue to the current one.
+// Flat duotone vectors: SVG masters in assets/tiles/duotone/, turned into paths
+// by tool/make_feature_tiles.py (feature_tile_shapes.g.dart). Every colour is a
+// tone of the theme's accent.
 
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../state/tile_style_state.dart';
 import '../theme/theme.dart';
 import 'feature_tile_shapes.g.dart';
 
-export '../../state/tile_style_state.dart' show TileStyle;
 export 'feature_tile_shapes.g.dart' show FeatureKind;
 
-/// One feature's graphic, [size] square, in the user's [TileStyle].
+/// One feature's graphic, [size] square.
 ///
 /// ```dart
 /// FeatureTile(FeatureKind.automation, size: FeatureTile.empty)
@@ -27,18 +22,16 @@ export 'feature_tile_shapes.g.dart' show FeatureKind;
 ///
 /// - Colours follow the accent and switch with light / dark; [tint] takes one of
 ///   the 8 identity hues (`DshColors.identity`) instead.
-/// - [style] pins a style (the picker's previews); null follows the setting.
 /// - Decorative unless [semanticLabel] is given: a title always sits next to it.
-class FeatureTile extends ConsumerWidget {
-  const FeatureTile(this.kind, {super.key, this.size = 48, this.style, this.tint, this.semanticLabel});
+class FeatureTile extends StatelessWidget {
+  const FeatureTile(this.kind, {super.key, this.size = 48, this.tint, this.semanticLabel});
 
   final FeatureKind kind;
   final double size;
-  final TileStyle? style;
   final int? tint;
   final String? semanticLabel;
 
-  /// In a 全部功能 card (the circle badge it replaces is 36 too).
+  /// In a feature card (the circle badge it replaces is 36 too).
   static const card = 36.0;
 
   /// Over an empty state, in place of `EmptyView`'s 64 badge.
@@ -48,14 +41,9 @@ class FeatureTile extends ConsumerWidget {
   static const compact = 48.0;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final TileStyle style = this.style ?? ref.watch(tileStyleProvider);
+  Widget build(BuildContext context) {
     final palette = TilePalette.of(context, tint: tint);
-    final Widget art = switch (style) {
-      TileStyle.glassy => _GlassTile(kind: kind, size: size, palette: palette),
-      TileStyle.duotone => _VectorTile(art: DuotoneTiles.of(kind), size: size, palette: palette),
-      TileStyle.geometric => _VectorTile(art: GeometricTiles.of(kind), size: size, palette: palette),
-    };
+    final Widget art = _VectorTile(art: DuotoneTiles.of(kind), size: size, palette: palette);
     final label = semanticLabel;
     return label == null ? ExcludeSemantics(child: art) : Semantics(label: label, image: true, child: art);
   }
@@ -236,157 +224,4 @@ class TilePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(TilePainter old) => old.art != art || old.palette != palette;
-}
-
-class _GlassTile extends StatelessWidget {
-  const _GlassTile({required this.kind, required this.size, required this.palette});
-
-  final FeatureKind kind;
-  final double size;
-  final TilePalette palette;
-
-  @override
-  Widget build(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final dpr = MediaQuery.maybeDevicePixelRatioOf(context) ?? 3;
-    Widget image = Image.asset(
-      GlassTint.asset(kind),
-      width: size,
-      height: size,
-      // Decode at the drawn size: one 288px master serves every size.
-      cacheWidth: math.min(GlassTint.assetPixels, (size * dpr).ceil()),
-      filterQuality: FilterQuality.medium,
-      excludeFromSemantics: true,
-      gaplessPlayback: true,
-    );
-    final filter = GlassTint.filter(palette.ink, dark ? Brightness.dark : Brightness.light);
-    if (filter != null) image = ColorFiltered(colorFilter: filter, child: image);
-    return SizedBox.square(dimension: size, child: image);
-  }
-}
-
-/// Turns the glass set, painted in the default accent (雾蓝), to another accent.
-///
-/// A hue rotation (the SVG / CSS `hueRotate` matrix), solved so the default
-/// accent lands exactly on the target's hue, and a saturation cut for quiet
-/// accents (石墨) so the glass doesn't stay vivid blue among grey controls.
-abstract final class GlassTint {
-  /// Width and height of the masters: 96dp at 3x.
-  static const assetPixels = 288;
-
-  static String asset(FeatureKind kind) => 'assets/tiles/glassy/${kind.name}.webp';
-
-  /// The colour the set was painted to, per brightness: the default accent's
-  /// `primary` (what [TilePalette.ink] is for it).
-  static Color reference(Brightness brightness) => AppAccent.mist.seedFor(brightness);
-
-  static final _cache = <(int, Brightness), ColorFilter?>{};
-
-  /// The filter that turns the set from [reference] to [target], or null when
-  /// there is nothing to turn (the default accent).
-  static ColorFilter? filter(Color target, Brightness brightness) =>
-      _cache.putIfAbsent((target.toARGB32(), brightness), () {
-        final (degrees, saturation) = solve(target, brightness);
-        if (degrees.abs() < 1 && saturation > 0.98) return null;
-        return ColorFilter.matrix(matrix(degrees, saturation));
-      });
-
-  /// (rotation in degrees, saturation factor) taking [reference] to [target]'s hue.
-  static (double, double) solve(Color target, Brightness brightness) {
-    final ref = HSLColor.fromColor(reference(brightness));
-    final to = HSLColor.fromColor(target);
-    // Chroma (OKLCH), not HSL saturation: the accents share one chroma rule, and
-    // HSL calls every light tint "saturated".
-    final saturation = (chroma(target) / chroma(reference(brightness))).clamp(0.3, 1.0).toDouble();
-    if (to.saturation < 0.02) return (0.0, saturation);
-    double miss(double deg) {
-      final hue = HSLColor.fromColor(apply(matrix(deg, saturation), reference(brightness))).hue;
-      final d = (hue - to.hue).abs() % 360;
-      return math.min(d, 360 - d);
-    }
-
-    // The matrix keeps luminance, not HSL hue, so search around the plain difference.
-    final start = to.hue - ref.hue;
-    var best = start;
-    var bestMiss = miss(start);
-    for (var step = 8.0; step >= 0.05; step /= 2) {
-      for (final candidate in [best - step, best + step]) {
-        final m = miss(candidate);
-        if (m < bestMiss) {
-          best = candidate;
-          bestMiss = m;
-        }
-      }
-    }
-    for (var deg = -180.0; deg < 180 && bestMiss > 2; deg += 10) {
-      final m = miss(deg);
-      if (m < bestMiss) {
-        best = deg;
-        bestMiss = m;
-      }
-    }
-    final wrapped = ((best + 180) % 360) - 180;
-    return (wrapped, saturation);
-  }
-
-  /// OKLCH chroma of [color].
-  static double chroma(Color color) {
-    double lin(double v) => v <= 0.04045 ? v / 12.92 : math.pow((v + 0.055) / 1.055, 2.4).toDouble();
-    final r = lin(color.r);
-    final g = lin(color.g);
-    final b = lin(color.b);
-    double cbrt(double v) => math.pow(v, 1 / 3).toDouble();
-    final l = cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
-    final m = cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
-    final s = cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
-    final a = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s;
-    final bb = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s;
-    return math.sqrt(a * a + bb * bb);
-  }
-
-  /// Saturation × hue rotation, as a 4×5 colour matrix.
-  static List<double> matrix(double degrees, double saturation) {
-    final a = degrees * math.pi / 180;
-    final c = math.cos(a);
-    final s = math.sin(a);
-    final hue = [
-      0.213 + c * 0.787 - s * 0.213,
-      0.715 - c * 0.715 - s * 0.715,
-      0.072 - c * 0.072 + s * 0.928,
-      0.213 - c * 0.213 + s * 0.143,
-      0.715 + c * 0.285 + s * 0.140,
-      0.072 - c * 0.072 - s * 0.283,
-      0.213 - c * 0.213 - s * 0.787,
-      0.715 - c * 0.715 + s * 0.715,
-      0.072 + c * 0.928 + s * 0.072,
-    ];
-    final k = saturation;
-    final sat = [
-      0.213 + 0.787 * k,
-      0.715 - 0.715 * k,
-      0.072 - 0.072 * k,
-      0.213 - 0.213 * k,
-      0.715 + 0.285 * k,
-      0.072 - 0.072 * k,
-      0.213 - 0.213 * k,
-      0.715 - 0.715 * k,
-      0.072 + 0.928 * k,
-    ];
-    final m = List<double>.filled(9, 0);
-    for (var r = 0; r < 3; r++) {
-      for (var col = 0; col < 3; col++) {
-        for (var i = 0; i < 3; i++) {
-          m[r * 3 + col] += hue[r * 3 + i] * sat[i * 3 + col];
-        }
-      }
-    }
-    return [m[0], m[1], m[2], 0, 0, m[3], m[4], m[5], 0, 0, m[6], m[7], m[8], 0, 0, 0, 0, 0, 1, 0];
-  }
-
-  /// [color] through a 4×5 [matrix] (no offsets), clamped.
-  static Color apply(List<double> matrix, Color color) {
-    double ch(int row) =>
-        (matrix[row * 5] * color.r + matrix[row * 5 + 1] * color.g + matrix[row * 5 + 2] * color.b).clamp(0, 1);
-    return Color.from(alpha: color.a, red: ch(0), green: ch(1), blue: ch(2));
-  }
 }

@@ -71,7 +71,6 @@ Future<ProviderContainer> _pump(
                 child: IdentityBar(
                   onHost: onHost ?? () {},
                   onLocalDetails: onLocalDetails,
-                  onFeatures: () {},
                   onSettings: () {},
                 ),
               ),

@@ -9,18 +9,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/l10n.dart';
 
-/// The launcher icons, in the picker's order. [mist] is every install's.
+/// The launcher icon. [mist] is every install's.
 enum AppIcon {
-  mist,
-  night,
-  frost,
-  ink;
+  mist;
 
   String get label => switch (this) {
     mist => appL10n.stateIconMist,
-    night => appL10n.stateIconNight,
-    frost => appL10n.stateIconFrost,
-    ink => appL10n.stateIconInk,
   };
 
   static AppIcon? byId(Object? id) {

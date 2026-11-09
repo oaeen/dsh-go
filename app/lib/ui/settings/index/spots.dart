@@ -87,7 +87,6 @@ enum SettingsPageId {
   agentLoop,
   shell,
   pluginInventory,
-  allFeatures,
   diagnostics,
   about,
   account,
@@ -521,13 +520,6 @@ final _pages = <SettingsPageMeta>[
     keywords: (l) => l.searchKwPluginInventory,
     links: const ['plugin-inventory'],
   ),
-  SettingsPageMeta(
-    SettingsPageId.allFeatures,
-    title: (l) => l.hubSettingsAllFeatures,
-    keywords: (l) => l.searchKwAllFeatures,
-    links: const ['all-features'],
-    row: false,
-  ),
   // 帮助与关于
   SettingsPageMeta(
     SettingsPageId.diagnostics,
@@ -715,12 +707,6 @@ abstract final class Spots {
     page: SettingsPageId.appearance,
     title: (l) => l.pluginsColors,
     keywords: (l) => l.searchKwAccent,
-  );
-  static final tileStyle = SettingSpot(
-    'tile-style',
-    page: SettingsPageId.appearance,
-    title: (l) => l.pluginsFeatureIcons,
-    keywords: (l) => l.searchKwTileStyle,
   );
   static final iconShortcut = SettingSpot(
     'icon-shortcut',
@@ -1046,7 +1032,6 @@ final _rows = <SettingSpot>[
   Spots.webSearchKey,
   Spots.darkMode,
   Spots.accent,
-  Spots.tileStyle,
   Spots.iconShortcut,
   Spots.launchScreen,
   Spots.wallpaper,

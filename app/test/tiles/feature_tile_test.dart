@@ -1,26 +1,18 @@
 // The feature tiles (lib/ui/common/feature_tile.dart).
 //
-// - The generated shapes: every feature in both vector styles, inside the grid's
-//   safe area, centred, duotone in two tones only.
+// - The generated shapes: every feature in the duotone vector style, inside the grid's
+//   safe area, centred, in two tones only.
 // - The palette: every tone from the theme, readable on the card for every accent
 //   and identity hue, in light and dark.
-// - The glass tint: none for the default accent; for the others the default
-//   accent's colour lands on the target's hue.
-// - The style setting: duotone by default, persisted, unknown values fall back.
-// - Golden sheets: the three styles at the app's sizes; every accent; every
+// - Golden sheets: the default style at the app's sizes; every accent; every
 //   identity hue.
 //
 //   flutter test test/tiles/feature_tile_test.dart
 
-import 'dart:ui' as ui;
-
-import 'package:dsh_app/state/tile_style_state.dart';
 import 'package:dsh_app/ui/common/feature_tile.dart';
 import 'package:dsh_app/ui/common/feature_tile_shapes.g.dart';
 import 'package:dsh_app/ui/theme/theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -53,44 +45,35 @@ Rect _bounds(TileArt art) {
 
 void main() {
   group('shapes', () {
-    test('every feature in both vector styles, in the safe area, centred', () {
-      for (final (name, of) in [('duotone', DuotoneTiles.of), ('geometric', GeometricTiles.of)]) {
-        for (final kind in FeatureKind.values) {
-          final box = _bounds(of(kind));
-          final where = '$name/${kind.name}: $box';
-          // 4 units clear of the edge (1.5dp at 36dp) on every side.
-          expect(box.left >= 4 && box.top >= 4 && box.right <= 92 && box.bottom <= 92, isTrue, reason: where);
-          // The longer side spans 76–88 units: one keyline for the set.
-          expect(box.longestSide, inInclusiveRange(76, 88), reason: where);
-          // Centred within 2.5 units (the automation arrow hangs out on purpose).
-          expect((box.center.dx - 48).abs(), lessThanOrEqualTo(2.6), reason: where);
-          expect((box.center.dy - 48).abs(), lessThanOrEqualTo(2), reason: where);
-        }
+    test('every feature in the safe area, centred', () {
+      for (final kind in FeatureKind.values) {
+        final box = _bounds(DuotoneTiles.of(kind));
+        final where = 'duotone/${kind.name}: $box';
+        // 4 units clear of the edge (1.5dp at 36dp) on every side.
+        expect(box.left >= 4 && box.top >= 4 && box.right <= 92 && box.bottom <= 92, isTrue, reason: where);
+        // The longer side spans 76–88 units: one keyline for the set.
+        expect(box.longestSide, inInclusiveRange(76, 88), reason: where);
+        // Centred within 2.5 units (the automation arrow hangs out on purpose).
+        expect((box.center.dx - 48).abs(), lessThanOrEqualTo(2.6), reason: where);
+        expect((box.center.dy - 48).abs(), lessThanOrEqualTo(2), reason: where);
       }
     });
 
-    test('duotone uses two tones, geometric details sit on ink', () {
+    test('duotone uses two tones', () {
       for (final kind in FeatureKind.values) {
         final tones = {
           for (final layer in DuotoneTiles.of(kind).layers)
             for (final shape in layer.shapes) shape.tone,
         };
         expect(tones, {TileTone.wash, TileTone.ink}, reason: kind.name);
-        final geo = {
-          for (final layer in GeometricTiles.of(kind).layers)
-            for (final shape in layer.shapes) shape.tone,
-        };
-        expect(geo, contains(TileTone.ink), reason: kind.name);
       }
     });
 
     test('cut shapes only live in cut layers', () {
-      for (final of in [DuotoneTiles.of, GeometricTiles.of]) {
-        for (final kind in FeatureKind.values) {
-          for (final layer in of(kind).layers) {
-            expect(layer.shapes.every((s) => s.tone != null), isTrue);
-            expect(layer.cuts.every((s) => s.tone == null), isTrue);
-          }
+      for (final kind in FeatureKind.values) {
+        for (final layer in DuotoneTiles.of(kind).layers) {
+          expect(layer.shapes.every((s) => s.tone != null), isTrue);
+          expect(layer.cuts.every((s) => s.tone == null), isTrue);
         }
       }
     });
@@ -143,77 +126,8 @@ void main() {
     });
   });
 
-  group('glass tint', () {
-    test('the art was painted in the default accent: nothing to turn', () {
-      for (final b in Brightness.values) {
-        expect(GlassTint.filter(tileTheme(b).colorScheme.primary, b), isNull);
-      }
-    });
-
-    test('other accents: the default accent lands on their hue', () {
-      for (final accent in _accents) {
-        for (final b in Brightness.values) {
-          final target = tileTheme(b, accent).colorScheme.primary;
-          final (deg, sat) = GlassTint.solve(target, b);
-          final turned = HSLColor.fromColor(GlassTint.apply(GlassTint.matrix(deg, sat), GlassTint.reference(b)));
-          final want = HSLColor.fromColor(target);
-          final miss = (turned.hue - want.hue).abs() % 360;
-          expect(miss < 2 || miss > 358, isTrue, reason: '${accent.label} ${b.name}: ${turned.hue} vs ${want.hue}');
-          expect(sat, inInclusiveRange(0.3, 1.0));
-          if (accent == AppAccent.graphite) expect(sat, lessThan(0.6), reason: 'graphite is quiet');
-        }
-      }
-    });
-
-    test('one 288px master per feature', () async {
-      TestWidgetsFlutterBinding.ensureInitialized();
-      for (final kind in FeatureKind.values) {
-        final data = await rootBundle.load(GlassTint.asset(kind));
-        final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
-        final frame = await codec.getNextFrame();
-        expect(frame.image.width, GlassTint.assetPixels, reason: kind.name);
-        expect(frame.image.height, GlassTint.assetPixels, reason: kind.name);
-        frame.image.dispose();
-      }
-    });
-  });
-
-  group('style setting', () {
-    test('duotone by default; unknown values fall back', () {
-      expect(TileStyle.fallback, TileStyle.duotone);
-      expect(TileStyle.fromName(null), TileStyle.duotone);
-      expect(TileStyle.fromName('neon'), TileStyle.duotone);
-      expect(TileStyle.fromName('glassy'), TileStyle.glassy);
-      expect(TileStyle.values.first, TileStyle.duotone, reason: 'the picker lists the default first');
-    });
-
-    test('loads the stored style and keeps a new choice', () async {
-      SharedPreferences.setMockInitialValues({'tile_style': 'geometric'});
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
-      expect(container.read(tileStyleProvider), TileStyle.duotone);
-      await Future<void>.delayed(Duration.zero);
-      await Future<void>.delayed(Duration.zero);
-      expect(container.read(tileStyleProvider), TileStyle.geometric);
-      await container.read(tileStyleProvider.notifier).select(TileStyle.glassy);
-      expect(container.read(tileStyleProvider), TileStyle.glassy);
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('tile_style'), 'glassy');
-    });
-
-    test('a choice made before the stored value loads wins', () async {
-      SharedPreferences.setMockInitialValues({'tile_style': 'geometric'});
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
-      container.read(tileStyleProvider);
-      await container.read(tileStyleProvider.notifier).select(TileStyle.glassy);
-      await Future<void>.delayed(Duration.zero);
-      expect(container.read(tileStyleProvider), TileStyle.glassy);
-    });
-  });
-
   group('widget', () {
-    testWidgets('follows the setting; decorative unless labelled', (tester) async {
+    testWidgets('renders duotone vector tile; decorative unless labelled', (tester) async {
       SharedPreferences.setMockInitialValues({});
       await tester.pumpWidget(
         tileApp(
@@ -231,14 +145,6 @@ void main() {
       expect(tester.getSize(find.byType(FeatureTile).first), const Size.square(48));
       expect(find.byType(Image), findsNothing);
       expect(find.bySemanticsLabel('手机操控'), findsOneWidget);
-
-      final container = ProviderScope.containerOf(tester.element(find.byType(FeatureTile).first));
-      await container.read(tileStyleProvider.notifier).select(TileStyle.glassy);
-      await tester.pump();
-      expect(find.byType(Image), findsNWidgets(2));
-      expect(tester.getSize(find.byType(FeatureTile).first), const Size.square(48));
-      // Default accent: no colour filter over the glass.
-      expect(find.byType(ColorFiltered), findsNothing);
     });
   });
 
@@ -247,7 +153,7 @@ void main() {
     group('goldens ($mode)', () {
       setUp(() => SharedPreferences.setMockInitialValues({}));
 
-      testWidgets('three styles at card, compact and empty-state sizes', (tester) async {
+      testWidgets('default style at card, compact and empty-state sizes', (tester) async {
         useView(tester, 820, 700);
         await tester.pumpWidget(tileApp(const _StyleSheet(), brightness: brightness));
         await decodeImages(tester);
@@ -308,7 +214,7 @@ Widget _row(List<Widget> children, {double gap = 12}) => Row(
   ],
 );
 
-/// Each style: the nine at 64 (empty states), at 48 (compact) and at 36 (cards).
+/// The nine features at 64 (empty states), at 48 (compact) and at 36 (cards).
 class _StyleSheet extends StatelessWidget {
   const _StyleSheet();
 
@@ -318,33 +224,30 @@ class _StyleSheet extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        for (final style in TileStyle.values) ...[
-          _Card(
-            child: Row(
-              children: [
-                _Label(style.label),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (final size in [FeatureTile.empty, FeatureTile.compact, FeatureTile.card]) ...[
-                      _row([
-                        for (final kind in FeatureKind.values) FeatureTile(kind, size: size, style: style),
-                      ], gap: 76 - size),
-                      const SizedBox(height: 8),
-                    ],
+        _Card(
+          child: Row(
+            children: [
+              const _Label('双色'),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final size in [FeatureTile.empty, FeatureTile.compact, FeatureTile.card]) ...[
+                    _row([
+                      for (final kind in FeatureKind.values) FeatureTile(kind, size: size),
+                    ], gap: 76 - size),
+                    const SizedBox(height: 8),
                   ],
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-        ],
+        ),
       ],
     ),
   );
 }
 
-/// One row per accent, each in its own theme: three features in each style.
+/// One row per accent, each in its own theme: three features.
 class _AccentSheet extends StatelessWidget {
   const _AccentSheet(this.brightness);
 
@@ -365,10 +268,7 @@ class _AccentSheet extends StatelessWidget {
                 child: Row(
                   children: [
                     _Label(accent.label),
-                    _row([
-                      for (final style in TileStyle.values)
-                        _row([for (final kind in _sampleKinds) FeatureTile(kind, size: 40, style: style)], gap: 8),
-                    ], gap: 24),
+                    _row([for (final kind in _sampleKinds) FeatureTile(kind, size: 40)], gap: 8),
                   ],
                 ),
               ),
@@ -379,7 +279,7 @@ class _AccentSheet extends StatelessWidget {
   );
 }
 
-/// One row per identity hue: three features in each style.
+/// One row per identity hue: three features.
 class _IdentitySheet extends StatelessWidget {
   const _IdentitySheet();
 
@@ -399,11 +299,8 @@ class _IdentitySheet extends StatelessWidget {
                   children: [
                     _Label('identity $slot'),
                     _row([
-                      for (final style in TileStyle.values)
-                        _row([
-                          for (final kind in _sampleKinds) FeatureTile(kind, size: 40, style: style, tint: slot),
-                        ], gap: 8),
-                    ], gap: 24),
+                      for (final kind in _sampleKinds) FeatureTile(kind, size: 40, tint: slot),
+                    ], gap: 8),
                   ],
                 ),
               ),

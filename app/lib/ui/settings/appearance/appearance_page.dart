@@ -22,7 +22,6 @@ import '../../theme/theme.dart';
 import '../settings_widgets.dart';
 import 'icon_shortcut_sheet.dart';
 import 'launch_screen_section.dart';
-import 'tile_style_picker.dart';
 import 'wallpaper_section.dart';
 
 /// 设置首页「外观」组的第一行:当前配色的色点 + 名字 · 明暗,点开 [AppearancePage]。
@@ -78,10 +77,6 @@ class AppearancePage extends ConsumerWidget {
             ExpandReveal(open: appearance.source == AccentSource.custom, child: const CustomAccentPanel()),
             if (wallpaper != null) _WallpaperRow(wallpaper: wallpaper, on: appearance.source == AccentSource.wallpaper),
           ],
-        ),
-        SettingsSection(
-          title: l10n.pluginsFeatureIcons,
-          children: [SpotAnchor(spot: Spots.tileStyle, child: const TileStylePicker())],
         ),
         SettingsSection(
           title: l10n.pluginsAppIcon,

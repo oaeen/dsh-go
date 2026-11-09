@@ -10,9 +10,7 @@ import 'package:dsh_app/app.dart';
 import 'package:dsh_app/state/app_icon_state.dart';
 import 'package:dsh_app/state/appearance_state.dart';
 import 'package:dsh_app/state/settings_state.dart';
-import 'package:dsh_app/state/tile_style_state.dart';
 import 'package:dsh_app/ui/settings/appearance/appearance_page.dart';
-import 'package:dsh_app/ui/settings/appearance/tile_style_picker.dart';
 import 'package:dsh_app/ui/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -190,32 +188,20 @@ void main() {
     Rect cardOf(Type picker) =>
         tester.getRect(find.ancestor(of: find.byType(picker), matching: find.byType(GlassSurface)).first);
 
-    // Mode previews and tile-style previews: same three columns.
     final modeCard = cardOf(ThemeModePicker);
     final modes = [
       for (final m in ['浅色', '深色', '跟随系统']) tester.getRect(find.byKey(ValueKey('theme-mode-$m'))),
     ];
-    final styles = [for (final s in TileStyle.values) tester.getRect(find.byKey(ValueKey('tile-style-${s.name}')))];
     expect(modes.first.left - modeCard.left, moreOrLessEquals(PickerGrid.inset, epsilon: 0.6));
     expect(modeCard.right - modes.last.right, moreOrLessEquals(PickerGrid.inset, epsilon: 0.6));
-    // Top: the same as the tile styles' (the card adds 4 above every group).
-    expect(
-      modes.first.top - modeCard.top,
-      moreOrLessEquals(styles.first.top - cardOf(TileStylePicker).top, epsilon: 0.6),
-    );
+    expect(modes.first.top - modeCard.top, moreOrLessEquals(PickerGrid.inset + 4, epsilon: 0.6));
     for (var i = 0; i < 3; i++) {
-      expect(modes[i].left, moreOrLessEquals(styles[i].left, epsilon: 0.6), reason: 'column $i');
-      expect(modes[i].width, moreOrLessEquals(styles[i].width, epsilon: 0.6), reason: 'column $i');
+      expect(modes[i].width, moreOrLessEquals(modes.first.width, epsilon: 0.6), reason: 'column $i');
       if (i > 0) expect(modes[i].left - modes[i - 1].right, moreOrLessEquals(PickerGrid.gap, epsilon: 0.6));
     }
-    // The name sits as far under its preview as the tile styles' do.
     final modeLabel = tester.getRect(find.text('浅色'));
-    final styleLabel = tester.getRect(find.text(TileStyle.values.first.label));
-    expect(modeLabel.top - modes.first.bottom, moreOrLessEquals(styleLabel.top - styles.first.bottom, epsilon: 0.6));
-    expect(
-      modeCard.bottom - modeLabel.bottom,
-      moreOrLessEquals(cardOf(TileStylePicker).bottom - styleLabel.bottom, epsilon: 0.6),
-    );
+    expect(modeLabel.top - modes.first.bottom, moreOrLessEquals(PickerGrid.labelGap, epsilon: 0.6));
+    expect(modeCard.bottom - modeLabel.bottom, moreOrLessEquals(PickerGrid.inset + 4, epsilon: 0.6));
   });
 
   testWidgets('swatch row and mode tiles are symmetric in their card', (tester) async {

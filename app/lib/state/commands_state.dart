@@ -68,12 +68,6 @@ List<SlashCommand> get appSlashCommands => [
     description: appL10n.stateCommandExportDescription,
     kind: SlashCommandKind.app,
   ),
-  SlashCommand(
-    name: 'features',
-    label: appL10n.stateAllFeatures,
-    description: appL10n.stateCommandFeaturesDescription,
-    kind: SlashCommandKind.app,
-  ),
 ];
 
 /// Chinese faces for DSH's first-party commands, selected by `definitionId`
@@ -118,7 +112,7 @@ const _hiddenCommands = {'export'};
 
 /// Palette order: app commands, then the first-party ones in this order,
 /// then anything else in catalog order.
-const _order = ['new', 'model', 'compact', 'permission', 'plan', 'goal', 'feedback', 'export', 'features'];
+const _order = ['new', 'model', 'compact', 'permission', 'plan', 'goal', 'feedback', 'export'];
 
 /// Parses one `CommandDescriptor` (`commands/list` item); null when unusable.
 SlashCommand? slashCommandFromJson(Object? json) {

@@ -34,6 +34,7 @@ import '../share_code/profile_share_sheet.dart';
 import '../shell/session_search_page.dart';
 import '../terminal/terminal_page.dart';
 import '../theme/app_icons.dart';
+import '../web/dsh_web_launcher.dart';
 import '../web/web_target.dart';
 import '../workspace/workspaces_page.dart';
 import 'feature_widgets.dart' show openSessionInChat;
@@ -42,6 +43,14 @@ import 'permission_page.dart';
 import 'schedules_page.dart';
 import 'session_export_page.dart';
 import 'skills_page.dart';
+
+/// Opens DSH Web on a target; tests swap it for a recorder.
+typedef DshWebOpener = void Function(BuildContext context, WidgetRef ref, DshWebTarget target);
+
+final dshWebOpenerProvider = Provider<DshWebOpener>(
+  (ref) =>
+      (context, ref, target) => openDshWeb(context, ref, target: target),
+);
 
 /// Builds a native page; [sessionId] is the conversation open in the chat.
 typedef FeaturePageBuilder = Widget Function(String? sessionId);

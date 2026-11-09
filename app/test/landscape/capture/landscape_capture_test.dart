@@ -22,7 +22,6 @@ import 'package:dsh_app/ui/chat/usage_sheet.dart' show ContextRing;
 import 'package:dsh_app/ui/chat/widgets/whale_tail.dart' show WhaleSprites;
 import 'package:dsh_app/ui/cordis/cordis_page.dart';
 import 'package:dsh_app/ui/engine/engine_screen.dart';
-import 'package:dsh_app/ui/features/all_features_page.dart';
 import 'package:dsh_app/ui/files/files_page.dart';
 import 'package:dsh_app/ui/onboarding/api_key_page.dart';
 import 'package:dsh_app/ui/onboarding/onboarding_scaffold.dart';
@@ -203,7 +202,6 @@ void main() {
       await pumpFrames(tester, 4);
     },
   );
-  capture('all_features', (_) => _golden(const AllFeaturesPage(), overrides: _shellOverrides()));
   capture('engine', (_) => _golden(const EngineScreen(), overrides: _shellOverrides()));
   capture('remote', (_) => _golden(const RemoteScreen(), overrides: _shellOverrides()));
   capture(

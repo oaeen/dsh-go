@@ -136,12 +136,7 @@ object LaunchScreen {
     }
 
     /** The launcher icon's own resource for a 桌面图标 [variant] (LauncherIcons.mipmapOf). */
-    private fun mipmapOf(variant: String): Int = when (LauncherIcons.mipmapOf(variant)) {
-        "ic_launcher_night" -> R.mipmap.ic_launcher_night
-        "ic_launcher_frost" -> R.mipmap.ic_launcher_frost
-        "ic_launcher_ink" -> R.mipmap.ic_launcher_ink
-        else -> R.mipmap.ic_launcher
-    }
+    private fun mipmapOf(@Suppress("UNUSED_PARAMETER") variant: String): Int = R.mipmap.ic_launcher
 
     /** The colour the launch window lays: a plain splash theme's, else the page's ([top] / bottom of 8–11's gradient). */
     private fun backgroundOf(context: Context, applied: String?, dark: Boolean, top: Boolean): Int = when (applied) {

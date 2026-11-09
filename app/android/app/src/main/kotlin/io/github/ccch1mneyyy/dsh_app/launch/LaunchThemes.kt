@@ -143,9 +143,6 @@ internal object LaunchThemeSync {
         LaunchThemes.WHITE -> R.style.LaunchTheme_White
         LaunchThemes.BLACK -> R.style.LaunchTheme_Black
         LaunchThemes.forIcon(LauncherIcons.MIST) -> R.style.LaunchTheme_Mist
-        LaunchThemes.forIcon(LauncherIcons.NIGHT) -> R.style.LaunchTheme_Night
-        LaunchThemes.forIcon(LauncherIcons.FROST) -> R.style.LaunchTheme_Frost
-        LaunchThemes.forIcon(LauncherIcons.INK) -> R.style.LaunchTheme_Ink
         // Back to the manifest's (blank).
         else -> Resources.ID_NULL
     }

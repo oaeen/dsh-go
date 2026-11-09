@@ -47,7 +47,7 @@ Type `/` in the composer for the command list, or `@` to reference a file or ano
 - `/plan`: enter or leave Plan mode.
 - `/goal`: set or view the goal for a long-running task.
 - `/permission`: switch the permission preset.
-- `/new`, `/model`, `/features`: new chat, choose model, all features.
+- `/new`, `/model`: new chat, choose model.
 
 ## Steer or stop the AI while it works
 

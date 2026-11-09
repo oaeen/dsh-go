@@ -53,7 +53,6 @@ import '../common/ui_trace.dart';
 import '../common/sheet_title_bar.dart';
 import '../common/smooth_size.dart';
 import '../common/status_dot.dart';
-import '../features/all_features_page.dart';
 import '../features/session_export_page.dart';
 import '../onboarding/local_install.dart';
 import '../plugins/native/composer_strip.dart' show ComposerStripSlot;
@@ -1274,8 +1273,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
             ref.read(currentSessionProvider.notifier).select(null);
           case 'model':
             await _showModelSheet();
-          case 'features':
-            await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AllFeaturesPage()));
           case 'export':
             final sessionId = ref.read(currentSessionProvider);
             if (sessionId == null) {

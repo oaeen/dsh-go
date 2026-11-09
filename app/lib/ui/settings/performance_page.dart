@@ -22,7 +22,7 @@ class PerformanceSettingsTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) => SettingsTile(
     key: const ValueKey('settings-performance'),
-    icon: AppIcons.configure,
+    icon: AppIcons.performance,
     tint: tint,
     spot: SettingsIndex.entry(SettingsPageId.performance),
     value: Text(performanceModeLabel(context.l10n, ref.watch(performancePrefsProvider).mode)),

@@ -110,7 +110,6 @@ void main() {
       DrawerDestination.web,
       DrawerDestination.remote,
       DrawerDestination.settingsSearch,
-      DrawerDestination.features,
     ]);
   });
 
@@ -151,12 +150,12 @@ void main() {
     expect(await _stored(), ['settings', 'plugins', 'engine']);
 
     // An unticked row moved up, then ticked, takes the place it was put in.
-    await _drag(tester, DrawerDestination.features, -5);
-    expect(_rows(tester).take(3), [DrawerDestination.settings, DrawerDestination.features, DrawerDestination.plugins]);
+    await _drag(tester, DrawerDestination.settingsSearch, -4);
+    expect(_rows(tester).take(3), [DrawerDestination.settings, DrawerDestination.settingsSearch, DrawerDestination.plugins]);
     expect(await _stored(), ['settings', 'plugins', 'engine']);
-    await tester.tap(_sheetRow(DrawerDestination.features));
+    await tester.tap(_sheetRow(DrawerDestination.settingsSearch));
     await _settle(tester);
-    expect(await _stored(), ['settings', 'features', 'plugins', 'engine']);
+    expect(await _stored(), ['settings', 'settingsSearch', 'plugins', 'engine']);
     expect(_container(tester).read(quickPanelProvider).items.first, DrawerDestination.settings);
   });
 
@@ -217,9 +216,9 @@ void main() {
 
     test('an id nothing answers to is dropped, a repeat too, the order kept', () async {
       SharedPreferences.setMockInitialValues({
-        QuickPanelController.itemsKey: ['features', 'gone', 'web', 'features', ''],
+        QuickPanelController.itemsKey: ['remote', 'gone', 'web', 'remote', 'features', ''],
       });
-      expect((await load(container())).items, [DrawerDestination.features, DrawerDestination.web]);
+      expect((await load(container())).items, [DrawerDestination.remote, DrawerDestination.web]);
     });
 
     test('nothing left is nothing, not the defaults: the person chose those', () async {
@@ -250,7 +249,6 @@ void main() {
       'engine',
       'settings',
       'settingsSearch',
-      'features',
     ]);
   });
 }

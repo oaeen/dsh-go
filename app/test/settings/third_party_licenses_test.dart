@@ -27,6 +27,7 @@ const _expected = <String, String>{
   'flutter_webrtc': 'Copyright (c) 2015 Howard Yang',
   'WebRTC': 'Copyright (c) 2011, The WebRTC project authors',
   'AudioSwitch': 'Copyright 2020 Twilio, inc.',
+  'Solar Icons': 'Copyright (c) 2023 480 Design',
   'Phosphor Icons': 'Copyright (c) 2023 Phosphor Icons',
   'Material Icons': 'Google',
   'discourse-emojis': 'Joffrey Jaffeux',
@@ -117,6 +118,7 @@ void main() {
     expect(textOf('flutter_webrtc'), contains(_mit));
     expect(textOf('WebRTC'), allOf(contains('Neither the name of Google'), contains('Additional IP Rights Grant')));
     expect(textOf('XZ for Java'), contains('Permission to use, copy, modify, and/or distribute'));
+    expect(textOf('Solar Icons'), contains('Creative Commons Attribution 4.0 International'));
     expect(textOf('JetBrains Mono'), contains('SIL OPEN FONT LICENSE Version 1.1'));
   });
 }

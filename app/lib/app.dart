@@ -12,7 +12,6 @@ import 'state/app_info.dart';
 import 'state/appearance_state.dart';
 import 'state/locale_state.dart';
 import 'state/star_prompt.dart' show starPromptGateProvider, starPromptProvider;
-import 'state/tile_style_state.dart';
 import 'ui/chat/dsh_ui/dsh_ui_model.dart' show DshUiAppAccent;
 import 'ui/common/side_insets.dart';
 import 'ui/launch/launch_overlay.dart';
@@ -53,9 +52,6 @@ class _DshAppState extends ConsumerState<DshApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    // Start loading the stored tile style now, so 全部功能 opens in it rather
-    // than flashing the default first.
-    ref.read(tileStyleProvider);
     // Anonymous usage statistics live as long as the app, in either 界面
     // (release builds: today is noted, and earlier days go out).
     ref.read(usageStatsProvider);

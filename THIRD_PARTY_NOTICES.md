@@ -170,6 +170,18 @@ DS Bot 的 NOTICE 原文附在文末。
 
 ## 二、素材
 
+### Solar Icons（CC BY 4.0）
+
+| 项 | 内容 |
+|---|---|
+| 项目 | Solar Icons，https://www.figma.com/community/file/1166831539721848736 （`@iconify-json/solar`） |
+| 版权人 | Copyright (c) 2023 480 Design |
+| 许可 | Creative Commons Attribution 4.0 International（CC BY 4.0），https://creativecommons.org/licenses/by/4.0/ |
+| 用途 | 设置页、主页与导航栏图标字形（转为 256×256 轮廓路径编入 `DshIcons.ttf`） |
+
+- `app/tool/icons/solar/`：图标源文件与 LICENSE
+- `app/assets/fonts/DshIcons.ttf`、`app/lib/ui/theme/dsh_glyphs.dart`：由 `app/tool/make_icon_font.py` 生成
+
 ### Phosphor Icons（MIT）
 
 | 项 | 内容 |
@@ -854,6 +866,7 @@ of the date such litigation is filed.
 
 ### 其他许可证
 
+- Creative Commons Attribution 4.0 International（CC BY 4.0，Solar Icons）：https://creativecommons.org/licenses/by/4.0/
 - SIL Open Font License 1.1：`app/assets/fonts/OFL.txt`
 - GNU LGPL-3.0（spake2-android、libtalloc）：https://www.gnu.org/licenses/lgpl-3.0.txt ；它以 GNU GPL-3.0 为基础，两份全文一并附在 App 内许可页的 spake2-android 条目里：https://www.gnu.org/licenses/gpl-3.0.txt
 - GNU GPL-2.0（proot）：随 APK 附带于 `assets/runtime/licenses/proot-COPYING.txt`

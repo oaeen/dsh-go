@@ -11,7 +11,6 @@ import '../../engine_settings/runtime_settings_pages.dart';
 import '../../engine_settings/subagent_settings_page.dart';
 import '../../engine_settings/web_search_page.dart';
 import '../../features/agent_presets_page.dart';
-import '../../features/all_features_page.dart';
 import '../../features/permission_page.dart';
 import '../../phone/app_rules_page.dart';
 import '../../phone/dnd_mode_page.dart';
@@ -70,7 +69,6 @@ Widget settingsPage(SettingsPageId id, {String? sessionId}) => switch (id) {
   SettingsPageId.media => const MediaSettingsPage(),
   SettingsPageId.pluginInventory => const PluginInventoryPage(),
   SettingsPageId.plugins => const PluginsScreen(),
-  SettingsPageId.allFeatures => const AllFeaturesPage(),
   SettingsPageId.account => const AccountPage(),
   SettingsPageId.remote => const RemoteScreen(),
   SettingsPageId.permission => PermissionPage(sessionId: sessionId),

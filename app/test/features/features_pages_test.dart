@@ -9,18 +9,12 @@ import 'package:dsh_app/state/features_state.dart';
 import 'package:dsh_app/state/sessions_state.dart';
 import 'package:dsh_app/state/settings_state.dart';
 import 'package:dsh_app/ui/common/app_sheet.dart';
-import 'package:dsh_app/ui/remote/remote_screen.dart';
-import 'package:dsh_app/ui/settings/search/settings_search_page.dart';
-import 'package:dsh_app/ui/settings/settings_screen.dart';
 import 'package:dsh_app/ui/features/agent_presets_page.dart';
-import 'package:dsh_app/ui/features/all_features_page.dart';
 import 'package:dsh_app/ui/features/jobs_page.dart';
 import 'package:dsh_app/ui/features/permission_page.dart';
 import 'package:dsh_app/ui/features/schedules_page.dart';
 import 'package:dsh_app/ui/features/skills_page.dart';
-import 'package:dsh_app/ui/terminal/terminal_page.dart';
 import 'package:dsh_app/ui/theme/theme.dart';
-import 'package:dsh_app/ui/web/web_target.dart';
 import 'package:dsh_client/dsh_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -206,133 +200,6 @@ Future<void> _pump(
 
 void main() {
   setUpAll(loadTestFonts);
-
-  group('全部功能', () {
-    testWidgets('native items push their page; web items deep-link', (tester) async {
-      final opened = <DshWebTarget>[];
-      await _pump(
-        tester,
-        const AllFeaturesPage(),
-        overrides: [..._fixed(), dshWebOpenerProvider.overrideWithValue((context, ref, target) => opened.add(target))],
-      );
-      // The overview card names the conversation the tiles act on.
-      expect(find.text('当前打开的对话'), findsOneWidget);
-      expect(find.text('修复登录按钮重复提交'), findsOneWidget);
-
-      // Native terminal keeps its conversation; no redundant web fallback.
-      await _reveal(tester, find.text('终端'));
-      final terminal = find.ancestor(of: find.text('终端'), matching: find.byType(FeatureTileFor));
-      final terminalPage = tester.widget<FeatureTileFor>(terminal).item.native!('s1');
-      expect(terminalPage, isA<TerminalPage>());
-      expect((terminalPage as TerminalPage).sessionId, 's1');
-      expect(find.descendant(of: terminal, matching: find.byTooltip('在网页版打开')), findsNothing);
-
-      // The row opens the native automation page, without a web fallback.
-      await _reveal(tester, find.text('自动化任务'));
-      await tester.tap(find.text('自动化任务'));
-      await tester.pumpAndSettle();
-      expect(find.byType(SchedulesPage), findsOneWidget);
-      await tester.tap(find.byTooltip('返回'));
-      await tester.pumpAndSettle();
-      final row = find.ancestor(of: find.text('自动化任务'), matching: find.byType(FeatureTileFor));
-      expect(find.descendant(of: row, matching: find.byTooltip('在网页版打开')), findsNothing);
-      expect(tester.widget<FeatureTileFor>(row).item.native!('s1'), isA<SchedulesPage>());
-      expect(opened, isEmpty);
-
-      // Settings shortcuts open the same pages as 设置.
-      await _reveal(tester, find.text('远程主机'));
-      final remote = find.ancestor(of: find.text('远程主机'), matching: find.byType(FeatureTileFor));
-      expect(tester.widget<FeatureTileFor>(remote).item.native!(null), isA<RemoteScreen>());
-      expect(find.text('Agent 循环'), findsNothing, reason: 'settings live in 设置');
-      expect(opened, isEmpty);
-
-      // Web-only: 网页版 itself.
-      await _reveal(tester, find.text('网页版'));
-      await tester.tap(find.text('网页版'));
-      await pumpFrames(tester);
-      expect(opened.last, const DshWebTarget());
-    });
-
-    testWidgets('settings shortcuts last, then all-settings spanning the grid', (tester) async {
-      await _pump(tester, const AllFeaturesPage());
-      await _reveal(tester, find.text('全部设置'));
-      Rect card(String title) =>
-          tester.getRect(find.ancestor(of: find.text(title), matching: find.byType(FeatureTileFor)).first);
-      final all = tester.getRect(find.ancestor(of: find.text('全部设置'), matching: find.byType(GlassSurface)).first);
-      expect(all.left, card('模型').left);
-      expect(all.right, card('权限').right);
-      expect(all.left, card('手机操控').left);
-      expect(all.right, card('远程主机').right);
-      expect(all.top - card('远程主机').bottom, 12, reason: 'the grid\'s own gap');
-      final width = tester.view.physicalSize.width / tester.view.devicePixelRatio;
-      expect(all.left, 16);
-      expect(width - all.right, 16);
-
-      // Search over the settings hub: back lands on the hub.
-      await tester.tap(find.text('全部设置'));
-      await pumpFrames(tester, 6);
-      expect(find.byType(SettingsSearchPage), findsOneWidget);
-      expect(find.byType(SettingsScreen, skipOffstage: false), findsOneWidget);
-    });
-
-    testWidgets('引用 goes back to the chat, where @ lives', (tester) async {
-      usePhoneView(tester);
-      await tester.pumpWidget(
-        testApp(
-          Builder(
-            builder: (context) => Scaffold(
-              body: Center(
-                child: TextButton(
-                  onPressed: () =>
-                      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AllFeaturesPage())),
-                  child: const Text('聊天'),
-                ),
-              ),
-            ),
-          ),
-          overrides: _fixed(),
-        ),
-      );
-      await tester.tap(find.text('聊天'));
-      await tester.pumpAndSettle();
-      expect(find.byType(AllFeaturesPage), findsOneWidget);
-      await _reveal(tester, find.text('引用文件和对话'));
-      await tester.tap(find.text('引用文件和对话'));
-      await tester.pumpAndSettle();
-      expect(find.byType(AllFeaturesPage), findsNothing);
-      expect(find.text('聊天'), findsOneWidget);
-    });
-
-    testWidgets('conversation items are disabled without a conversation', (tester) async {
-      final opened = <DshWebTarget>[];
-      await _pump(
-        tester,
-        const AllFeaturesPage(),
-        overrides: [
-          ..._fixed(current: null),
-          dshWebOpenerProvider.overrideWithValue((context, ref, target) => opened.add(target)),
-        ],
-      );
-      expect(find.text('还没打开对话'), findsOneWidget);
-      expect(find.text('先打开一个对话'), findsWidgets);
-      Future<void> tapItem(String title) async {
-        await tester.ensureVisible(find.text(title));
-        await pumpFrames(tester);
-        await tester.tap(find.text(title));
-      }
-
-      await tapItem('后台任务');
-      await tapItem('终端');
-      await pumpFrames(tester);
-      expect(find.byType(JobsPage), findsNothing);
-      expect(opened, isEmpty);
-      // Not bound to a conversation: still opens (the web home here).
-      await _reveal(tester, find.text('网页版'));
-      await tester.tap(find.text('网页版'));
-      await pumpFrames(tester);
-      expect(opened.single, const DshWebTarget());
-    });
-  });
 
   group('actions call the Host', () {
     late FakePluginCarrier carrier;
@@ -550,7 +417,6 @@ void main() {
         await expectLater(find.byType(MaterialApp), matchesGoldenFile('goldens/${name}_$mode.png'));
       }
 
-      testWidgets('all features', (tester) => golden(tester, 'all_features', const AllFeaturesPage()));
       testWidgets('schedules', (tester) => golden(tester, 'schedules', SchedulesPage(now: _now)));
       testWidgets(
         'schedule detail',

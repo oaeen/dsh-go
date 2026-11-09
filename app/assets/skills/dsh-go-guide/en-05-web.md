@@ -31,7 +31,7 @@ On by default: adapts DSH Web to phone screens, folding the sidebar into a menu 
 <!-- nav: commonSettings,hubSettingsInterface,hubInterfaceOpenWeb -->
 `Settings › Interface › Open the web app`
 
-In the native interface, opens this phone's DSH Web without changing your interface; **Web** in All features does the same. In Web mode, it takes you back to the current host's Web page.
+In the native interface, opens this phone's DSH Web without changing your interface. In Web mode, it takes you back to the current host's Web page.
 
 ## Web display and sending
 

@@ -277,6 +277,5 @@ IconData slashIconFor(String name) => switch (name) {
   'plan' => AppIcons.plan,
   'goal' => AppIcons.goal,
   'feedback' => AppIcons.feedback,
-  'features' => AppIcons.allFeatures,
   _ => AppIcons.plugin,
 };

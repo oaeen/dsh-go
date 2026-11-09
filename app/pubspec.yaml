@@ -139,9 +139,6 @@ flutter:
     # 社区 hub content shipped with the app (lib/state/community_state.dart),
     # shown until a newer community.json is fetched.
     - assets/community/
-    # Glass-gradient feature tiles (lib/ui/common/feature_tile.dart), 288px WebP.
-    # The vector styles' SVG masters in assets/tiles/ are not bundled.
-    - assets/tiles/glassy/
     - assets/pets/deepy-whale/
     - assets/pets/whale-girl/
     # The star prompt's whale girl (lib/ui/star/star_prompt_dialog.dart), 576px WebP.

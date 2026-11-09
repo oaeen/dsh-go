@@ -49,7 +49,7 @@ Plugins with a native UI can appear in these places:
 - **Composer buttons**: capsules above the composer. Tapping one fills in the composer or runs an action; it never sends on its own.
 - **Status line**: a live line above the capsules; several plugins take turns. Tap it to open the plugin's panel or run its action.
 - **Message menu**: touch and hold an AI reply; plugin actions are below, grouped by plugin.
-- **Panels**: on the **Plugins** tab of chat details, and in the Plugins group of All features.
+- **Panels**: on the **Plugins** tab of chat details.
 - **Plus panel tools**: a plugin's tools in the composer's plus panel.
 - **Chat actions**: actions on this chat in the side panel's **Info**, with the plugin's name on the right.
 - **Turn notes**: a few words at the end of a reply's footnote.

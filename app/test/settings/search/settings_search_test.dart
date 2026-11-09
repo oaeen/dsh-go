@@ -235,7 +235,7 @@ void main() {
           home: Scaffold(
             body: Align(
               alignment: Alignment.bottomCenter,
-              child: IdentityBar(onHost: () {}, onFeatures: () {}, onSettings: () => tapped++, onSettingsHold: () => held++),
+              child: IdentityBar(onHost: () {}, onSettings: () => tapped++, onSettingsHold: () => held++),
             ),
           ),
           brightness: Brightness.light,

@@ -23,7 +23,6 @@ import '../../common/ask_ai.dart';
 import '../../common/capsule_chip.dart';
 import '../../common/list_page_row.dart';
 import '../../common/search_capsule.dart';
-import '../../features/all_features_page.dart' show dshWebOpenerProvider;
 import '../../features/feature_catalog.dart';
 import '../../engine_settings/engine_settings_page.dart' show isPluginForm, namespaceTitle;
 import '../../features/feature_widgets.dart' show FeatureMessage;

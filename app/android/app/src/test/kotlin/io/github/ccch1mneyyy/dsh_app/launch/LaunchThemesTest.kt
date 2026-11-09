@@ -92,12 +92,12 @@ class LaunchThemesTest {
         for (variant in LauncherIcons.variants) {
             assertEquals(LaunchThemes.forIcon(variant), LaunchThemes.next(variant, custom = null, dark = false))
         }
-        assertEquals("LaunchTheme.Night", LaunchThemes.forIcon(LauncherIcons.NIGHT))
+        assertEquals("LaunchTheme.Mist", LaunchThemes.forIcon(LauncherIcons.MIST))
     }
 
     @Test fun aCustomLaunchScreenGetsAPlainSplashOnTheNearestColour() {
         fun next(backdrop: String, edge: Int? = null, dark: Boolean = false) =
-            LaunchThemes.next(LauncherIcons.NIGHT, LaunchThemes.Custom(backdrop, edge), dark)
+            LaunchThemes.next(LauncherIcons.MIST, LaunchThemes.Custom(backdrop, edge), dark)
         assertEquals(LaunchThemes.BLANK, next("auto"))
         assertEquals(LaunchThemes.WHITE, next("white"))
         assertEquals(LaunchThemes.BLACK, next("black"))
@@ -113,10 +113,8 @@ class LaunchThemesTest {
     }
 
     @Test fun onlyTheChosenIconsOwnThemeShowsIt() {
-        assertTrue(LaunchThemes.showsIcon("LaunchTheme.Night", LauncherIcons.NIGHT))
-        // Another icon's theme (a switch the system didn't take): not this icon.
-        assertFalse(LaunchThemes.showsIcon("LaunchTheme.Mist", LauncherIcons.NIGHT))
-        assertFalse(LaunchThemes.showsIcon(LaunchThemes.BLANK, LauncherIcons.NIGHT))
+        assertTrue(LaunchThemes.showsIcon("LaunchTheme.Mist", LauncherIcons.MIST))
+        assertFalse(LaunchThemes.showsIcon(LaunchThemes.BLANK, LauncherIcons.MIST))
         assertFalse(LaunchThemes.showsIcon(LaunchThemes.WHITE, LauncherIcons.MIST))
         // Nothing applied yet (Android 12, a first launch): blank.
         assertFalse(LaunchThemes.showsIcon(null, LauncherIcons.MIST))
@@ -126,7 +124,7 @@ class LaunchThemesTest {
         assertEquals(0xFFFFFFFF.toInt(), LaunchThemes.background(LaunchThemes.WHITE, dark = true))
         assertEquals(0xFF000000.toInt(), LaunchThemes.background(LaunchThemes.BLACK, dark = false))
         assertEquals(LaunchThemes.PAGE_DARK, LaunchThemes.background(LaunchThemes.BLANK, dark = true))
-        assertEquals(LaunchThemes.PAGE_LIGHT, LaunchThemes.background("LaunchTheme.Night", dark = false))
+        assertEquals(LaunchThemes.PAGE_LIGHT, LaunchThemes.background("LaunchTheme.Mist", dark = false))
     }
 
     @Test fun pageColoursMatchColorsXml() {

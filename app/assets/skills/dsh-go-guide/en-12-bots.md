@@ -1,6 +1,6 @@
 # DS Bot
 
-DS Bot is a plugin on the host. Each Bot has its own role, chat and memory. Open DS Bot from All features, or tap [Open](dshgo://open/ds-bot). Check the host name at the top: the Bots and group chats below belong to that host.
+DS Bot is a plugin on the host. Each Bot has its own role, chat and memory. Open DS Bot from the drawer, or tap [Open](dshgo://open/ds-bot). Check the host name at the top: the Bots and group chats below belong to that host.
 
 ## Mobile support
 
