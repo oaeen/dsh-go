@@ -185,7 +185,7 @@ class _RoomChatPageState extends ConsumerState<RoomChatPage> {
       ),
       _ when chat.running => (l10n.botsDiscussing, StatusTone.busy),
       _ when room.paused => (l10n.commonPaused, StatusTone.warn),
-      _ => (l10n.botsMemberCount(room.members.length), StatusTone.ok),
+      _ => ('', StatusTone.ok),
     };
     final typing = speaker == null
         ? null

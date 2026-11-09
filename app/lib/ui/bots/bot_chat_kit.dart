@@ -142,24 +142,25 @@ class BotChatHeader extends StatelessWidget {
                                             overflow: TextOverflow.ellipsis,
                                             style: theme.textTheme.titleSmall?.copyWith(fontSize: 15, height: 1.3),
                                           ),
-                                          Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              StatusDot(tone: tone, size: 6),
-                                              const SizedBox(width: 5),
-                                              Flexible(
-                                                child: Text(
-                                                  status,
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
-                                                  style: theme.textTheme.labelSmall?.copyWith(
-                                                    color: tone == StatusTone.warn ? dsh.warning : dsh.textTertiary,
-                                                    height: 1.25,
+                                          if (tone != StatusTone.ok && status.isNotEmpty)
+                                            Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                StatusDot(tone: tone, size: 6),
+                                                const SizedBox(width: 5),
+                                                Flexible(
+                                                  child: Text(
+                                                    status,
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                    style: theme.textTheme.labelSmall?.copyWith(
+                                                      color: tone == StatusTone.warn ? dsh.warning : dsh.textTertiary,
+                                                      height: 1.25,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                            ],
-                                          ),
+                                              ],
+                                            ),
                                         ],
                                       ),
                                     ),

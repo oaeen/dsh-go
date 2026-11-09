@@ -222,9 +222,10 @@ void main() {
           child: const RoomChatPage(roomId: 'r1'),
         ),
       ),
+      transport: approvalTransport(),
     );
     final title = tester.getRect(find.byKey(const ValueKey('bot-title')));
-    final status = tester.getRect(find.text('3 位成员'));
+    final status = tester.getRect(find.text('有成员等你批准'));
     expect(status.top, greaterThanOrEqualTo(title.top));
     expect(status.bottom, lessThanOrEqualTo(title.bottom));
     expect(tester.takeException(), isNull);

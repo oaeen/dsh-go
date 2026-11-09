@@ -116,7 +116,7 @@ class _BotChatPageState extends ConsumerState<BotChatPage> {
         ].join(' · '),
         StatusTone.busy,
       ),
-      _ => (bot.role.isEmpty ? (team.isMain(bot.id) ? l10n.botsMainBot : l10n.botsIdle) : bot.role, StatusTone.ok),
+      _ => ('', StatusTone.ok),
     };
     final rows = transcriptRows(chat.items, pending: chat.pending, streaming: ownTurn ? chat.streaming : null);
     final topInset = BotChatHeader.heightOf(context);
