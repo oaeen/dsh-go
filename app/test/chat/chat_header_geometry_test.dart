@@ -178,8 +178,8 @@ void main() {
                 expect(piece.center.dy, closeTo(pill.center.dy, 0.1));
               }
 
-              // The host is always whole.
-              expect(_paragraph(tester, '本机').didExceedMaxLines, isFalse);
+              // Local idle ('本机') is omitted under the title.
+              expect(find.descendant(of: find.byType(ChatHeader), matching: find.text('本机')), findsNothing);
 
               final titleText = _paragraph(tester, title);
               final words = _chipWords(tester);

@@ -259,12 +259,12 @@ abstract final class SuggestionCardMetrics {
   static const padH = 12.0;
   static const padV = 12.0;
 
-  /// The tinted square at the card's start, and the glyph in it.
-  static const badge = 34.0;
-  static const glyph = 18.0;
+  /// The icon box at the card's start, and the glyph in it.
+  static const badge = 22.0;
+  static const glyph = 20.0;
 
   /// Badge → text.
-  static const badgeGap = 12.0;
+  static const badgeGap = 10.0;
 
   /// Below this a cell leaves the text too little room beside the badge, and
   /// the cards go one per row instead.
@@ -301,7 +301,6 @@ class SuggestionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final dsh = DshColors.of(context);
-    final tint = suggestionTintColor(context, suggestion.tint);
     final detail = suggestion.detail;
     final shape = AppShape.outlined(quietCardRim(theme), radius: AppShape.lg, width: 0.5);
     final tap = enabled ? onTap : null;
@@ -327,14 +326,12 @@ class SuggestionCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  DecoratedBox(
-                    decoration: ShapeDecoration(
-                      color: tint.withValues(alpha: 0.14),
-                      shape: const SquircleBorder(borderRadius: AppShape.radiusSm),
-                    ),
-                    child: SizedBox.square(
-                      dimension: SuggestionCardMetrics.badge,
-                      child: Icon(suggestion.icon, size: SuggestionCardMetrics.glyph, color: tint),
+                  SizedBox.square(
+                    dimension: SuggestionCardMetrics.badge,
+                    child: Icon(
+                      suggestion.icon,
+                      size: SuggestionCardMetrics.glyph,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(width: SuggestionCardMetrics.badgeGap),

@@ -128,9 +128,8 @@ void main() {
     expect(_key, findsNothing);
     final pill = tester.getRect(find.byKey(const ValueKey('chat-title-pill')));
     final title = tester.getRect(find.text('每天的构建检查'));
-    final status = tester.getRect(find.text('本机'));
     expect(title.left - pill.left, 16);
-    expect(pill.right - (title.right > status.right ? title.right : status.right), moreOrLessEquals(16, epsilon: 0.5));
+    expect(pill.right - title.right, moreOrLessEquals(16, epsilon: 0.5));
   });
 
   testWidgets('one task: the clock opens its page, not the conversation', (tester) async {

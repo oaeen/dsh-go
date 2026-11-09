@@ -953,7 +953,7 @@ class IdentityBar extends ConsumerWidget {
     final link = host.kind == HostKind.relay ? ref.watch(hostLinkStatusProvider(host)).value : null;
     final path = link?.isConnected == true ? link?.network?.path ?? link?.path : null;
     final statusLabel = path == null ? view.label : path.label;
-    final tint = hostKindTint(host.kind);
+    final showStatus = !host.isLocal || view.tone != StatusTone.ok;
     return Padding(
       // Same 10 / 20 grid as the rows above: the highlight's edge at 10, the
       // avatar on the 20 text line, the last button's edge at 10. The host
@@ -974,12 +974,9 @@ class IdentityBar extends ConsumerWidget {
                   padding: const EdgeInsets.all(4),
                   constraints: const BoxConstraints.tightFor(width: keySize, height: keySize),
                   style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                  icon: DecoratedBox(
-                    decoration: ShapeDecoration(color: colors.identity[tint], shape: const CircleBorder()),
-                    child: SizedBox.square(
-                      dimension: 36,
-                      child: Icon(hostKindIcon(host.kind), size: 19, color: colors.onIdentity[tint]),
-                    ),
+                  icon: SizedBox.square(
+                    dimension: 36,
+                    child: Icon(hostKindIcon(host.kind), size: 20, color: theme.colorScheme.onSurfaceVariant),
                   ),
                 ),
                 Expanded(
@@ -1009,31 +1006,32 @@ class IdentityBar extends ConsumerWidget {
                                       overflow: TextOverflow.ellipsis,
                                       style: theme.textTheme.titleSmall,
                                     ),
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        StatusDot(tone: view.tone, size: 6),
-                                        const SizedBox(width: 6),
-                                        Flexible(
-                                          child: AnimatedSwitcher(
-                                            duration: AppMotion.of(context, AppMotion.quick),
-                                            layoutBuilder: (current, previous) => Stack(
-                                              alignment: Alignment.centerLeft,
-                                              children: [...previous, ?current],
-                                            ),
-                                            child: Text(
-                                              statusLabel,
-                                              key: ValueKey(statusLabel),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: AppType.tabular(
-                                                theme.textTheme.bodySmall!.copyWith(color: colors.textTertiary),
+                                    if (showStatus)
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          StatusDot(tone: view.tone, size: 6),
+                                          const SizedBox(width: 6),
+                                          Flexible(
+                                            child: AnimatedSwitcher(
+                                              duration: AppMotion.of(context, AppMotion.quick),
+                                              layoutBuilder: (current, previous) => Stack(
+                                                alignment: Alignment.centerLeft,
+                                                children: [...previous, ?current],
+                                              ),
+                                              child: Text(
+                                                statusLabel,
+                                                key: ValueKey(statusLabel),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: AppType.tabular(
+                                                  theme.textTheme.bodySmall!.copyWith(color: colors.textTertiary),
+                                                ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
+                                        ],
+                                      ),
                                   ],
                                 ),
                               ),

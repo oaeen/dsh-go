@@ -228,16 +228,9 @@ class _HostRow extends ConsumerWidget {
         title: title,
         subtitle: subtitle,
         onTap: onTap,
-        value: view == null
+        value: view == null || (host.isLocal && view.tone == StatusTone.ok)
             ? null
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AnimatedStatusDot(tone: view.tone, size: 7),
-                  const SizedBox(width: 6),
-                  Text(view.label),
-                ],
-              ),
+            : Text(view.label),
         trailing: active ? Icon(AppIcons.selected, size: 20, color: scheme.primary) : const SizedBox(width: 20),
       ),
     );

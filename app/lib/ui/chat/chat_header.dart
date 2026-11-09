@@ -128,7 +128,8 @@ class _ChatHeaderState extends ConsumerState<ChatHeader> {
     final pillHeight = ChatHeader.pillHeightOf(context);
     final titleStyle = theme.textTheme.titleSmall?.copyWith(fontSize: 15, height: 1.3);
     final statusStyle = theme.textTheme.labelSmall?.copyWith(fontSize: 11, height: 1.25);
-    final titleFloor = _titleFloor(context, statusStyle);
+    final showStatus = widget.status.tone != StatusTone.ok || widget.status.label != l10n.commonThisPhone;
+    final titleFloor = _titleFloor(context, statusStyle, showStatus: showStatus);
     // The schedule clock widens the pill by this much over its plain right
     // padding, while the bar can afford it (see [_HeaderRow]).
     final scheduled = ref.watch(headerSchedulesProvider.select((s) => s.shown));
@@ -215,37 +216,49 @@ class _ChatHeaderState extends ConsumerState<ChatHeader> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     HeaderTitleText(widget.title, style: titleStyle),
-                                    _StatusLine(
-                                      status: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          StatusDot(tone: widget.status.tone, size: _dot),
-                                          const SizedBox(width: _dotGap),
-                                          Flexible(
-                                            child: _StatusLabel(
-                                              status: widget.status,
-                                              style: statusStyle?.copyWith(
-                                                color: widget.status.tone == StatusTone.warn
-                                                    ? dsh.warning
-                                                    : dsh.textTertiary,
+                                    if (!showStatus && widget.detail == null) ...[
+                                      if (widget.status.spoken != null)
+                                        Semantics(
+                                          container: true,
+                                          liveRegion: true,
+                                          label: widget.status.spoken,
+                                          excludeSemantics: true,
+                                          child: const SizedBox.shrink(),
+                                        ),
+                                    ] else
+                                      _StatusLine(
+                                        status: !showStatus
+                                            ? const SizedBox.shrink()
+                                            : Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  StatusDot(tone: widget.status.tone, size: _dot),
+                                                  const SizedBox(width: _dotGap),
+                                                  Flexible(
+                                                    child: _StatusLabel(
+                                                      status: widget.status,
+                                                      style: statusStyle?.copyWith(
+                                                        color: widget.status.tone == StatusTone.warn
+                                                            ? dsh.warning
+                                                            : dsh.textTertiary,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
+                                        detail: switch (widget.detail) {
+                                          final detail? => FluidTextSwap(
+                                            value: detail,
+                                            child: Text(
+                                              showStatus ? ' · $detail' : detail,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: statusStyle?.copyWith(color: dsh.textTertiary),
                                             ),
                                           ),
-                                        ],
+                                          null => const SizedBox.shrink(),
+                                        },
                                       ),
-                                      detail: switch (widget.detail) {
-                                        final detail? => FluidTextSwap(
-                                          value: detail,
-                                          child: Text(
-                                            ' · $detail',
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: statusStyle?.copyWith(color: dsh.textTertiary),
-                                          ),
-                                        ),
-                                        null => const SizedBox.shrink(),
-                                      },
-                                    ),
                                   ],
                                 ),
                               ),
@@ -313,14 +326,19 @@ class _ChatHeaderState extends ConsumerState<ChatHeader> {
   /// The least the title pill keeps against the model chip: the title's first
   /// four characters (or all of a shorter one) and the whole status line, the
   /// host's name included, up to eight characters' width.
-  double _titleFloor(BuildContext context, TextStyle? statusStyle) {
+  double _titleFloor(BuildContext context, TextStyle? statusStyle, {required bool showStatus}) {
     final scaler = MediaQuery.textScalerOf(context);
-    _statusPainter
-      ..text = TextSpan(text: widget.status.label, style: DefaultTextStyle.of(context).style.merge(statusStyle))
-      ..textDirection = Directionality.of(context)
-      ..textScaler = scaler
-      ..layout();
-    final statusLine = _dot + _dotGap + _statusPainter.width;
+    final double statusLine;
+    if (showStatus) {
+      _statusPainter
+        ..text = TextSpan(text: widget.status.label, style: DefaultTextStyle.of(context).style.merge(statusStyle))
+        ..textDirection = Directionality.of(context)
+        ..textScaler = scaler
+        ..layout();
+      statusLine = _dot + _dotGap + _statusPainter.width;
+    } else {
+      statusLine = 0;
+    }
     final title = scaler.scale(15);
     return _pillPadding * 2 + math.max(title * 5, math.min(statusLine, title * 8));
   }
