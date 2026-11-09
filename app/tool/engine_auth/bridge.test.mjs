@@ -689,7 +689,26 @@ export default async function WorkBuddyPlugin({ magpie }) {
             const headers = new Headers(init?.headers)
             headers.set('authorization', 'Bearer ' + a.access)
             headers.set('x-workbuddy-sanitized', 'true')
-            return fetch(input, { ...init, headers })
+            const upstreamRes = await fetch(input, { ...init, headers })
+            const bodyText = await upstreamRes.text()
+            // Emit 320 separate SSE frames (> 512 KiB / 2048 = 256 frame overhead budget)
+            // so the stream deadlocks if MagpieManager under-credits FRAME_OVERHEAD.
+            const enc = new TextEncoder()
+            let i = 0
+            const stream = new ReadableStream({
+              pull(controller) {
+                if (i < 320) {
+                  controller.enqueue(enc.encode('data: {"id":"c' + (i++) + '","choices":[{"delta":{"reasoning_content":"step"}}]}' + '\\n\\n'))
+                  return
+                }
+                controller.enqueue(enc.encode(bodyText))
+                controller.close()
+              },
+            })
+            return new Response(stream, {
+              status: upstreamRes.status,
+              headers: { 'content-type': 'text/event-stream' },
+            })
           },
         }
       },
@@ -795,7 +814,9 @@ export default async function WorkBuddyPlugin({ magpie }) {
   })
   assert.equal(proxyRes.status, 200)
   const proxyText = await proxyRes.text()
+  assert.match(proxyText, /"id":"c319"/)
   assert.match(proxyText, /hello from workbuddy/)
+  assert.match(proxyText, /data: \[DONE\]/)
   assert.equal(upstreamRequests.length, 1)
   assert.equal(upstreamRequests[0].url, '/v2/copilot/chat/completions')
   assert.equal(upstreamRequests[0].headers.authorization, 'Bearer wb-access-token-cn')

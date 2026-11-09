@@ -41,8 +41,8 @@ const PKG_NAME_RE = /^(@[a-z0-9][a-z0-9._~-]*\/)?[a-z0-9][a-z0-9._~-]*$/
 const GIT_SPEC_RE = /^(?:(?:github|gitlab|bitbucket):|git\+[a-z]+:\/\/|git:\/\/)\S+$|^https?:\/\/(?:www\.)?(?:github\.com|gitlab\.com|bitbucket\.org)\/\S+$|^[A-Za-z0-9][A-Za-z0-9_.-]*\/[A-Za-z0-9_.-]+(?:#\S+)?$/
 const ROUTE_ID_RE = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/
 
-/** Per-frame overhead in `host.js` (`FRAME_OVERHEAD = 38`). */
-const FRAME_OVERHEAD = 38
+/** Per-frame overhead in `host.js` (`FRAME_OVERHEAD = 2048`). */
+const FRAME_OVERHEAD = 2048
 const DEFAULT_STREAM_WINDOW = 512 << 10
 
 const NPM_DEFAULT_BASE = {
@@ -419,9 +419,11 @@ export class MagpieManager {
     }
 
     const controller = new AbortController()
-    req.on('close', () => {
+    const abortIfIncomplete = () => {
       if (!res.writableEnded) controller.abort()
-    })
+    }
+    req.on('aborted', abortIfIncomplete)
+    res.on('close', abortIfIncomplete)
 
     await this.fetchStream(
       {
