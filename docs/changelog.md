@@ -2,6 +2,18 @@
 
 每个版本先中文、后英文。发版时把对应版本的正文（不含版本标题）作为 Release 正文，见 `docs/release.md`。
 
+## 1.0.15 · 2026-11-09
+
+### 中文
+
+- 订阅模型与插件：修复 Magpie 反代模型（如 `workbuddy`、`trae` 下的 DeepSeek 4.1 flash）流式输出在约 160 帧后因流控额度扣减与引擎主机不一致导致的中断问题；补齐插件凭据注册与市场搜索。
+- 手机操控：新增显式 Root 模式设置页与入口，支持直接查看与切换本机 Root 操控模式。
+
+### English
+
+- Subscription models & plugins: fixed mid-stream cutoffs on Magpie proxy models (such as DeepSeek 4.1 flash under `workbuddy` and `trae`) caused by a stream flow-control `FRAME_OVERHEAD` mismatch with `host.js`; added plugin credential registration and market search.
+- Phone control: added an explicit Root mode settings screen and entry points.
+
 ## 1.0.14 · 2026-11-08
 
 ### 中文
