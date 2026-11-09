@@ -36,14 +36,6 @@ CI（`.github/workflows/ci.yml`）在 PR 上跑通用检查和改动涉及的部
 
 ## 硬规则
 
-### 不接受外部 PR（最高优先级）
-
-- 本仓库**暂不接受任何外部 Pull Request**（代码、文档、配置、模板都不收）。
-- **禁止合并任何外部 PR**：不得用 `gh pr merge`、GitHub API、网页合并、rebase 或 cherry-pick 把外部提交带进 `main`。
-- **禁止替用户创建 PR**，除非用户在当次对话里明确要求。
-- 收到外部 PR：关闭它并回复"暂不接受外部 PR，请改用 issue 提供建议"。入口检查（`.github/workflows/pr-gate.yml`）会自动关闭外部 PR；人工按同一政策处理，不要"先合并再说"。
-- 不要因为某个 issue 有了实现，就自动把实现包装成 PR 合入。
-
 ### 源码、生成物与运行时补丁
 
 - 不手改生成物：`app/build/`、`.dart_tool/`、生成的 l10n 产物等；改输入后运行对应生成器。
@@ -93,7 +85,3 @@ CI（`.github/workflows/ci.yml`）在 PR 上跑通用检查和改动涉及的部
 - 内部 PR：走 `.agents/skills/pr`（流程、模板、验证记录）。
 - 代码审查：走 `.agents/skills/review`（证据优先，只报本次改动引入的实质问题）。
 - 缺陷报告：`.agents/skills/bug`；安全审计：`.agents/skills/vuln-check`；大范围审计：`.agents/skills/audit`。
-
-## 编辑本文件
-
-`CLAUDE.md` 是指向 `AGENTS.md` 的符号链接；编辑真身。每条规则保持自包含，细节链接到权威文档。
