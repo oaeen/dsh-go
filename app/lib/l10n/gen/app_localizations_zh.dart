@@ -16242,13 +16242,13 @@ class L10nZh extends L10n {
   String get statePreparing => '准备中';
 
   @override
-  String get stateIconMist => '雾蓝';
+  String get stateIconMist => '霜白';
 
   @override
   String get stateIconNight => '夜幕';
 
   @override
-  String get stateIconFrost => '霜白';
+  String get stateIconFrost => '雾蓝';
 
   @override
   String get stateIconInk => '墨';

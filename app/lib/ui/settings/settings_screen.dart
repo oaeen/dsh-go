@@ -216,7 +216,7 @@ class SettingsScreen extends ConsumerWidget {
           title: l10n.hubSettingsAppearance,
           children: [
             const AppearanceEntryTile(tint: SettingsHues.appearance),
-            SettingsSegmentTile<double>(
+            SettingsDropdownTile<double>(
               icon: AppIcons.textSize,
               tint: SettingsHues.appearance,
               spot: Spots.chatTextSize,
@@ -368,10 +368,9 @@ class SettingsScreen extends ConsumerWidget {
 }
 
 /// The hub's overview card: who is paying (DeepSeek account or API Key) and
-/// the balance, with the engine's state underneath. The card opens 账号, the
-/// engine line opens 引擎. With no runtime on this phone and a remote host in
-/// use there is nothing here to sign in to: the card shows that host and
-/// opens 远程主机.
+/// the balance. The card opens 账号. With no runtime on this phone and a
+/// remote host in use there is nothing here to sign in to: the card shows that
+/// host and opens 远程主机.
 class SettingsOverview extends ConsumerStatefulWidget {
   const SettingsOverview({super.key});
 
@@ -399,7 +398,6 @@ class _SettingsOverviewState extends ConsumerState<SettingsOverview> {
     final balance = ref.watch(balanceProvider);
     final wallets = ref.watch(accountWalletBalanceProvider);
     final runtime = ref.watch(localRuntimeProvider);
-    final engine = EngineStatusView.of(runtime);
     final colors = DshColors.of(context);
     final active = ref.watch(activeHostProvider);
     final remoteOnly = runtime.status.runtimeMissing && !active.isLocal;
@@ -456,7 +454,6 @@ class _SettingsOverviewState extends ConsumerState<SettingsOverview> {
         title = l10n.hubSettingsSignInAccount;
         subtitle = l10n.hubSettingsOrApiKey;
     }
-    final dsh = runtime.status.dshVersion;
     // The card is 账号's way in (its title is whoever is signed in).
     return SpotAnchor(
       spot: SettingsIndex.entry(SettingsPageId.account),
@@ -475,11 +472,6 @@ class _SettingsOverviewState extends ConsumerState<SettingsOverview> {
             ? l10n.hubSettingsHostSemantics(title, hostLink)
             : l10n.hubSettingsAccountSemantics(title, subtitle),
         onTap: () => _push(hostLink != null ? const RemoteScreen() : const AccountPage()),
-        footer: OverviewFooter(
-          tone: engine.tone,
-          text: [l10n.hubSettingsEngine, engine.label, if (dsh != null) 'DSH $dsh'].join(' · '),
-        ),
-        onFooterTap: () => _push(const EngineScreen()),
       ),
     );
   }

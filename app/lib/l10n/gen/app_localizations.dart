@@ -29837,7 +29837,7 @@ abstract class L10n {
   /// No description provided for @stateIconMist.
   ///
   /// In zh, this message translates to:
-  /// **'雾蓝'**
+  /// **'霜白'**
   String get stateIconMist;
 
   /// No description provided for @stateIconNight.
@@ -29849,7 +29849,7 @@ abstract class L10n {
   /// No description provided for @stateIconFrost.
   ///
   /// In zh, this message translates to:
-  /// **'霜白'**
+  /// **'雾蓝'**
   String get stateIconFrost;
 
   /// No description provided for @stateIconInk.

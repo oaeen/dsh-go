@@ -83,7 +83,7 @@ void main() {
       await _pump(tester, _FakeLauncher(current: AppIcon.night));
       final xs = [for (final icon in AppIcon.values) tester.getCenter(find.text(icon.label)).dx];
       expect(xs, orderedEquals([...xs]..sort()));
-      expect(AppIcon.values.map((i) => i.label), ['雾蓝', '夜幕', '霜白', '墨']);
+      expect(AppIcon.values.map((i) => i.label), ['霜白', '夜幕', '雾蓝', '墨']);
       expect(_chosen(tester), AppIcon.night);
       handle.dispose();
     });
@@ -92,7 +92,7 @@ void main() {
       final handle = tester.ensureSemantics();
       final launcher = _FakeLauncher();
       await _pump(tester, launcher);
-      await tester.tap(find.text('霜白'));
+      await tester.tap(find.text('雾蓝'));
       await tester.pumpAndSettle();
       expect(launcher.sets, [AppIcon.frost]);
       expect(_chosen(tester), AppIcon.frost);
@@ -115,7 +115,7 @@ void main() {
     testWidgets('the current icon does nothing', (tester) async {
       final launcher = _FakeLauncher();
       await _pump(tester, launcher);
-      await tester.tap(find.text('雾蓝'));
+      await tester.tap(find.text('霜白'));
       await tester.pumpAndSettle();
       expect(launcher.sets, isEmpty);
       expect(find.byType(SnackBar), findsNothing);

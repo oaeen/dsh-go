@@ -5,10 +5,10 @@ import '../../l10n/l10n.dart';
 import '../../pets/pet_signals.dart' show petTakesWhaleProvider;
 import '../common/expand_reveal.dart';
 import '../common/fade_in.dart';
+import '../shell/brand_mark.dart';
 import '../theme/app_icons.dart';
 import '../theme/theme.dart';
 import 'empty_actions.dart';
-import 'widgets/whale_tail.dart';
 
 /// 一条建议:一枚带色底的线性小图标 + 标题 + 一行说明,点了把 [prompt] 填进输入条。
 class ChatSuggestion {
@@ -275,13 +275,12 @@ class ChatEmptyState extends StatelessWidget {
                     curve: AppMotion.std,
                     child: child,
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                  child: const Padding(
+                    padding: EdgeInsets.only(bottom: 14),
                     child: Center(
-                      child: WhaleTail(
-                        still: true,
-                        height: 40,
-                        color: whaleColorFor(theme.brightness).withValues(alpha: 0.4),
+                      child: BrandMark(
+                        size: 52,
+                        tile: true,
                       ),
                     ),
                   ),

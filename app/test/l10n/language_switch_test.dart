@@ -69,7 +69,9 @@ void main() {
     expect(find.text('ctx 取消'), findsOneWidget);
     expect(find.text('plain 取消'), findsOneWidget);
 
-    await tester.tap(find.text('English'));
+    await tester.tap(find.byKey(const ValueKey('settings-language')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('English').last);
     await tester.pumpAndSettle();
     expect(find.text('ctx Cancel'), findsOneWidget);
     expect(find.text('plain Cancel'), findsOneWidget);
@@ -79,7 +81,9 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString(AppLanguageController.prefsKey), 'en');
 
-    await tester.tap(find.text('简体中文'));
+    await tester.tap(find.byKey(const ValueKey('settings-language')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('简体中文').last);
     await tester.pumpAndSettle();
     expect(find.text('plain 取消'), findsOneWidget);
     expect(AppLocale.current, AppLocale.zhCN);

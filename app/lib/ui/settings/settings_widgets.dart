@@ -10,6 +10,7 @@ import '../common/segmented_pill.dart';
 
 export '../common/segmented_pill.dart' show PillSegment, SegmentedPill;
 import '../../l10n/l10n.dart';
+import '../theme/app_icons.dart';
 import '../theme/theme.dart';
 import 'index/spot_anchor.dart';
 import 'index/spots.dart';
@@ -55,9 +56,8 @@ abstract final class SettingsMetrics {
 TextStyle? settingsTitleStyle(BuildContext context) =>
     Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 15, height: 1.4);
 
-/// Round tinted icon for a settings row. [tint] picks one of the 8 fixed identity
-/// pairs (pastel container + deep glyph). On hub pages every row of a group uses
-/// the group's one tint.
+/// Icon for a settings row, centred in the 32dp icon slot without a coloured
+/// background disc.
 class SettingsIcon extends StatelessWidget {
   const SettingsIcon(this.icon, {super.key, this.tint = 0, this.danger = false});
 
@@ -68,14 +68,10 @@ class SettingsIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = DshColors.of(context);
-    final bg = danger ? colors.dangerContainer : colors.identity[tint % colors.identity.length];
-    final fg = danger ? colors.onDangerContainer : colors.onIdentity[tint % colors.onIdentity.length];
-    return DecoratedBox(
-      decoration: ShapeDecoration(color: bg, shape: const CircleBorder()),
-      child: SizedBox.square(
-        dimension: SettingsMetrics.icon,
-        child: Icon(icon, size: SettingsMetrics.iconGlyph, color: fg),
-      ),
+    final fg = danger ? colors.danger : Theme.of(context).colorScheme.onSurfaceVariant;
+    return SizedBox.square(
+      dimension: SettingsMetrics.icon,
+      child: Icon(icon, size: SettingsMetrics.lineGlyph, color: fg),
     );
   }
 }
@@ -479,6 +475,127 @@ class SettingsSegmentTile<T> extends StatelessWidget {
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+/// 设置里的下拉选择行(对话字号、语言等):左图标与标题同 [SettingsTile],
+/// 右侧显示当前选中项的下拉框,点整行或下拉框展开菜单。
+class SettingsDropdownTile<T> extends StatefulWidget {
+  const SettingsDropdownTile({
+    super.key,
+    this.icon,
+    this.tint = 0,
+    this.title,
+    this.spot,
+    required this.segments,
+    required this.selected,
+    required this.onChanged,
+    this.tinted = true,
+  }) : assert(title != null || spot != null);
+
+  final IconData? icon;
+  final int tint;
+
+  /// Defaults to [spot]'s title.
+  final String? title;
+  final SettingSpot? spot;
+  final List<PillSegment<T>> segments;
+  final T selected;
+  final ValueChanged<T>? onChanged;
+  final bool tinted;
+
+  @override
+  State<SettingsDropdownTile<T>> createState() => _SettingsDropdownTileState<T>();
+}
+
+class _SettingsDropdownTileState<T> extends State<SettingsDropdownTile<T>> {
+  final _boxKey = GlobalKey();
+
+  Future<void> _openMenu() async {
+    final box = _boxKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return;
+    final overlay = Navigator.of(context).overlay!.context.findRenderObject()! as RenderBox;
+    final position = RelativeRect.fromRect(
+      Rect.fromPoints(
+        box.localToGlobal(Offset(0, box.size.height + 4), ancestor: overlay),
+        box.localToGlobal(box.size.bottomRight(const Offset(0, 4)), ancestor: overlay),
+      ),
+      Offset.zero & overlay.size,
+    );
+    final scheme = Theme.of(context).colorScheme;
+    final picked = await showMenu<T>(
+      context: context,
+      position: position,
+      initialValue: widget.selected,
+      items: [
+        for (final s in widget.segments)
+          PopupMenuItem<T>(
+            value: s.value,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  AppIcons.selected,
+                  size: 18,
+                  color: s.value == widget.selected ? scheme.primary : Colors.transparent,
+                ),
+                const SizedBox(width: 10),
+                Text(s.label),
+              ],
+            ),
+          ),
+      ],
+    );
+    if (!mounted || picked == null || picked == widget.selected) return;
+    if (AppMotion.fluid(context)) HapticFeedback.selectionClick();
+    widget.onChanged?.call(picked);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final colors = DshColors.of(context);
+    final selectedLabel =
+        widget.segments.where((s) => s.value == widget.selected).firstOrNull?.label ?? widget.segments.first.label;
+    final enabled = widget.onChanged != null;
+    final fill = theme.brightness == Brightness.dark
+        ? Colors.white.withValues(alpha: 0.07)
+        : scheme.onSurface.withValues(alpha: 0.06);
+
+    return SettingsTile(
+      icon: widget.icon,
+      tint: widget.tint,
+      title: widget.title,
+      spot: widget.spot,
+      tinted: widget.tinted,
+      chevron: false,
+      onTap: enabled ? _openMenu : null,
+      value: DecoratedBox(
+        key: _boxKey,
+        decoration: ShapeDecoration(
+          color: fill,
+          shape: Squircle.border(AppShape.sm),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 6, 8, 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                selectedLabel,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurface,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(AppIcons.expand, size: 16, color: colors.textTertiary),
+            ],
+          ),
         ),
       ),
     );

@@ -321,12 +321,14 @@ class _BackdropPainter extends CustomPainter {
   }
 
   void _glow(Canvas canvas, Offset center, double radius, Color color) {
+    if (color.a == 0) return;
+    final soft = color.withValues(alpha: color.a * 0.45);
     final bounds = Rect.fromCircle(center: center, radius: radius);
     canvas.drawRect(
       bounds,
       Paint()
         ..shader = RadialGradient(
-          colors: [color, color.withValues(alpha: 0)],
+          colors: [soft, soft.withValues(alpha: 0)],
           stops: const [0, 1],
         ).createShader(bounds),
     );

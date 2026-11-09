@@ -272,8 +272,7 @@ class OverviewFooter extends StatelessWidget {
   }
 }
 
-/// The round tinted glyph for an [OverviewCard]'s avatar slot (one of the 8
-/// identity pairs, like the settings row icons, at hub size).
+/// The glyph for an [OverviewCard]'s avatar slot.
 class OverviewGlyph extends StatelessWidget {
   const OverviewGlyph(this.icon, {super.key, this.tint = 0, this.size = OverviewCard.avatarSize});
 
@@ -283,14 +282,9 @@ class OverviewGlyph extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = DshColors.of(context);
-    final i = tint % colors.identity.length;
-    return DecoratedBox(
-      decoration: ShapeDecoration(color: colors.identity[i], shape: const CircleBorder()),
-      child: SizedBox.square(
-        dimension: size,
-        child: Icon(icon, size: size * 0.46, color: colors.onIdentity[i]),
-      ),
+    return SizedBox.square(
+      dimension: size,
+      child: Icon(icon, size: size * 0.46, color: Theme.of(context).colorScheme.onSurfaceVariant),
     );
   }
 }

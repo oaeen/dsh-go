@@ -82,7 +82,14 @@ class _BrandPainter extends CustomPainter {
       canvas.scale(size.width / box.width, size.height / box.height);
       canvas.translate(-box.left, -box.top);
       canvas.drawPath(BrandGlyph.tile, Paint()..shader = BrandGlyph.tileFill);
-      _glass(canvas, dark: true);
+      _glass(canvas, dark: false);
+      canvas.drawPath(
+        BrandGlyph.tile,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.2
+          ..color = const Color(0x160A0A0A),
+      );
     } else {
       const box = BrandGlyph.box;
       canvas.scale(size.height / box.height);

@@ -104,56 +104,34 @@ class StatusChip extends StatelessWidget {
   static (Color, Color) colorsFor(BuildContext context, StatusTone tone) {
     final theme = Theme.of(context);
     final colors = DshColors.of(context);
-    final dark = theme.brightness == Brightness.dark;
-    final dot = StatusDot.colorFor(context, tone);
     return switch (tone) {
-      StatusTone.idle => (
-        dark ? Colors.white.withValues(alpha: 0.08) : theme.colorScheme.onSurface.withValues(alpha: 0.06),
-        colors.textTertiary,
-      ),
-      StatusTone.ok => (dot.withValues(alpha: dark ? 0.2 : 0.12), dark ? colors.onSuccessContainer : colors.success),
-      StatusTone.warn => (dot.withValues(alpha: dark ? 0.2 : 0.12), dark ? colors.onWarningContainer : colors.warning),
-      StatusTone.error => (dot.withValues(alpha: dark ? 0.2 : 0.12), dark ? colors.onDangerContainer : colors.danger),
-      StatusTone.busy => (
-        dot.withValues(alpha: dark ? 0.2 : 0.1),
-        dark ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.primary,
-      ),
+      StatusTone.idle => (Colors.transparent, colors.textTertiary),
+      StatusTone.ok => (Colors.transparent, theme.colorScheme.onSurfaceVariant),
+      StatusTone.warn => (Colors.transparent, colors.warning),
+      StatusTone.error => (Colors.transparent, colors.danger),
+      StatusTone.busy => (Colors.transparent, theme.colorScheme.primary),
     };
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final (bg, fg) = colorsFor(context, tone);
+    final (_, fg) = colorsFor(context, tone);
     final duration = AppMotion.of(context, AppMotion.standard);
-    final style = AppType.tabular(theme.textTheme.labelMedium!.copyWith(color: fg, height: 1.2));
-    Widget chip = AnimatedContainer(
-      duration: duration,
-      curve: AppMotion.std,
-      constraints: const BoxConstraints(minHeight: height),
-      padding: const EdgeInsets.symmetric(horizontal: padding),
-      decoration: ShapeDecoration(color: bg, shape: const StadiumBorder()),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedStatusDot(tone: tone, size: 6),
-          const SizedBox(width: 6),
-          _SizeGlide(
-            child: AnimatedSwitcher(
-              duration: duration,
-              switchInCurve: AppMotion.std,
-              switchOutCurve: AppMotion.std,
-              layoutBuilder: (current, previous) =>
-                  Stack(alignment: Alignment.centerLeft, children: [...previous, ?current]),
-              child: AnimatedDefaultTextStyle(
-                key: ValueKey(label),
-                duration: duration,
-                style: style,
-                child: Text(label, maxLines: 1, softWrap: false),
-              ),
-            ),
-          ),
-        ],
+    final style = AppType.tabular(theme.textTheme.bodyMedium!.copyWith(color: fg));
+    Widget chip = _SizeGlide(
+      child: AnimatedSwitcher(
+        duration: duration,
+        switchInCurve: AppMotion.std,
+        switchOutCurve: AppMotion.std,
+        layoutBuilder: (current, previous) =>
+            Stack(alignment: Alignment.centerLeft, children: [...previous, ?current]),
+        child: AnimatedDefaultTextStyle(
+          key: ValueKey(label),
+          duration: duration,
+          style: style,
+          child: Text(label, maxLines: 1, softWrap: false),
+        ),
       ),
     );
     if (onTap != null) {
@@ -161,7 +139,13 @@ class StatusChip extends StatelessWidget {
         type: MaterialType.transparency,
         shape: const StadiumBorder(),
         clipBehavior: Clip.antiAlias,
-        child: InkWell(onTap: onTap, child: chip),
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            child: chip,
+          ),
+        ),
       );
     }
     return Semantics(

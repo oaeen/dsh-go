@@ -72,7 +72,9 @@ void main() {
       ),
     );
     expect(find.text('语言'), findsOneWidget);
-    await tester.tap(find.text('English'));
+    await tester.tap(find.text('语言'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('English').last);
     await tester.pumpAndSettle();
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString(AppLanguageController.prefsKey), 'en');

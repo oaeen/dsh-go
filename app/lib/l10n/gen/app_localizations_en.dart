@@ -17109,13 +17109,13 @@ class L10nEn extends L10n {
   String get statePreparing => 'Provisioning';
 
   @override
-  String get stateIconMist => 'Mist blue';
+  String get stateIconMist => 'Frost white';
 
   @override
   String get stateIconNight => 'Nightfall';
 
   @override
-  String get stateIconFrost => 'Frost white';
+  String get stateIconFrost => 'Mist blue';
 
   @override
   String get stateIconInk => 'Ink';

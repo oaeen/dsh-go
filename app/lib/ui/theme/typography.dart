@@ -102,11 +102,12 @@ abstract final class AppType {
     return base.copyWith(fontSize: (base.fontSize ?? 16) * scale, height: height ?? base.height, color: color);
   }
 
-  /// 欢迎语 / 空状态大字:大而轻,不靠粗。
+  /// 欢迎语 / 空状态大字:Material 3 Expressive 醒目字重。
   static TextStyle display({double size = 28, Color? color}) => TextStyle(
     fontFamily: sansFamily,
     fontSize: size,
-    fontWeight: FontWeight.w300,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.4,
     height: 1.25,
     color: color,
     leadingDistribution: TextLeadingDistribution.even,
@@ -155,9 +156,27 @@ abstract final class AppType {
   /// | labelMedium | 12 / 1.35 w600 | Chip、胶囊 |
   /// | labelSmall | 11 / 1.35 | 时间戳、角标 |
   static const textTheme = TextTheme(
-    displayLarge: TextStyle(fontSize: 36, fontWeight: FontWeight.w300, height: 1.2, leadingDistribution: _even),
-    displayMedium: TextStyle(fontSize: 32, fontWeight: FontWeight.w300, height: 1.2, leadingDistribution: _even),
-    displaySmall: TextStyle(fontSize: 28, fontWeight: FontWeight.w300, height: 1.25, leadingDistribution: _even),
+    displayLarge: TextStyle(
+      fontSize: 36,
+      fontWeight: FontWeight.w600,
+      letterSpacing: -0.5,
+      height: 1.2,
+      leadingDistribution: _even,
+    ),
+    displayMedium: TextStyle(
+      fontSize: 32,
+      fontWeight: FontWeight.w600,
+      letterSpacing: -0.4,
+      height: 1.2,
+      leadingDistribution: _even,
+    ),
+    displaySmall: TextStyle(
+      fontSize: 28,
+      fontWeight: FontWeight.w600,
+      letterSpacing: -0.3,
+      height: 1.25,
+      leadingDistribution: _even,
+    ),
     headlineLarge: TextStyle(fontSize: 26, fontWeight: FontWeight.w600, height: 1.3, leadingDistribution: _even),
     headlineMedium: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, height: 1.3, leadingDistribution: _even),
     headlineSmall: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, height: 1.35, leadingDistribution: _even),

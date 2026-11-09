@@ -731,17 +731,11 @@ abstract final class Spots {
     title: (l) => l.pluginsFeatureIcons,
     keywords: (l) => l.searchKwTileStyle,
   );
-  static final appIcon = SettingSpot(
-    'app-icon',
-    page: SettingsPageId.appearance,
-    title: (l) => l.pluginsAppIcon,
-    keywords: (l) => l.searchKwAppIcon,
-  );
   static final iconShortcut = SettingSpot(
     'icon-shortcut',
     page: SettingsPageId.appearance,
     title: (l) => l.iconShortcutRow,
-    keywords: (l) => l.searchKwIconShortcut,
+    keywords: (l) => '${l.pluginsAppIcon},${l.searchKwAppIcon},${l.searchKwIconShortcut}',
   );
   static final launchScreen = SettingSpot(
     'launch-screen',
@@ -1088,7 +1082,6 @@ final _rows = <SettingSpot>[
   Spots.darkMode,
   Spots.accent,
   Spots.tileStyle,
-  Spots.appIcon,
   Spots.iconShortcut,
   Spots.launchScreen,
   Spots.wallpaper,

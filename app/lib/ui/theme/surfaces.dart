@@ -156,76 +156,77 @@ class DshSurfaces extends ThemeExtension<DshSurfaces> {
 
   /// 浅色:晨雾渐变 + 白玻璃。渐变、阴影、实色兜底跟配色的中性色走;
   /// 玻璃本身是白的,高光也是白的 —— 换了配色,玻璃还是玻璃。
-  factory DshSurfaces.light(AppAccent accent, {bool blurEnabled = true}) {
+  factory DshSurfaces.light(AppAccent accent, {bool blurEnabled = true, bool solidBackdrop = false}) {
     final n = NeutralTones.forAccent(accent);
     final ink = n.shadowInk;
     const white = Color(0xFFFFFFFF);
+    const cleanBackdrop = Color(0xFFF8F9FA);
     return DshSurfaces(
-      backdropTop: n.mistTop,
-      backdropBottom: n.mistBottom,
-      glowPrimary: accent.glow.withValues(alpha: 0.42),
-      glowSecondary: accent.haze.withValues(alpha: 0.38),
+      backdropTop: solidBackdrop ? cleanBackdrop : n.mistTop,
+      backdropBottom: solidBackdrop ? cleanBackdrop : n.mistBottom,
+      glowPrimary: solidBackdrop ? Colors.transparent : accent.glow.withValues(alpha: 0.42),
+      glowSecondary: solidBackdrop ? Colors.transparent : accent.haze.withValues(alpha: 0.38),
       userBubble: accent.bubble,
       onUserBubble: n.ink,
       scrim: n.scrim.withValues(alpha: 0.32),
       accent: accent,
       blurEnabled: blurEnabled,
       chrome: GlassStyle(
-        fill: white.withValues(alpha: 0.70),
-        fallbackFill: n.mistLowest.withValues(alpha: 0.96),
+        fill: white.withValues(alpha: solidBackdrop ? 0.94 : 0.88),
+        fallbackFill: solidBackdrop ? white : n.mistLowest.withValues(alpha: 0.98),
         hairline: ink.withValues(alpha: 0.08),
-        rim: white.withValues(alpha: 0.85),
+        rim: white.withValues(alpha: 0.92),
         blurSigma: 18,
         saturation: 1.3,
         shadows: [
-          BoxShadow(color: ink.withValues(alpha: 0.08), blurRadius: 24, offset: const Offset(0, 8)),
-          BoxShadow(color: ink.withValues(alpha: 0.05), blurRadius: 3, offset: const Offset(0, 1)),
+          BoxShadow(color: ink.withValues(alpha: 0.07), blurRadius: 24, offset: const Offset(0, 8)),
+          BoxShadow(color: ink.withValues(alpha: 0.04), blurRadius: 3, offset: const Offset(0, 1)),
         ],
       ),
       sheet: GlassStyle(
-        fill: n.mistLow.withValues(alpha: 0.82),
-        fallbackFill: n.mistLow,
+        fill: (solidBackdrop ? white : n.mistLow).withValues(alpha: solidBackdrop ? 0.96 : 0.92),
+        fallbackFill: solidBackdrop ? white : n.mistLow,
         hairline: ink.withValues(alpha: 0.07),
-        rim: white.withValues(alpha: 0.90),
+        rim: white.withValues(alpha: 0.94),
         blurSigma: 24,
         saturation: 1.4,
         shadows: [BoxShadow(color: ink.withValues(alpha: 0.10), blurRadius: 32, offset: const Offset(0, 8))],
       ),
       card: GlassStyle(
-        fill: white.withValues(alpha: 0.62),
-        fallbackFill: white.withValues(alpha: 0.72),
+        fill: solidBackdrop ? white : white.withValues(alpha: 0.88),
+        fallbackFill: solidBackdrop ? white : white.withValues(alpha: 0.96),
         hairline: ink.withValues(alpha: 0.06),
-        rim: white.withValues(alpha: 0.70),
+        rim: white.withValues(alpha: 0.85),
       ),
       pill: GlassStyle(
-        fill: white.withValues(alpha: 0.55),
-        fallbackFill: white.withValues(alpha: 0.66),
+        fill: solidBackdrop ? white : white.withValues(alpha: 0.86),
+        fallbackFill: solidBackdrop ? white : white.withValues(alpha: 0.92),
         hairline: ink.withValues(alpha: 0.07),
-        rim: white.withValues(alpha: 0.75),
+        rim: white.withValues(alpha: 0.88),
       ),
     );
   }
 
   /// 深色:深海石板渐变 + 烟灰玻璃(石板与烟灰跟配色的中性色走)。
-  factory DshSurfaces.dark(AppAccent accent, {bool blurEnabled = true}) {
+  factory DshSurfaces.dark(AppAccent accent, {bool blurEnabled = true, bool solidBackdrop = false}) {
     final n = NeutralTones.forAccent(accent);
     const white = Color(0xFFFFFFFF);
     const black = Color(0xFF000000);
     // 雾蓝里是 OKLCH(0.30, 0.022, 266):比页面高一档的石板灰。
     final smoke = n.smoke;
     return DshSurfaces(
-      backdropTop: n.nightTop,
-      backdropBottom: n.nightBottom,
-      glowPrimary: accent.glowDark.withValues(alpha: 0.28),
-      glowSecondary: accent.hazeDark.withValues(alpha: 0.24),
+      backdropTop: solidBackdrop ? n.night : n.nightTop,
+      backdropBottom: solidBackdrop ? n.night : n.nightBottom,
+      glowPrimary: solidBackdrop ? Colors.transparent : accent.glowDark.withValues(alpha: 0.28),
+      glowSecondary: solidBackdrop ? Colors.transparent : accent.hazeDark.withValues(alpha: 0.24),
       userBubble: accent.bubbleDark,
       onUserBubble: n.paper,
       scrim: black.withValues(alpha: 0.48),
       accent: accent,
       blurEnabled: blurEnabled,
       chrome: GlassStyle(
-        fill: smoke.withValues(alpha: 0.72),
-        fallbackFill: smoke.withValues(alpha: 0.97),
+        fill: smoke.withValues(alpha: 0.84),
+        fallbackFill: smoke.withValues(alpha: 0.98),
         hairline: white.withValues(alpha: 0.09),
         rim: white.withValues(alpha: 0.12),
         blurSigma: 18,
@@ -236,7 +237,7 @@ class DshSurfaces extends ThemeExtension<DshSurfaces> {
         ],
       ),
       sheet: GlassStyle(
-        fill: n.sheetDark.withValues(alpha: 0.86),
+        fill: n.sheetDark.withValues(alpha: 0.92),
         fallbackFill: n.sheetDark,
         hairline: white.withValues(alpha: 0.08),
         rim: white.withValues(alpha: 0.10),
@@ -245,16 +246,16 @@ class DshSurfaces extends ThemeExtension<DshSurfaces> {
         shadows: [BoxShadow(color: black.withValues(alpha: 0.40), blurRadius: 32, offset: const Offset(0, 8))],
       ),
       card: GlassStyle(
-        fill: white.withValues(alpha: 0.05),
-        fallbackFill: white.withValues(alpha: 0.06),
-        hairline: white.withValues(alpha: 0.07),
-        rim: white.withValues(alpha: 0.06),
+        fill: white.withValues(alpha: solidBackdrop ? 0.07 : 0.06),
+        fallbackFill: white.withValues(alpha: 0.08),
+        hairline: white.withValues(alpha: 0.08),
+        rim: white.withValues(alpha: 0.07),
       ),
       pill: GlassStyle(
-        fill: white.withValues(alpha: 0.06),
-        fallbackFill: white.withValues(alpha: 0.07),
-        hairline: white.withValues(alpha: 0.08),
-        rim: white.withValues(alpha: 0.08),
+        fill: white.withValues(alpha: 0.08),
+        fallbackFill: white.withValues(alpha: 0.09),
+        hairline: white.withValues(alpha: 0.09),
+        rim: white.withValues(alpha: 0.09),
       ),
     );
   }

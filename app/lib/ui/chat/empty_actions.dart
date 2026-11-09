@@ -55,10 +55,11 @@ abstract final class EmptyActions {
   static TextStyle? labelStyle(BuildContext context) => Theme.of(context).textTheme.bodyMedium;
 }
 
-/// The quiet chip's fill: the filter capsules' unselected tone.
+/// The quiet chip's fill: crisp Material 3 Expressive surface container in light
+/// mode, subtle elevated tint in dark mode.
 Color quietChipFill(ThemeData theme) => theme.brightness == Brightness.dark
-    ? Colors.white.withValues(alpha: 0.07)
-    : theme.colorScheme.onSurface.withValues(alpha: 0.05);
+    ? Colors.white.withValues(alpha: 0.08)
+    : Colors.white.withValues(alpha: 0.90);
 
 /// Shared shell of both tiers: a stadium [Material] with an ink ripple and
 /// the 0.97 press, one row of content, [EmptyActions.height] tall.

@@ -210,11 +210,10 @@ class AppIconArt {
   static const end = Offset(100.43, 113.87);
 
   static AppIconArt of(AppIcon icon) => switch (icon) {
-    // The default icon; on the phone its glyph is the original art, here the
-    // brand master's glass (the same fit).
-    AppIcon.mist => const AppIconArt._(Color(0xFF9AB0E8), Color(0xFF405AAD), AppIconGlyph.glassDark),
+    // Default icon: official DeepSeek Harness white-background black-whale (白底黑鱼).
+    AppIcon.mist => const AppIconArt._(Color(0xFFFFFFFF), Color(0xFFF8F9FB), AppIconGlyph.mono, Color(0xFF0A0A0A)),
     AppIcon.night => const AppIconArt._(Color(0xFF2C3D6C), Color(0xFF0C122D), AppIconGlyph.glassDark),
-    AppIcon.frost => const AppIconArt._(Color(0xFFFCFDFF), Color(0xFFDDE5F8), AppIconGlyph.glassLight),
+    AppIcon.frost => const AppIconArt._(Color(0xFF9AB0E8), Color(0xFF405AAD), AppIconGlyph.glassDark),
     AppIcon.ink => const AppIconArt._(Color(0xFF292B30), Color(0xFF0D0E11), AppIconGlyph.mono, Color(0xFFF5F7FB)),
   };
 }

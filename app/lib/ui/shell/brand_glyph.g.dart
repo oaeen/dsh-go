@@ -125,9 +125,9 @@ abstract final class BrandGlyph {
     ..cubicTo(73.42, 18, 34.58, 18, 34.58, 18)
     ..close();
 
-  static final Shader tileFill = ui.Gradient.linear(Offset(7.57, -5.87), Offset(100.43, 113.87), const [Color(0xFF9AB0E8), Color(0xFF405AAD)], const [0, 1]);
+  static final Shader tileFill = ui.Gradient.linear(Offset(7.57, -5.87), Offset(100.43, 113.87), const [Color(0xFFFFFFFF), Color(0xFFF8F9FB)], const [0, 1]);
 
   /// Gradients of the colour glyph: for light backgrounds, then for dark ones.
-  static final Shader tailLight = ui.Gradient.linear(Offset(28, 68), Offset(78, 36), const [Color(0xFF4261CD), Color(0xFF5E93E1)], const [0, 1]);
+  static final Shader tailLight = ui.Gradient.linear(Offset(28, 68), Offset(78, 36), const [Color(0xFF0A0A0A), Color(0xFF181A1F)], const [0, 1]);
   static final Shader tailDark = ui.Gradient.linear(Offset(28, 68), Offset(78, 36), const [Color(0xFF8FAFFA), Color(0xFFDDEEFD)], const [0, 1]);
 }

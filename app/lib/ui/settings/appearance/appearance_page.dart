@@ -20,7 +20,6 @@ import '../../shell/page_frame.dart';
 import '../../theme/app_icons.dart';
 import '../../theme/theme.dart';
 import '../settings_widgets.dart';
-import 'app_icon_picker.dart';
 import 'icon_shortcut_sheet.dart';
 import 'launch_screen_section.dart';
 import 'tile_style_picker.dart';
@@ -37,7 +36,6 @@ class AppearanceEntryTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final accent = ref.watch(accentProvider);
-    final seed = accent.seedFor(Theme.of(context).brightness);
     final mode = switch (ref.watch(settingsProvider.select((s) => s.themeMode))) {
       ThemeMode.light => l10n.commonLight,
       ThemeMode.dark => l10n.commonDark,
@@ -47,14 +45,7 @@ class AppearanceEntryTile extends ConsumerWidget {
       icon: AppIcons.theme,
       tint: tint,
       spot: SettingsIndex.entry(SettingsPageId.appearance),
-      value: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AccentDot(color: seed, size: 10),
-          const SizedBox(width: 6),
-          Text('${accent.label} · $mode'),
-        ],
-      ),
+      value: Text('${accent.label} · $mode'),
       onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AppearancePage())),
     );
   }
@@ -94,9 +85,8 @@ class AppearancePage extends ConsumerWidget {
         ),
         SettingsSection(
           title: l10n.pluginsAppIcon,
-          children: [
-            SpotAnchor(spot: Spots.appIcon, child: const AppIconPicker()),
-            const IconShortcutTile(),
+          children: const [
+            IconShortcutTile(),
           ],
         ),
         SettingsSection(
@@ -187,7 +177,10 @@ class ThemeModePicker extends ConsumerWidget {
   final hit = _themeCache[accent];
   if (hit != null) return hit;
   if (_themeCache.length > 4) _themeCache.clear();
-  return _themeCache[accent] = (buildLightTheme(accent: accent), buildDarkTheme(accent: accent));
+  return _themeCache[accent] = (
+    buildLightTheme(accent: accent, solidBackdrop: true),
+    buildDarkTheme(accent: accent, solidBackdrop: true),
+  );
 }
 
 final _themeCache = <AppAccent, (ThemeData, ThemeData)>{};

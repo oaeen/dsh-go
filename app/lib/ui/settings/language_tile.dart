@@ -19,7 +19,7 @@ class LanguageSettingsTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final language = ref.watch(appLanguageProvider);
-    return SettingsSegmentTile<AppLanguage>(
+    return SettingsDropdownTile<AppLanguage>(
       key: const ValueKey('settings-language'),
       icon: AppIcons.translate,
       tint: tint,

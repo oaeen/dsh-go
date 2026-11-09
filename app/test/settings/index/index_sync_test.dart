@@ -72,7 +72,6 @@ const _sections = {
   'dark-mode',
   'accent',
   'tile-style',
-  'app-icon',
   'launch-screen',
   'wallpaper',
   'permission-current',
