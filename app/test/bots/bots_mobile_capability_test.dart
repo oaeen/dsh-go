@@ -43,9 +43,19 @@ void main() {
   });
 
   for (final code in ['bot/read-only', 'bot/not-found']) {
-    test('legacy hello $code is an unsupported mobile capability', () async {
+    test('official hello $code with state adapts to ready; without state is unsupported', () async {
+      final official = FakeDsBotTransport();
+      official.handlers['hello'] = (_) => throw DshRemoteException(code, 'legacy endpoint');
+      final readyContainer = dsBotContainer(official);
+      addTearDown(readyContainer.dispose);
+      readyContainer.listen(dsBotProvider, (_, _) {});
+      await settle(12);
+      expect(readyContainer.read(dsBotProvider).availability, DsBotAvailability.ready);
+      expect(readyContainer.read(dsBotProvider).hello?.pluginVersion, 'official');
+
       final fake = FakeDsBotTransport();
       fake.handlers['hello'] = (_) => throw DshRemoteException(code, 'legacy endpoint');
+      fake.handlers['state'] = (_) => throw DshRemoteException(code, 'legacy endpoint');
       final container = dsBotContainer(fake);
       addTearDown(container.dispose);
       container.listen(dsBotProvider, (_, _) {});

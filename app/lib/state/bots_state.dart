@@ -960,6 +960,8 @@ class RoomChatController extends Notifier<RoomChatState> {
     return const RoomChatState();
   }
 
+  bool get _hasFeedRoom => ref.read(dsBotProvider).supports('feed-room');
+
   void _onEvent(DsBotFeedEvent event) {
     switch (event) {
       case DsBotFeedLost():
@@ -967,6 +969,8 @@ class RoomChatController extends Notifier<RoomChatState> {
         // Repeated failed reconnects must not postpone an existing poll.
         if (state.running && _poll?.isActive != true) _armPoll(true);
       case DsBotFeedRoom(roomId: final id) when id == roomId:
+        unawaited(refresh());
+      case DsBotFeedRevision() || DsBotFeedLive() when !_hasFeedRoom:
         unawaited(refresh());
       case DsBotFeedHello():
         unawaited(refresh());
@@ -1023,7 +1027,9 @@ class RoomChatController extends Notifier<RoomChatState> {
     if (!running) return;
     final generation = _generation;
     _poll = Timer(pollEvery, () {
-      if (_current(generation) && !ref.read(dsBotProvider).feedConnected) unawaited(refresh());
+      if (!_current(generation)) return;
+      final status = ref.read(dsBotProvider);
+      if (!status.feedConnected || !status.supports('feed-room')) unawaited(refresh());
     });
   }
 
@@ -1054,6 +1060,7 @@ class RoomChatController extends Notifier<RoomChatState> {
     state = state.copyWith(pending: [...state.pending, entry], error: () => null);
     try {
       await api.send(roomId, trimmed);
+      if (_current(generation) && !_hasFeedRoom) unawaited(refresh());
       return true;
     } catch (error) {
       if (!_current(generation)) return false;

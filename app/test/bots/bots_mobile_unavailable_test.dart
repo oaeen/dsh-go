@@ -44,6 +44,26 @@ void main() {
   setUpAll(loadTestFonts);
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
+  testWidgets('official v0.2.3 fixture without hello adapts via state and renders the team', (tester) async {
+    final fake = FakeDsBotTransport();
+    fake.handlers['hello'] = (_) => throw officialError;
+    fake.handlers['state'] = (_) => (fixture['state'] as Map)['value'];
+    usePhoneView(tester);
+    await tester.pumpWidget(
+      goldenApp(
+        home: const BotsPage(),
+        brightness: Brightness.light,
+        overrides: [...dsBotOverrides(fake), dsBotWebOpenerProvider.overrideWithValue((_, _) {})],
+      ),
+    );
+    await frames(tester);
+    expect(find.text('Chief'), findsOneWidget);
+    expect(find.text(appL10n.botsMobileUnsupportedTitle), findsNothing);
+    expect(fake.feedOpens, 1);
+    expect(fake.endpoints.take(2), ['hello', 'state']);
+    expect(tester.takeException(), isNull);
+  });
+
   for (final (name, page) in <(String, Widget)>[
     ('home', const BotsPage()),
     ('bot chat', const BotChatPage(botId: 'm1')),
@@ -51,9 +71,10 @@ void main() {
     ('bot details', const BotDetailsPage(botId: 'm1')),
     ('room details', const RoomDetailsPage(roomId: 'r1')),
   ]) {
-    testWidgets('official v0.2.3 $name explains capability and opens Web', (tester) async {
+    testWidgets('incompatible plugin on $name explains capability and opens Web', (tester) async {
       final fake = FakeDsBotTransport();
       fake.handlers['hello'] = (_) => throw officialError;
+      fake.handlers['state'] = (_) => throw officialError;
       var webOpens = 0;
       usePhoneView(tester);
       await tester.pumpWidget(
@@ -69,7 +90,7 @@ void main() {
       // The copy names no release: none with the mobile API has shipped yet.
       expect(find.textContaining(RegExp(r'v\d+\.\d+')), findsNothing);
       expect(fake.feedOpens, 0);
-      expect(fake.endpoints, ['hello']);
+      expect(fake.endpoints, ['hello', 'state']);
       await tester.ensureVisible(find.byKey(const ValueKey('dsbot-open-web')));
       await tester.tap(find.byKey(const ValueKey('dsbot-open-web')));
       expect(webOpens, 1);

@@ -438,6 +438,8 @@ class DsBotRoom {
   const DsBotRoom({
     required this.id,
     required this.name,
+    this.sessionId,
+    this.ownParts = const [],
     this.members = const [],
     this.admin,
     this.mode = 'admin',
@@ -453,9 +455,12 @@ class DsBotRoom {
 
   factory DsBotRoom.fromJson(Object? json) {
     final map = asMapOrEmpty(json);
+    final id = asString(map['id']) ?? '';
     return DsBotRoom(
-      id: asString(map['id']) ?? '',
+      id: id,
       name: asString(map['name']) ?? '',
+      sessionId: asString(map['sessionId']) ?? id,
+      ownParts: asStringList(map['ownParts']),
       members: asStringList(map['members']),
       admin: asString(map['admin']),
       mode: asString(map['mode']) ?? 'admin',
@@ -475,6 +480,8 @@ class DsBotRoom {
 
   final String id;
   final String name;
+  final String? sessionId;
+  final List<String> ownParts;
   final List<String> members;
   final String? admin;
 
@@ -792,7 +799,7 @@ class DsBotTeam {
   /// Sessions and members' hidden group Sessions.
   Set<String> get sessionIds => {
     for (final bot in bots) ...[bot.id, bot.sessionId, ...bot.parts],
-    for (final room in rooms) ...[room.id, ...room.parts],
+    for (final room in rooms) ...[room.id, ?room.sessionId, ...room.ownParts, ...room.parts],
   };
 
   DsBotQuestion? questionOf(DsBot bot) => questions[bot.sessionId] ?? questions[bot.id];
@@ -1380,11 +1387,15 @@ class DsBotFolders {
   late final List<({String path, String title})> folders;
 }
 
+/// Reads one page of a DSH Session (`session/page`) for official DS Bot
+/// group-chat compatibility when `room-chat` is not exposed by the plugin.
+typedef DsBotSessionPageReader = Future<Object?> Function(Map<String, Object?> request);
+
 /// Calls of the DS Bot channel. Failures: [DshRemoteException] with a `bot/...`
 /// code for the plugin's refusals (`message` is meant for the user, in
 /// English), [DshHttpException] 404 when the plugin is missing.
 class DsBotApi {
-  DsBotApi(this.transport);
+  DsBotApi(this.transport, {DsBotSessionPageReader? sessionPage}) : _sessionPage = sessionPage;
 
   /// The API on [client]'s host: the HTTP route on the HTTP carrier (the
   /// device's own engine, an SSH tunnel), else the Remote methods when the
@@ -1392,15 +1403,39 @@ class DsBotApi {
   /// `dsBot/feed`); null when neither reaches DS Bot.
   static DsBotApi? of(DshClient client) {
     final carrier = client.carrier;
-    if (carrier is DshHttpCarrier) return DsBotApi(DsBotHttpTransport(carrier.connection));
-    if (DsBotRpcTransport.reachable(client)) return DsBotApi(DsBotRpcTransport(client));
+    Future<Object?> page(Map<String, Object?> request) =>
+        client.rpc.call('session/page', {'request': request});
+    if (carrier is DshHttpCarrier) return DsBotApi(DsBotHttpTransport(carrier.connection), sessionPage: page);
+    if (DsBotRpcTransport.reachable(client)) return DsBotApi(DsBotRpcTransport(client), sessionPage: page);
     return null;
   }
 
   /// Versions of the mobile API this client speaks.
   static const supportedApi = [1];
 
+  /// Capabilities supported when adapting the official published `ds-bot`
+  /// channel (`0.2.3`..`0.3.2`).
+  static const officialCapabilities = {
+    'state',
+    'avatar',
+    'chat',
+    'room-chat',
+    'send',
+    'feed',
+    'questions',
+    'views',
+    'approvals',
+    'stop-member-work',
+    'memory',
+    'usage-summary',
+  };
+
   final DsBotTransport transport;
+  final DsBotSessionPageReader? _sessionPage;
+  bool _official = false;
+  JsonMap? _prefetchedState;
+  final Map<String, ({String? ref, String? image})> _inlineAvatars = {};
+  final Map<String, String> _roomSessionIds = {};
 
   Future<Object?> call(String endpoint, [Map<String, Object?> payload = const {}, Duration? timeout]) =>
       transport.call(endpoint, payload, timeout: timeout);
@@ -1408,31 +1443,89 @@ class DsBotApi {
   /// A new feed on this host; [DsBotFeed.start] connects it.
   DsBotFeed feed({List<Duration> backoff = DsBotFeed.defaultBackoff}) => DsBotFeed(transport, backoff: backoff);
 
-  Future<DsBotHello> hello({String client = 'dsh-go', String? version, String platform = 'android'}) async =>
-      DsBotHello.fromJson(
-        await call('hello', {
-          'client': {'name': client, 'version': ?version, 'platform': platform},
-          'api': supportedApi,
-        }),
+  Future<DsBotHello> hello({String client = 'dsh-go', String? version, String platform = 'android'}) async {
+    try {
+      final answer = await call('hello', {
+        'client': {'name': client, 'version': ?version, 'platform': platform},
+        'api': supportedApi,
+      });
+      _official = false;
+      _prefetchedState = null;
+      return DsBotHello.fromJson(answer);
+    } on DshRemoteException catch (error) {
+      if (error.code != 'bot/not-found' && error.code != 'bot/read-only') rethrow;
+      final JsonMap map;
+      try {
+        map = asMapOrEmpty(await call('state', {'locale': 'zh-CN'}));
+      } on DshRemoteException {
+        throw error;
+      }
+      if (map['bots'] is! List) rethrow;
+      _official = true;
+      _prefetchedState = map;
+      _cacheTeamPayload(map);
+      return DsBotHello(
+        api: 1,
+        apiMin: 1,
+        apiMax: 1,
+        pluginVersion: 'official',
+        capabilities: officialCapabilities,
+        boot: '',
+        seq: 0,
+        revision: asInt(map['revision']) ?? 0,
+        readOnly: asString(map['readOnly']),
+        memory: asBool(map['memory']) ?? true,
       );
+    }
+  }
 
   /// The team; with [since] the host answers only the live part when nothing
   /// was saved since. Photos come as references ([DsBot.imageRef]).
-  Future<DsBotState> state({int? since, String? modelsKey, String locale = 'zh-CN'}) async => DsBotState.fromJson(
-    await call('state', {'since': ?since, 'models': ?modelsKey, 'locale': locale, 'avatars': 'ref'}),
-  );
+  Future<DsBotState> state({int? since, String? modelsKey, String locale = 'zh-CN'}) async {
+    final JsonMap map;
+    if (since == null && _prefetchedState != null) {
+      map = _prefetchedState!;
+      _prefetchedState = null;
+    } else {
+      map = asMapOrEmpty(
+        await call('state', {
+          'since': ?since,
+          'models': ?modelsKey,
+          'locale': locale,
+          if (!_official) 'avatars': 'ref',
+        }),
+      );
+      if (asBool(map['unchanged']) != true) _cacheTeamPayload(map);
+    }
+    return DsBotState.fromJson(map);
+  }
 
   /// A Bot's photo as a `data:` URL; null when it has none.
   Future<({String? ref, String? image})> avatar(String botId) async {
-    final map = asMapOrEmpty(await call('avatar', {'botId': botId}));
-    return (ref: asString(map['ref']), image: asString(map['image']));
+    if (_inlineAvatars[botId] case final cached?) return cached;
+    if (_official) return (ref: null, image: null);
+    try {
+      final map = asMapOrEmpty(await call('avatar', {'botId': botId}));
+      return (ref: asString(map['ref']), image: asString(map['image']));
+    } on DshRemoteException catch (error) {
+      if (_isUnknownEndpoint(error, 'avatar')) return (ref: null, image: null);
+      rethrow;
+    }
   }
 
   Future<DsBotChatPage> chat(String botId, {Object? cursor}) async =>
       DsBotChatPage.fromJson(await call('chat', {'botId': botId, 'cursor': ?cursor}));
 
-  Future<DsBotRoomPage> roomChat(String roomId, {Object? cursor}) async =>
-      DsBotRoomPage.fromJson(await call('room-chat', {'roomId': roomId, 'cursor': ?cursor}));
+  Future<DsBotRoomPage> roomChat(String roomId, {Object? cursor}) async {
+    if (!_official) {
+      try {
+        return DsBotRoomPage.fromJson(await call('room-chat', {'roomId': roomId, 'cursor': ?cursor}));
+      } on DshRemoteException catch (error) {
+        if (!_isUnknownEndpoint(error, 'room-chat')) rethrow;
+      }
+    }
+    return _officialRoomChat(roomId, cursor: cursor);
+  }
 
   /// Sends [text] to a Bot (its id) or a group (its id).
   Future<void> send(String conversationId, String text) =>
@@ -1449,7 +1542,11 @@ class DsBotApi {
   }
 
   /// Copies the Bot's settings into a new Session; history and personal memory are fresh.
-  Future<DsBot> duplicateBot(String id) async => DsBot.fromJson(await call('duplicate-bot', {'id': id}));
+  Future<DsBot> duplicateBot(String id) async {
+    final map = asMapOrEmpty(await call('duplicate-bot', {'id': id}));
+    _cacheBotPayload(map);
+    return DsBot.fromJson(map);
+  }
 
   Future<DsBot> createBot({
     required String name,
@@ -1459,17 +1556,21 @@ class DsBotApi {
     String? model,
     String? effort,
     String? brief,
-  }) async => DsBot.fromJson(
-    await call('create-bot', {
-      'name': name,
-      'role': ?role,
-      'instructions': ?instructions,
-      'color': ?color,
-      'model': ?model,
-      'effort': ?effort,
-      'brief': ?brief,
-    }),
-  );
+  }) async {
+    final map = asMapOrEmpty(
+      await call('create-bot', {
+        'name': name,
+        'role': ?role,
+        'instructions': ?instructions,
+        'color': ?color,
+        'model': ?model,
+        'effort': ?effort,
+        'brief': ?brief,
+      }),
+    );
+    _cacheBotPayload(map);
+    return DsBot.fromJson(map);
+  }
 
   /// Changes only what is given; an empty [model] or [effort] clears it.
   Future<void> updateBot(
@@ -1502,10 +1603,13 @@ class DsBotApi {
 
   Future<void> setMain(String id, {required bool main}) => call('set-main', {'id': id, 'main': main});
 
-  Future<DsBotRoom> createRoom({required List<String> members, String? name, String? admin, bool greet = true}) async =>
-      DsBotRoom.fromJson(
-        await call('create-room', {'members': members, 'name': ?name, 'admin': ?admin, 'greet': greet}),
-      );
+  Future<DsBotRoom> createRoom({required List<String> members, String? name, String? admin, bool greet = true}) async {
+    final map = asMapOrEmpty(
+      await call('create-room', {'members': members, 'name': ?name, 'admin': ?admin, 'greet': greet}),
+    );
+    _cacheRoomPayload(map);
+    return DsBotRoom.fromJson(map);
+  }
 
   Future<void> updateRoom(
     String id, {
@@ -1589,14 +1693,388 @@ class DsBotApi {
   Future<DsBotMemoryView> addMemory(String text, {String? botId, String? roomId, String? scope}) async =>
       DsBotMemoryView.fromJson(await call('memory-add', {..._target(botId, roomId), 'scope': ?scope, 'text': text}));
 
-  Future<DsBotUsageSummary> usageSummary(String botId, {String? timeZone}) async =>
-      DsBotUsageSummary.fromJson(await call('usage-summary', {'botId': botId, 'timeZone': ?timeZone}));
+  Future<DsBotUsageSummary> usageSummary(String botId, {String? timeZone}) async {
+    if (!_official) {
+      try {
+        return DsBotUsageSummary.fromJson(await call('usage-summary', {'botId': botId, 'timeZone': ?timeZone}));
+      } on DshRemoteException catch (error) {
+        if (!_isUnknownEndpoint(error, 'usage-summary')) rethrow;
+      }
+    }
+    return _usageSummaryFromUsage(botId, await call('usage', {'timeZone': ?timeZone}));
+  }
 
   Future<DsBotNotices> notices({String? boot, int? since}) async =>
       DsBotNotices.fromJson(await call('notices', {'boot': ?boot, 'since': ?since}));
 
   Map<String, Object?> _target(String? botId, String? roomId) =>
       roomId != null ? {'roomId': roomId} : {'botId': botId ?? ''};
+
+  void _cacheTeamPayload(JsonMap map) {
+    if (map['bots'] case final List<Object?> bots) {
+      for (final bot in bots) {
+        _cacheBotPayload(asMapOrEmpty(bot));
+      }
+    }
+    if (map['rooms'] case final List<Object?> rooms) {
+      for (final room in rooms) {
+        _cacheRoomPayload(asMapOrEmpty(room));
+      }
+    }
+  }
+
+  void _cacheBotPayload(JsonMap map) {
+    final id = asString(map['id']);
+    if (id == null || id.isEmpty) return;
+    final avatar = asMapOrEmpty(map['avatar']);
+    final image = asString(avatar['image']);
+    if (image != null && image.isNotEmpty) {
+      final ref = asString(avatar['imageRef']) ?? 'inline:${image.hashCode}';
+      _inlineAvatars[id] = (ref: ref, image: image);
+    } else if (_official && avatar['imageRef'] == null) {
+      _inlineAvatars.remove(id);
+    }
+  }
+
+  void _cacheRoomPayload(JsonMap map) {
+    final id = asString(map['id']);
+    if (id == null || id.isEmpty) return;
+    final sessionId = asString(map['sessionId']);
+    _roomSessionIds[id] = (sessionId != null && sessionId.isNotEmpty) ? sessionId : id;
+  }
+
+  Future<DsBotRoomPage> _officialRoomChat(String roomId, {Object? cursor}) async {
+    final sessionId = _roomSessionIds[roomId] ?? roomId;
+    final beforeSeq = asInt(asMap(cursor)?['beforeSeq']);
+    var events = const <JsonMap>[];
+    var hasMore = false;
+    final pageReader = _sessionPage;
+    if (pageReader != null) {
+      final pageRaw = asMapOrEmpty(
+        await pageReader({
+          'address': {'kind': 'session', 'sessionId': sessionId},
+          'beforeSeq': ?beforeSeq,
+          'maxMessages': 60,
+        }),
+      );
+      events = [
+        for (final record in asListOrEmpty(pageRaw['records'])) asMapOrEmpty(asMapOrEmpty(record)['event']),
+      ];
+      hasMore = asBool(pageRaw['hasMore']) ?? false;
+    }
+    final parsed = _parseRoomEvents(events);
+    final items = parsed.items;
+    List<Object?> progress = const [];
+    try {
+      progress = asListOrEmpty(await call('room-progress', {'roomId': roomId}));
+    } on DshRemoteException catch (error) {
+      if (!_isUnknownEndpoint(error, 'room-progress')) rethrow;
+    }
+    final rounds = <String, JsonMap>{
+      for (final entry in progress)
+        if (asString(asMapOrEmpty(entry)['callId']) case final callId? when callId.isNotEmpty)
+          callId: asMapOrEmpty(entry),
+    };
+    if (cursor == null) {
+      if (parsed.open.isNotEmpty) {
+        for (final (:callId, :at) in parsed.open.reversed) {
+          final round = rounds[callId];
+          if (round == null) continue;
+          final replies = asListOrEmpty(round['replies']);
+          final live = <DsBotItem>[
+            for (var i = 0; i < replies.length; i++) ?_replyItem(asMapOrEmpty(replies[i]), '$callId:$i', live: true),
+          ];
+          items.insertAll(at.clamp(0, items.length), live);
+        }
+      } else if (pageReader == null && rounds.isNotEmpty) {
+        for (final MapEntry(key: callId, value: round) in rounds.entries) {
+          final replies = asListOrEmpty(round['replies']);
+          for (var i = 0; i < replies.length; i++) {
+            if (_replyItem(asMapOrEmpty(replies[i]), '$callId:$i', live: true) case final item?) {
+              items.add(item);
+            }
+          }
+        }
+      }
+    }
+    String? speaking;
+    for (final entry in progress) {
+      final map = asMapOrEmpty(entry);
+      speaking = asString(map['speaking']) ?? asStringList(map['speaking']).firstOrNull;
+      if (speaking != null && speaking.isNotEmpty) break;
+    }
+    final firstSeq = events.isEmpty ? null : asInt(events.first['seq']);
+    final more = hasMore && firstSeq != null;
+    return DsBotRoomPage(
+      roomId: roomId,
+      items: items,
+      cursor: more ? {'beforeSeq': firstSeq} : null,
+      running: progress.isNotEmpty,
+      speaking: speaking,
+    );
+  }
+
+  static bool _isUnknownEndpoint(DshRemoteException error, String endpoint) =>
+      error.code == 'bot/not-found' && error.message == 'Unknown endpoint $endpoint';
+
+  static const _roundEvents = {
+    'working',
+    'approval',
+    'done',
+    'stopped',
+    'failed',
+    'missed',
+    'lookup',
+    'resumed',
+    'cut',
+  };
+  static final _postHeader = RegExp(r'^\[Group post from [^\r\n]*\]\r?\n');
+  static final _oneReminder = RegExp(r'^reminder_prompt_json: (.*)$', multiLine: true);
+  static final _batchReminders = RegExp(r'^reminders_json: (.*)$', multiLine: true);
+  static final _hourBucketPattern = RegExp(r'^(\d{4})-(\d{2})-(\d{2}) (\d{2})$');
+
+  static String _textOfContent(Object? content) {
+    if (content is String) return content.trim();
+    if (content is! List) return '';
+    return [
+      for (final block in content)
+        if (asMap(block) case final map? when map['type'] == 'text' && map['text'] is String) map['text'] as String,
+    ].join('\n').trim();
+  }
+
+  static String _reminderText(String text) {
+    final one = _oneReminder.firstMatch(text);
+    final batch = _batchReminders.firstMatch(text);
+    try {
+      final prompts = <String>[
+        if (one != null && tryDecodeJson(one.group(1)!) is String) tryDecodeJson(one.group(1)!) as String,
+        if (batch != null)
+          for (final entry in asListOrEmpty(tryDecodeJson(batch.group(1)!)))
+            ?asString(asMapOrEmpty(entry)['reminder_prompt']),
+      ];
+      return [
+        for (final prompt in prompts)
+          if (prompt.trim().isNotEmpty) prompt,
+      ].join(' · ');
+    } catch (_) {
+      return '';
+    }
+  }
+
+  static DsBotItem? _replyItem(JsonMap reply, String id, {bool live = false}) {
+    final kind = asString(reply['kind']);
+    final botId = asString(reply['botId']);
+    final name = asString(reply['name']);
+    final color = asString(reply['color']);
+    final time = asEpochMs(reply['time']);
+    final text = asString(reply['text']) ?? '';
+    if (kind == 'user') {
+      return DsBotItem(kind: DsBotItemKind.user, id: id, text: text, time: time, live: live);
+    }
+    if (kind == null) {
+      final durationMs = asInt(reply['duration']);
+      return DsBotItem(
+        kind: DsBotItemKind.bot,
+        id: id,
+        botId: botId,
+        name: name,
+        color: color,
+        text: text,
+        time: time,
+        duration: durationMs == null ? null : Duration(milliseconds: durationMs),
+        live: live,
+      );
+    }
+    if (!_roundEvents.contains(kind)) return null;
+    return DsBotItem(
+      kind: DsBotItemKind.event,
+      id: id,
+      event: kind,
+      botId: botId,
+      name: name,
+      color: color,
+      text: text,
+      code: asString(reply['code']),
+      time: time,
+      live: live,
+    );
+  }
+
+  static ({List<DsBotItem> items, List<({String callId, int at})> open}) _parseRoomEvents(List<JsonMap> events) {
+    final items = <DsBotItem>[];
+    final relays = <String, int>{};
+    for (final event in events) {
+      final seq = event['seq'];
+      final type = asString(event['type']);
+      final data = asMapOrEmpty(event['data']);
+      final time = asEpochMs(event['time']);
+      if (type == 'user/message') {
+        final source = asMapOrEmpty(data['source']);
+        final sourceKind = asString(source['kind']);
+        final content = asListOrEmpty(data['content']);
+        if (sourceKind == 'user') {
+          final images = content.where((b) => asMapOrEmpty(b)['type'] == 'image').length;
+          items.add(
+            DsBotItem(
+              kind: DsBotItemKind.user,
+              id: '$seq',
+              text: _textOfContent(content),
+              images: images,
+              time: time,
+            ),
+          );
+        } else if (sourceKind == 'schedule') {
+          items.add(
+            DsBotItem(
+              kind: DsBotItemKind.event,
+              id: '$seq',
+              event: 'schedule',
+              text: _reminderText(_textOfContent(content)),
+              time: time,
+            ),
+          );
+        } else if (sourceKind == 'ds-bot' && asString(source['role']) == 'post') {
+          if (source['logged'] != null ||
+              source['failed'] != null ||
+              source['resumed'] == true ||
+              source['stopped'] == true ||
+              source['done'] == true) {
+            continue;
+          }
+          final length = asInt(source['length']);
+          JsonMap? file;
+          if (length != null) {
+            for (final block in content) {
+              final map = asMapOrEmpty(block);
+              if (map['type'] == 'file' && asMap(map['attachment']) != null) {
+                file = asMapOrEmpty(map['attachment']);
+                break;
+              }
+            }
+          }
+          items.add(
+            DsBotItem(
+              kind: DsBotItemKind.bot,
+              id: '$seq',
+              botId: asString(source['senderSessionId']),
+              name: asString(source['senderName']),
+              text: _textOfContent(content).replaceFirst(_postHeader, ''),
+              time: time,
+              whole: file == null || length == null ? null : DsBotLongText(length, file),
+            ),
+          );
+        }
+        continue;
+      }
+      if (type == 'tool/call' && asString(data['name']) == 'group_relay') {
+        if (asString(data['callId']) case final callId? when callId.isNotEmpty) {
+          relays[callId] = items.length;
+        }
+        continue;
+      }
+      if (type != 'tool/result') continue;
+      final message = asMapOrEmpty(data['message']);
+      final callId = asString(message['toolCallId']);
+      final result = asMap(tryDecodeJson(_textOfContent(message['content'])));
+      final replies = result?['replies'];
+      if (replies is! List) continue;
+      if (callId != null) relays.remove(callId);
+      for (var i = 0; i < replies.length; i++) {
+        if (_replyItem(asMapOrEmpty(replies[i]), '${callId ?? seq}:$i') case final item?) {
+          items.add(item);
+        }
+      }
+    }
+    return (
+      items: items,
+      open: [for (final MapEntry(key: callId, value: at) in relays.entries) (callId: callId, at: at)],
+    );
+  }
+
+  static DateTime? _parseHourBucket(String? value) {
+    if (value == null) return null;
+    final match = _hourBucketPattern.firstMatch(value);
+    if (match == null) return null;
+    return DateTime.utc(
+      int.parse(match.group(1)!),
+      int.parse(match.group(2)!),
+      int.parse(match.group(3)!),
+      int.parse(match.group(4)!),
+    );
+  }
+
+  static String _formatHourBucket(DateTime dt) {
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${dt.year.toString().padLeft(4, '0')}-${two(dt.month)}-${two(dt.day)} ${two(dt.hour)}';
+  }
+
+  static DsBotUsageSummary _usageSummaryFromUsage(String botId, Object? raw) {
+    final view = asMapOrEmpty(raw);
+    final owners = asListOrEmpty(view['owners']);
+    var ownerIndex = -1;
+    for (var i = 0; i < owners.length; i++) {
+      final owner = asMapOrEmpty(owners[i]);
+      if (asString(owner['kind']) == 'bot' && asString(owner['id']) == botId) {
+        ownerIndex = i;
+        break;
+      }
+    }
+    final allRows = asListOrEmpty(view['rows']);
+    final botRows = <List<Object?>>[
+      if (ownerIndex >= 0)
+        for (final row in allRows)
+          if (row is List<Object?> && row.length >= 9 && asInt(row[1]) == ownerIndex) row,
+    ];
+    final baseNow = _parseHourBucket(asString(view['now'])) ?? DateTime.now();
+    String since(int hours) => _formatHourBucket(baseNow.subtract(Duration(hours: hours - 1)));
+    List<List<Object?>> within(int hours) {
+      final threshold = since(hours);
+      return [
+        for (final row in botRows)
+          if ((asString(row[0]) ?? '').compareTo(threshold) >= 0) row,
+      ];
+    }
+
+    DsBotUsageTotals sumRows(Iterable<List<Object?>> rows) {
+      var input = 0, cacheRead = 0, cacheWrite = 0, output = 0, calls = 0;
+      for (final row in rows) {
+        input += asNum(row[4])?.toInt() ?? 0;
+        cacheRead += asNum(row[5])?.toInt() ?? 0;
+        cacheWrite += asNum(row[6])?.toInt() ?? 0;
+        output += asNum(row[7])?.toInt() ?? 0;
+        calls += asNum(row[8])?.toInt() ?? 0;
+      }
+      return DsBotUsageTotals(
+        input: input,
+        cacheRead: cacheRead,
+        cacheWrite: cacheWrite,
+        output: output,
+        calls: calls,
+      );
+    }
+
+    final monthRows = within(24 * 30);
+    final rawModels = asListOrEmpty(view['models']);
+    final models = <({String key, String name, DsBotUsageTotals totals})>[];
+    for (var i = 0; i < rawModels.length; i++) {
+      final model = asMapOrEmpty(rawModels[i]);
+      final totals = sumRows(monthRows.where((row) => asInt(row[2]) == i));
+      if (totals.calls > 0 || totals.input > 0 || totals.output > 0) {
+        models.add((
+          key: asString(model['key']) ?? '',
+          name: asString(model['name']) ?? '',
+          totals: totals,
+        ));
+      }
+    }
+    return DsBotUsageSummary(
+      day: sumRows(within(24)),
+      week: sumRows(within(24 * 7)),
+      month: sumRows(monthRows),
+      models: models,
+      scanning: asBool(view['scanning']) ?? false,
+    );
+  }
 
   Future<void> close() => transport.close();
 }

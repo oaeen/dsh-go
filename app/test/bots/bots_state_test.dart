@@ -42,9 +42,16 @@ void main() {
       expect(transport.feedOpens, 0);
     });
 
-    test('a DS Bot without hello, or with no version in common, needs an update', () async {
-      final old = FakeDsBotTransport()..handlers.remove('hello');
-      expect((await start(old)).read(dsBotProvider).availability, DsBotAvailability.outdated);
+    test('an official DS Bot without hello adapts via state; no version in common or missing state needs an update', () async {
+      final official = FakeDsBotTransport()..handlers.remove('hello');
+      final officialState = (await start(official)).read(dsBotProvider);
+      expect(officialState.availability, DsBotAvailability.ready);
+      expect(officialState.hello?.pluginVersion, 'official');
+
+      final broken = FakeDsBotTransport()
+        ..handlers.remove('hello')
+        ..handlers.remove('state');
+      expect((await start(broken)).read(dsBotProvider).availability, DsBotAvailability.outdated);
 
       final later = FakeDsBotTransport();
       later.handlers['hello'] = (_) => {...later.helloAnswer(), 'api': null, 'apiMin': 2, 'apiMax': 2};

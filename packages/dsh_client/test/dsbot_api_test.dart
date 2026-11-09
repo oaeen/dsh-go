@@ -384,6 +384,171 @@ void main() {
       });
       expect(await api.stopMemberWork('r1', 'b2'), isTrue);
     });
+
+    test('official ds-bot without hello adapts state, inline avatars, room-progress, and usage', () async {
+      final connection = DshConnection(
+        host.baseUri,
+        cookie: DshCookie(name: 'dsh-auth-test', value: 'v1.payload.sig', authority: '127.0.0.1:${host.port}'),
+      );
+      final officialApi = DsBotApi(
+        DsBotHttpTransport(connection, feedIdle: const Duration(seconds: 5)),
+        sessionPage: (request) async {
+          expect((request['address'] as Map)['sessionId'], 'r1-s');
+          return {
+            'records': [
+              {
+                'event': {
+                  'seq': 1,
+                  'time': 1000,
+                  'type': 'user/message',
+                  'data': {
+                    'source': {'kind': 'user'},
+                    'content': [
+                      {'type': 'text', 'text': 'Plan it'},
+                    ],
+                  },
+                },
+              },
+              {
+                'event': {
+                  'seq': 2,
+                  'time': 1001,
+                  'type': 'tool/call',
+                  'data': {'callId': 'c1', 'name': 'group_relay'},
+                },
+              },
+              {
+                'event': {
+                  'seq': 3,
+                  'time': 1002,
+                  'type': 'tool/result',
+                  'data': {
+                    'message': {
+                      'toolCallId': 'c1',
+                      'content': [
+                        {
+                          'type': 'text',
+                          'text': jsonEncode({
+                            'replies': [
+                              {
+                                'botId': 'm1',
+                                'name': 'Chief',
+                                'text': '@Writer draft it',
+                                'time': 1002,
+                                'duration': 500,
+                              },
+                            ],
+                          }),
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+              {
+                'event': {
+                  'seq': 4,
+                  'time': 1003,
+                  'type': 'tool/call',
+                  'data': {'callId': 'c2', 'name': 'group_relay'},
+                },
+              },
+            ],
+            'hasMore': true,
+          };
+        },
+      );
+      addTearDown(officialApi.close);
+
+      var stateReads = 0;
+      host.handlers['state'] = (payload) {
+        stateReads++;
+        expect(payload.containsKey('avatars'), isFalse);
+        return {
+          'revision': 9,
+          'mainBotIds': ['m1'],
+          'bots': [
+            {
+              'id': 'm1',
+              'name': 'Chief',
+              'avatar': {'image': 'data:image/png;base64,AAAA'},
+            },
+          ],
+          'rooms': [
+            {
+              'id': 'r1',
+              'name': 'Launch',
+              'sessionId': 'r1-s',
+              'members': ['m1', 'b2'],
+            },
+          ],
+          'work': <String, Object?>{},
+        };
+      };
+      host.handlers['room-progress'] = (payload) {
+        expect(payload['roomId'], 'r1');
+        return [
+          {
+            'callId': 'c2',
+            'speaking': 'b2',
+            'replies': [
+              {'botId': 'b2', 'name': 'Writer', 'text': 'On it', 'time': 1004},
+            ],
+          },
+        ];
+      };
+      host.handlers['usage'] = (payload) {
+        expect(payload['timeZone'], 'Asia/Shanghai');
+        return {
+          'now': '2026-10-24 12',
+          'owners': [
+            {'kind': 'bot', 'id': 'm1'},
+          ],
+          'models': [
+            {'key': 'deepseek/v4', 'name': 'V4'},
+          ],
+          'rows': [
+            ['2026-10-24 11', 0, 0, 0, 100, 0, 0, 20, 1],
+            ['2026-10-20 10', 0, 0, 0, 200, 50, 10, 20, 2],
+            ['2026-10-01 10', 0, 0, 0, 200, 0, 0, 20, 2],
+          ],
+        };
+      };
+
+      final hello = await officialApi.hello(version: '1.0.15');
+      expect(hello.compatible, isTrue);
+      expect(hello.pluginVersion, 'official');
+      expect(hello.revision, 9);
+      expect(hello.supports('room-chat'), isTrue);
+      expect(hello.supports('usage-summary'), isTrue);
+      expect(hello.supports('memory-edit'), isFalse);
+      expect(hello.supports('feed-room'), isFalse);
+
+      // The first state() reuses the prefetched snapshot from hello().
+      final snapshot = await officialApi.state();
+      expect(stateReads, 1);
+      final chief = snapshot.team!.bot('m1')!;
+      expect(chief.imageRef, startsWith('inline:'));
+      final avatar = await officialApi.avatar('m1');
+      expect(avatar.image, 'data:image/png;base64,AAAA');
+      expect(avatar.ref, chief.imageRef);
+
+      final roomPage = await officialApi.roomChat('r1');
+      expect(roomPage.running, isTrue);
+      expect(roomPage.speaking, 'b2');
+      expect(roomPage.cursor, {'beforeSeq': 1});
+      expect(roomPage.items.map((i) => (i.kind, i.text, i.live)), [
+        (DsBotItemKind.user, 'Plan it', false),
+        (DsBotItemKind.bot, '@Writer draft it', false),
+        (DsBotItemKind.bot, 'On it', true),
+      ]);
+
+      final usage = await officialApi.usageSummary('m1', timeZone: 'Asia/Shanghai');
+      expect(usage.day.total, 120);
+      expect(usage.week.total, 400);
+      expect(usage.month.total, 620);
+      expect(usage.models.single.name, 'V4');
+    });
   });
 
   group('feed', () {
