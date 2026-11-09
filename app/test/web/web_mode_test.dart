@@ -13,7 +13,6 @@ import 'package:dsh_app/state/notify_state.dart';
 import 'package:dsh_app/state/sessions_state.dart';
 import 'package:dsh_app/state/ui_mode_state.dart';
 import 'package:dsh_app/ui/common/side_insets.dart';
-import 'package:dsh_app/ui/pets/pet_settings_page.dart';
 import 'package:dsh_app/ui/shell/page_frame.dart';
 import 'package:dsh_app/ui/web/dsh_web_launcher.dart';
 import 'package:dsh_app/ui/web/mode_home.dart';
@@ -30,7 +29,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
 import '../chat/support/harness.dart';
-import '../pets/overlay/fake_overlay_native.dart';
 import '../support/english_preview.dart';
 import 'support/fake_webview.dart';
 
@@ -356,21 +354,6 @@ void main() {
       expect(_platform.controllers, hasLength(1));
       expect(_opened().last, {'panel': 'plugins'});
     });
-  });
-
-  testWidgets('the floating pet hears every state and opens its settings from the web home', (tester) async {
-    final native = FakeOverlayNative()..install();
-    await _pumpHome(tester, _windows.first);
-    expect(native.methods, contains('push'));
-    await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
-      FakeOverlayNative.channel.name,
-      const StandardMethodCodec().encodeMethodCall(MethodCall('openSettings')),
-      (_) {},
-    );
-    for (var i = 0; i < 6; i++) {
-      await tester.pump(const Duration(milliseconds: 200));
-    }
-    expect(find.byType(PetSettingsPage), findsOneWidget);
   });
 
   group('ModeHome', () {

@@ -112,18 +112,19 @@ class _AccessPickPageState extends ConsumerState<AccessPickPage> {
           margin: EdgeInsets.zero,
           children: [
             for (final feature in AccessFeature.values)
-              AccessFeatureRow(
-                feature: feature,
-                selected: _picked.contains(feature),
-                onTap: () => unawaited(_toggle(feature)),
-                lines: feature == AccessFeature.voice
-                    ? [
-                        (text: l10n.accessFeatureVoiceNeeds, color: null),
-                        (text: l10n.accessVoiceModel(voiceModelApproxMb), color: null),
-                        if (metered) (text: l10n.accessVoiceMetered, color: colors.warning),
-                      ]
-                    : const [],
-              ),
+              if (feature != AccessFeature.pet)
+                AccessFeatureRow(
+                  feature: feature,
+                  selected: _picked.contains(feature),
+                  onTap: () => unawaited(_toggle(feature)),
+                  lines: feature == AccessFeature.voice
+                      ? [
+                          (text: l10n.accessFeatureVoiceNeeds, color: null),
+                          (text: l10n.accessVoiceModel(voiceModelApproxMb), color: null),
+                          if (metered) (text: l10n.accessVoiceMetered, color: colors.warning),
+                        ]
+                      : const [],
+                ),
           ],
         ),
         const Spacer(flex: 2),

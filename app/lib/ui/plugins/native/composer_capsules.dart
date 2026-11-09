@@ -21,7 +21,6 @@ import '../../../plugins/native/native_state.dart';
 import '../../../ui_config/ui_config_model.dart';
 import '../../../ui_config/ui_config_state.dart';
 import '../../common/edge_fade.dart';
-import '../../pets/pet_perch.dart';
 import '../../theme/app_icons.dart';
 import '../../theme/theme.dart';
 import 'chat_plugins_sheet.dart';
@@ -291,13 +290,7 @@ class _ComposerCapsuleBarState extends ConsumerState<ComposerCapsuleBar> {
       open: open,
       child: _last.isEmpty && _lastLeading == null
           ? const SizedBox(width: double.infinity)
-          // The chat page's pet stands on the row's top edge, above the
-          // capsules (never on them); not while the row sinks.
-          : PetPerch(
-              kind: PerchKind.plugin,
-              active: open,
-              child: ComposerCapsuleRow(items: _last, leading: _lastLeading),
-            ),
+          : ComposerCapsuleRow(items: _last, leading: _lastLeading),
     );
   }
 }

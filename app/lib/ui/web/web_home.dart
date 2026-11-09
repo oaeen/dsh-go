@@ -29,8 +29,6 @@ import '../../l10n/l10n.dart';
 import '../../links/app_links.dart';
 import '../../links/launcher_entries.dart';
 import '../../links/share_intake.dart';
-import '../../pets/overlay_channel.dart' show petOverlayChannelProvider;
-import '../../pets/pet_overlay_bridge.dart';
 import '../../state/compose_inbox.dart';
 import '../../state/hosts_state.dart';
 import '../../state/sessions_state.dart';
@@ -40,7 +38,6 @@ import '../common/discard_guard.dart';
 import '../common/empty_view.dart';
 import '../forum/forum_link_host.dart';
 import '../notify/chat_alert_host.dart';
-import '../pets/pet_settings_page.dart';
 import '../shell/page_frame.dart';
 import '../theme/app_icons.dart';
 import 'dsh_web_launcher.dart';
@@ -176,42 +173,9 @@ class _WebHomeState extends ConsumerState<WebHome> {
     return ChatAlertHost(
       child: Stack(
         fit: StackFit.expand,
-        children: [page, const LinkHost(), const WebEntryHost(), const ForumLinkHost(), const _PetHost()],
+        children: [page, const LinkHost(), const WebEntryHost(), const ForumLinkHost()],
       ),
     );
-  }
-}
-
-/// The floating pet outside the app, as on the native home: it hears every
-/// pet state, and its menu's 「宠物设置」 opens the settings page here.
-class _PetHost extends ConsumerStatefulWidget {
-  const _PetHost();
-
-  @override
-  ConsumerState<_PetHost> createState() => _PetHostState();
-}
-
-class _PetHostState extends ConsumerState<_PetHost> {
-  StreamSubscription<void>? _settings;
-
-  @override
-  void initState() {
-    super.initState();
-    _settings = ref.read(petOverlayChannelProvider).settingsRequests.listen((_) {
-      if (mounted) unawaited(PetSettingsPage.open(context));
-    });
-  }
-
-  @override
-  void dispose() {
-    unawaited(_settings?.cancel());
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    ref.listen<void>(petOverlayBridgeProvider, (_, _) {});
-    return const SizedBox.shrink();
   }
 }
 

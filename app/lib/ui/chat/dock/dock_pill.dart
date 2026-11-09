@@ -4,7 +4,6 @@
 import 'package:flutter/material.dart';
 
 import '../../common/expand_reveal.dart';
-import '../../pets/pet_perch.dart';
 import '../../theme/theme.dart';
 
 /// 停靠在输入条上方的一组条:和思考胶囊同高、同字号、同左右边,一根接一根
@@ -188,8 +187,7 @@ class _DockSlotState extends State<DockSlot> {
       curve: AppMotion.std,
       child: Padding(
         padding: const EdgeInsets.only(bottom: DockMetrics.gap),
-        // The chat page's pet may stand on the bar (not while it folds away).
-        child: PetPerch(kind: PerchKind.dock, active: child != null, child: last),
+        child: last,
       ),
     );
   }

@@ -76,7 +76,6 @@ void main() {
     await loadTestFonts();
     await WhaleSprites.load();
     chatClock = () => DateTime(2026, 10, 23, 15, 20);
-    tipStart = (_) => 0;
   });
 
   group('geometry', () {
@@ -222,12 +221,11 @@ void main() {
   });
 
   group('tiers', () {
-    testWidgets('connected: no primary, quiet chips and cards, one tip line', (tester) async {
+    testWidgets('connected: no primary, quiet chips and cards', (tester) async {
       await _pumpChat(tester);
       expect(find.byType(EmptyPrimaryPill), findsNothing);
       expect(find.byType(QuietChip), findsOneWidget, reason: 'the workspace chip');
       expect(find.byType(SuggestionCard), findsNWidgets(defaultSuggestions.length));
-      expect(find.byType(TipLine), findsOneWidget);
       final theme = Theme.of(tester.element(find.byType(ChatEmptyState)));
       for (final material in tester.widgetList<Material>(
         find.descendant(
@@ -247,7 +245,6 @@ void main() {
       expect(find.byType(EmptyPrimaryPill), findsOneWidget);
       expect(find.byType(QuietChip), findsNothing);
       expect(find.byType(SuggestionCard), findsNothing);
-      expect(find.byType(TipLine), findsNothing);
       final theme = Theme.of(tester.element(find.byType(ChatEmptyState)));
       final fill = tester.widget<Material>(
         find.descendant(of: find.byType(EmptyPrimaryPill), matching: find.byType(Material)),
@@ -265,7 +262,7 @@ void main() {
       expect(semantics.label, '重新连接');
     });
 
-    testWidgets('connecting: the cards are there but do nothing, no tip yet', (tester) async {
+    testWidgets('connecting: the cards are there but do nothing', (tester) async {
       final picked = <ChatSuggestion>[];
       await _pumpState(tester, ChatEmptyState(connected: false, connecting: true, onSuggestion: picked.add));
       expect(find.text('正在连接引擎…'), findsOneWidget);
@@ -273,7 +270,6 @@ void main() {
       await tester.tap(find.text(defaultSuggestions[0].label));
       await tester.pump();
       expect(picked, isEmpty);
-      expect(find.byType(TipLine), findsNothing);
     });
 
     testWidgets('a card fills in its suggestion and reads as one button', (tester) async {
@@ -285,77 +281,6 @@ void main() {
       final s = defaultSuggestions[2];
       final semantics = tester.getSemantics(find.byType(SuggestionCard).at(2));
       expect(semantics.label, '${s.label}, ${s.detail}');
-    });
-
-    testWidgets('tip line: one tip at a time, a tap rises in the next', (tester) async {
-      await _pumpState(
-        tester,
-        ChatEmptyState(connected: true, onSuggestion: (_) {}, tips: const ['甲', '乙'], tipStart: 0),
-      );
-      expect(find.text('甲'), findsOneWidget);
-      final semantics = tester.getSemantics(find.byType(TipLine));
-      expect(semantics.label, '小技巧：甲');
-      expect(semantics.hintOverrides?.onTapHint, '下一条小技巧');
-      await tester.tap(find.byType(TipLine));
-      await pumpFrames(tester, 6);
-      expect(find.text('乙'), findsOneWidget);
-      expect(find.text('甲'), findsNothing);
-      await tester.tap(find.byType(TipLine));
-      await pumpFrames(tester, 6);
-      expect(find.text('甲'), findsOneWidget, reason: 'wraps around');
-    });
-
-    testWidgets('tips turn on their own; a tap restarts the wait', (tester) async {
-      await _pumpState(
-        tester,
-        ChatEmptyState(connected: true, onSuggestion: (_) {}, tips: const ['甲', '乙', '丙'], tipStart: 0),
-      );
-      expect(find.text('甲'), findsOneWidget);
-      await tester.pump(tipDwell - const Duration(seconds: 1));
-      expect(find.text('甲'), findsOneWidget, reason: 'not before the dwell');
-      await tester.pump(const Duration(seconds: 1));
-      await pumpFrames(tester, 6);
-      expect(find.text('乙'), findsOneWidget);
-      // A tap shows the next one now and waits a full dwell again.
-      await tester.pump(tipDwell - const Duration(seconds: 2));
-      await tester.tap(find.byType(TipLine));
-      await pumpFrames(tester, 6);
-      expect(find.text('丙'), findsOneWidget);
-      await tester.pump(const Duration(seconds: 3));
-      expect(find.text('丙'), findsOneWidget);
-    });
-
-    testWidgets('with reduced motion the tip stays until tapped', (tester) async {
-      usePhoneView(tester);
-      await tester.pumpWidget(
-        testApp(
-          MediaQuery(
-            data: const MediaQueryData(disableAnimations: true, size: Size(390, 844)),
-            child: Scaffold(
-              body: Center(
-                child: ChatEmptyState(connected: true, onSuggestion: (_) {}, tips: const ['甲', '乙'], tipStart: 0),
-              ),
-            ),
-          ),
-        ),
-      );
-      await tester.pump(tipDwell * 3);
-      expect(find.text('甲'), findsOneWidget);
-      await tester.tap(find.byType(TipLine));
-      await tester.pump();
-      expect(find.text('乙'), findsOneWidget);
-    });
-
-    testWidgets('the default tips are all there, each fits two lines', (tester) async {
-      await _pumpState(tester, ChatEmptyState(connected: true, onSuggestion: (_) {}));
-      final tips = defaultTips();
-      expect(tips.toSet(), hasLength(tips.length));
-      for (var i = 0; i < tips.length; i++) {
-        expect(find.text(tips[i]), findsOneWidget);
-        expect(_cut(tester, tips[i]), isFalse, reason: tips[i]);
-        await tester.tap(find.byType(TipLine));
-        await pumpFrames(tester, 4);
-      }
     });
 
     testWidgets('workspace chip: a label and a hint, not one long sentence', (tester) async {

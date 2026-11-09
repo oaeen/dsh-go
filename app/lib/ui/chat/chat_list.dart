@@ -13,7 +13,6 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/l10n.dart';
-import '../../pets/pet_signals.dart' show petHeadroomProvider;
 import '../../plugins/native/native_surface.dart' show nativeTurnNoteProvider;
 import '../../state/agents_state.dart' show hostSessionsProvider, selectConversation;
 import '../../state/artifacts.dart';
@@ -28,7 +27,6 @@ import '../../state/settings_state.dart';
 import '../common/app_dialog.dart';
 import '../common/bleed.dart';
 import '../common/ui_trace.dart';
-import '../pets/pet_perch.dart';
 import '../theme/app_icons.dart';
 import '../theme/theme.dart';
 import '../update/update_sheet.dart' show checkForUpdates;
@@ -654,11 +652,6 @@ class _ChatListState extends ConsumerState<ChatList> with SingleTickerProviderSt
     final split = _split;
     _fluid = AppMotion.fluid(context);
 
-    // Images in replies read this conversation's workspace.
-    final headroom = ref.watch(petHeadroomProvider);
-    ref.listen(petHeadroomProvider, (_, _) {
-      if (_pinned) _follow();
-    });
     // Back in the app to read a result (a finished phone task): the newest line.
     ref.listen(chatRevealProvider, (_, reveal) {
       if (reveal?.sessionId == widget.sessionId) jumpToBottom();
@@ -672,9 +665,7 @@ class _ChatListState extends ConsumerState<ChatList> with SingleTickerProviderSt
             _follow();
           }
           _lastViewport = viewport;
-          // The chat page's pet stands over the composer: the last line
-          // stops clear of it (0 without a pet).
-          final bottomPad = widget.bottomInset + AppSpace.sm + headroom;
+          final bottomPad = widget.bottomInset + AppSpace.sm;
           final anchor = viewport <= 0 ? 1.0 : ((viewport - bottomPad) / viewport).clamp(0.0, 1.0);
           _anchorPixels = viewport * anchor;
 
@@ -747,16 +738,11 @@ class _ChatListState extends ConsumerState<ChatList> with SingleTickerProviderSt
               Positioned(
                 right: math.max(0.0, (constraints.maxWidth - AppSpace.readingWidth) / 2) + AppSpace.floatInset,
                 bottom: widget.bottomInset + 12,
-                // The pet keeps out of the key's way while it shows.
-                child: ValueListenableBuilder<bool>(
-                  valueListenable: _showJump,
-                  builder: (context, visible, child) => PetAvoid(active: visible, child: child!),
-                  child: _JumpToBottom(
-                    visible: _showJump,
-                    hasNew: _hasNew,
-                    waiting: s.questions.length + s.approvals.where((a) => !s.autoAnswered.contains(a.eventId)).length,
-                    onTap: jumpToBottom,
-                  ),
+                child: _JumpToBottom(
+                  visible: _showJump,
+                  hasNew: _hasNew,
+                  waiting: s.questions.length + s.approvals.where((a) => !s.autoAnswered.contains(a.eventId)).length,
+                  onTap: jumpToBottom,
                 ),
               ),
             ],

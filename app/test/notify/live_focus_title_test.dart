@@ -1,19 +1,12 @@
 import 'package:dsh_app/pets/pet_mood.dart';
-import 'package:dsh_app/pets/pet_overlay_bridge.dart';
-import 'package:dsh_app/pets/pet_prefs.dart';
 import 'package:dsh_app/pets/pet_signals.dart';
 import 'package:dsh_app/pets/pet_state.dart';
 import 'package:dsh_app/state/chat_state.dart';
 import 'package:dsh_app/state/hosts_state.dart';
 import 'package:dsh_app/state/live_activity_state.dart';
 import 'package:dsh_app/state/notify_state.dart';
-import 'package:dsh_app/state/ui_mode_state.dart';
-import 'package:dsh_app/ui/pets/pet_stage.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import '../chat/support/harness.dart' show FakeChatController;
 
 const _local = HostRef.local;
 const _target = PetTarget(_local, 'a');
@@ -57,21 +50,6 @@ ProviderContainer _container() {
   return c;
 }
 
-class _PetPrefs extends PetPrefsController {
-  @override
-  PetPrefs build() => const PetPrefs(packId: noPetId, loaded: true);
-}
-
-class _Mode extends UiModeController {
-  @override
-  UiModeState build() => const UiModeState(loaded: true);
-}
-
-class _Host extends ActiveHostController {
-  @override
-  HostRef build() => _local;
-}
-
 void main() {
   test('title-only chat state changes remain observable in focus equality', () {
     final before = _focus('Old');
@@ -112,9 +90,9 @@ void main() {
           .set(
             _snapshot(
               focus: _focus('Unrelated title', host: host, id: id),
-              runs: const [
-                PetRun(_local, 'a', title: 'Root title'),
-                PetRun(_local, 'child', root: 'a', subagent: true),
+              runs: [
+                const PetRun(_local, 'a', title: 'Root title'),
+                const PetRun(_local, 'child', root: 'a', subagent: true),
               ],
             ),
           );
@@ -176,50 +154,5 @@ void main() {
     }
     c.read(_signals.notifier).set(_snapshot());
     expect(c.read(liveActivityProvider)!.title, untitledSession);
-  });
-
-  testWidgets('a title-only change reaches live activity with background frames disabled', (tester) async {
-    final chats = <String, FakeChatController>{};
-    final c = ProviderContainer(
-      overrides: [
-        notifyPrefsProvider.overrideWith(_Prefs.new),
-        petPrefsProvider.overrideWith(_PetPrefs.new),
-        uiModeProvider.overrideWith(_Mode.new),
-        activeHostProvider.overrideWith(_Host.new),
-        petOverlayBridgeProvider.overrideWith((ref) {}),
-        petScopedStateProvider.overrideWith((ref, scope) => const PetState(state: PetStateName.idle)),
-        petStateProvider.overrideWithValue(const PetState(state: PetStateName.working, target: _target)),
-        petSignalsProvider.overrideWith(
-          (ref) => _snapshot(
-            focus: ref.watch(petFocusProvider),
-            runs: const [PetRun(_local, 'a', title: 'Old')],
-          ),
-        ),
-        petClockProvider.overrideWithValue(() => _time),
-        chatProvider.overrideWith2(
-          (id) => chats[id] = FakeChatController(id, const ChatState(loading: false, running: true, title: 'Old')),
-        ),
-      ],
-    );
-    addTearDown(c.dispose);
-    await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: c,
-        child: const MaterialApp(
-          home: PetStage(sessionId: 'a', child: SizedBox.expand()),
-        ),
-      ),
-    );
-    await tester.pump();
-    expect(c.read(liveActivityProvider)!.title, 'Old');
-    addTearDown(() => tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed));
-    for (final lifecycle in [AppLifecycleState.inactive, AppLifecycleState.hidden, AppLifecycleState.paused]) {
-      tester.binding.handleAppLifecycleStateChanged(lifecycle);
-    }
-    expect(tester.binding.framesEnabled, isFalse);
-    chats['a']!.emit(const ChatState(loading: false, running: true, title: 'Background update'));
-    await tester.pump(const Duration(milliseconds: 20));
-    expect(tester.binding.hasScheduledFrame, isFalse);
-    expect(c.read(liveActivityProvider)!.title, 'Background update');
   });
 }

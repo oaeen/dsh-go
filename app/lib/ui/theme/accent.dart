@@ -209,23 +209,23 @@ class AppAccent {
     hazeDark: Color(0xFF34525E),
   );
 
-  /// 琥珀:克制的金棕(70°,彩度 0.082,L 0.54)。页面转成米白纸、深色转成
+  /// 琥珀:温润的暖金珀色(64°,彩度 0.122,L 0.54)。页面转成米白纸、深色转成
   /// 暖炭,彩度只留七成半;光晕配杏粉。
   static const amber = AppAccent(
     id: 'amber',
-    seed: Color(0xFF8D6636),
-    pressed: Color(0xFF7A5528),
-    container: Color(0xFFF2E6D9),
-    onContainer: Color(0xFF483011),
-    bubble: Color(0xFFEEE2D3),
-    glow: Color(0xFFDCBE9D),
-    seedDark: Color(0xFFCCAC87),
-    pressedDark: Color(0xFFB99975),
-    onSeedDark: Color(0xFF271A0C),
-    containerDark: Color(0xFF4C3A25),
-    onContainerDark: Color(0xFFEADFD3),
-    bubbleDark: Color(0xFF392F24),
-    glowDark: Color(0xFF7F6343),
+    seed: Color(0xFFA45F10),
+    pressed: Color(0xFF8E4F08),
+    container: Color(0xFFFAEAD4),
+    onContainer: Color(0xFF522D04),
+    bubble: Color(0xFFF6E5CD),
+    glow: Color(0xFFE8BC82),
+    seedDark: Color(0xFFE0AD6B),
+    pressedDark: Color(0xFFCC9958),
+    onSeedDark: Color(0xFF2A1804),
+    containerDark: Color(0xFF523818),
+    onContainerDark: Color(0xFFF2E2CD),
+    bubbleDark: Color(0xFF3B2E1E),
+    glowDark: Color(0xFF91652C),
     tintHue: 75,
     tintChroma: 0.75,
     haze: Color(0xFFEAC8C1),

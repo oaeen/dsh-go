@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/l10n.dart';
-import '../../pets/pet_signals.dart' show petTakesWhaleProvider;
 import '../common/expand_reveal.dart';
 import '../common/fade_in.dart';
 import '../shell/brand_mark.dart';
@@ -62,42 +60,6 @@ const defaultSuggestions = <ChatSuggestion>[
   ChatSuggestion._default(AppIcons.tip, 3, SuggestionTint.blue),
 ];
 
-/// Tips about using DSH Go, one at a time under the suggestions. Each names
-/// a gesture or entry the app really has (see the handlers it describes).
-List<String> defaultTips() => [
-  appL10n.viewTipSteer,
-  appL10n.viewTipMidRun,
-  appL10n.viewTipSlash,
-  appL10n.viewTipMention,
-  appL10n.viewTipReplyMenu,
-  appL10n.viewTipEditResend,
-  appL10n.viewTipQuote,
-  appL10n.viewTipTitleDetails,
-  appL10n.viewTipContextRing,
-  appL10n.viewTipDrawerMenu,
-  appL10n.viewTipSearch,
-  appL10n.viewTipSettingsSearch,
-  appL10n.viewTipModelHere,
-  appL10n.viewTipQuickPanel,
-  appL10n.viewTipFolderNewChat,
-  appL10n.viewTipSwitchHost,
-  appL10n.viewTipPasteImage,
-  appL10n.viewTipLauncher,
-  appL10n.viewTipPetBubble,
-  appL10n.viewTipPetPlay,
-  appL10n.viewTipActivityStrip,
-  appL10n.viewTipImageZoom,
-  appL10n.viewTipQueuedRecall,
-  appL10n.viewTipKeyboard,
-  appL10n.viewTipShareIn,
-  appL10n.viewTipShareSelect,
-  appL10n.viewTipChartDrag,
-  appL10n.viewTipCopyPath,
-  appL10n.viewTipCompanion,
-  appL10n.viewTipAnswerInline,
-  appL10n.viewTipWallpaper,
-];
-
 /// 当前时间的来源(测试里固定它,让问候语可复现)。
 @visibleForTesting
 DateTime Function() chatClock = DateTime.now;
@@ -153,8 +115,6 @@ class ChatEmptyState extends StatelessWidget {
     this.workspace,
     this.onWorkspace,
     this.options,
-    this.tips,
-    this.tipStart,
   });
 
   final bool connected;
@@ -186,12 +146,6 @@ class ChatEmptyState extends StatelessWidget {
   /// quiet chips under the workspace chip. Shown only while connected.
   final Widget? options;
 
-  /// The tip line's tips; null = [defaultTips], empty = no tip line.
-  final List<String>? tips;
-
-  /// The first tip shown (tests); defaults to a random one.
-  final int? tipStart;
-
   /// 测试注入;默认取当前时间。
   final DateTime? now;
   final List<ChatSuggestion> suggestions;
@@ -208,9 +162,6 @@ class ChatEmptyState extends StatelessWidget {
 
   /// The pill or chips → the suggestions.
   static const suggestionsGap = 28.0;
-
-  /// The suggestions → the tip line.
-  static const tipGap = 6.0;
 
   @override
   Widget build(BuildContext context) {
@@ -233,7 +184,6 @@ class ChatEmptyState extends StatelessWidget {
 
     var order = 0;
     Widget enter(Widget child) => FadeSlideIn(index: order++, child: child);
-    final tipList = tips ?? defaultTips();
 
     // One slot under the subtitle: the primary pill or the workspace chip,
     // the same height, swapped in place.
@@ -264,24 +214,13 @@ class ChatEmptyState extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // The pet stands on the composer below: one mascot a screen,
-              // so the still whale tail fades while the pet is drawn. Its
-              // room stays, so nothing moves when the pet comes and goes.
               enter(
-                Consumer(
-                  builder: (context, ref, child) => AnimatedOpacity(
-                    opacity: ref.watch(petTakesWhaleProvider) ? 0 : 1,
-                    duration: AppMotion.of(context, AppMotion.standard),
-                    curve: AppMotion.std,
-                    child: child,
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.only(bottom: 14),
-                    child: Center(
-                      child: BrandMark(
-                        size: 52,
-                        tile: true,
-                      ),
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 14),
+                  child: Center(
+                    child: BrandMark(
+                      size: 52,
+                      tile: true,
                     ),
                   ),
                 ),
@@ -317,30 +256,16 @@ class ChatEmptyState extends StatelessWidget {
                 const SizedBox(height: optionsGap),
                 enter(Center(child: options!)),
               ],
-              if (suggestions.isNotEmpty || tipList.isNotEmpty)
+              if (suggestions.isNotEmpty)
                 ExpandReveal(
                   open: retry == null && idle == null,
                   child: Padding(
                     padding: const EdgeInsets.only(top: suggestionsGap),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (suggestions.isNotEmpty)
-                          SuggestionCards(
-                            suggestions: suggestions,
-                            enabled: connected,
-                            onSuggestion: onSuggestion,
-                            firstIndex: order,
-                          ),
-                        if (connected && tipList.isNotEmpty) ...[
-                          const SizedBox(height: tipGap),
-                          FadeSlideIn(
-                            index: order + suggestions.length,
-                            child: TipLine(tips: tipList, start: tipStart),
-                          ),
-                        ],
-                      ],
+                    child: SuggestionCards(
+                      suggestions: suggestions,
+                      enabled: connected,
+                      onSuggestion: onSuggestion,
+                      firstIndex: order,
                     ),
                   ),
                 ),

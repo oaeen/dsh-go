@@ -106,15 +106,15 @@ abstract final class DshPalette {
   static const duskContainerDark = Color(0xFF3E3451);
   static const onDuskContainerDark = Color(0xFFE4DDF3);
 
-  // ══ 错误(低饱和砖玫红,与 DshColors 的 danger 同值) ═══
-  static const danger = Color(0xFFA54743);
-  static const onDanger = Color(0xFFFDF9F8);
-  static const dangerContainer = Color(0xFFFFE2E0);
-  static const onDangerContainer = Color(0xFF642724);
-  static const dangerLift = Color(0xFFE69089);
-  static const onDangerLift = Color(0xFF331513);
-  static const dangerContainerDark = Color(0xFF542C29);
-  static const onDangerContainerDark = Color(0xFFF8D9D7);
+  // ══ 错误(与 DshColors 的 danger 同值) ═══
+  static const danger = Color(0xFFDC2626);
+  static const onDanger = Color(0xFFFFFFFF);
+  static const dangerContainer = Color(0xFFFEE2E2);
+  static const onDangerContainer = Color(0xFFB91C1C);
+  static const dangerLift = Color(0xFFF87171);
+  static const onDangerLift = Color(0xFF450A0A);
+  static const dangerContainerDark = Color(0xFF4C1D1D);
+  static const onDangerContainerDark = Color(0xFFFECACA);
 
   /// 遮罩基色(抽屉、模态底)。
   static const scrim = Color(0xFF0B111F);

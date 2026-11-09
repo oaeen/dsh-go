@@ -121,11 +121,6 @@ void main() {
       expect(ids, contains(Spots.webSearchKey.id));
     });
 
-    test('「宠物」: the pets page first', () {
-      expect(_ids('宠物').first, SettingsIndex.entry(SettingsPageId.pets).id);
-      expect(_ids('pets').first, SettingsIndex.entry(SettingsPageId.pets).id);
-    });
-
     test('a title beats a synonym, a synonym the path; frequent wins a tie', () {
       final hits = _search('通知');
       expect(hits.first.match, SearchMatch.titleExact);

@@ -15,7 +15,6 @@ import '../../../plugins/native/native_model.dart';
 import '../../../plugins/native/native_state.dart';
 import '../../../plugins/native/native_surface.dart';
 import '../../../state/plugins_state.dart';
-import '../../pets/pet_perch.dart';
 import '../../theme/theme.dart';
 import '../plugin_widgets.dart' show PluginAvatar;
 import 'native_panel.dart';
@@ -277,22 +276,17 @@ class _ComposerStripSlotState extends ConsumerState<ComposerStripSlot> with Widg
       final opens = plugin?.panels.any((p) => p.id == last.strip.panel) ?? false;
       strip = Padding(
         padding: const EdgeInsets.only(bottom: StripMetrics.below),
-        // The chat page's pet stands on the strip while it is up.
-        child: PetPerch(
-          kind: PerchKind.plugin,
-          active: widget.visible && shown != null,
-          child: AnimatedSwitcher(
-            duration: AppMotion.of(context, AppMotion.standard),
-            child: ComposerStrip(
-              key: ValueKey('${last.strip.package}#${last.strip.id}'),
-              package: package,
-              title: ref.watch(nativePluginTitleProvider(package)),
-              icon: last.icon ?? plugin?.icon,
-              avatar: bundle?.meta?.icon,
-              tone: last.tone,
-              text: last.text,
-              onTap: opens || last.strip.tappable ? () => _tap(last.strip) : null,
-            ),
+        child: AnimatedSwitcher(
+          duration: AppMotion.of(context, AppMotion.standard),
+          child: ComposerStrip(
+            key: ValueKey('${last.strip.package}#${last.strip.id}'),
+            package: package,
+            title: ref.watch(nativePluginTitleProvider(package)),
+            icon: last.icon ?? plugin?.icon,
+            avatar: bundle?.meta?.icon,
+            tone: last.tone,
+            text: last.text,
+            onTap: opens || last.strip.tappable ? () => _tap(last.strip) : null,
           ),
         ),
       );

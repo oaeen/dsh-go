@@ -72,7 +72,6 @@ enum SettingsPageId {
   media,
   plugins,
   appearance,
-  pets,
   interface,
   notifications,
   voice,
@@ -410,14 +409,6 @@ final _pages = <SettingsPageMeta>[
     freq: Freq.medium,
     links: const ['appearance'],
   ),
-  SettingsPageMeta(
-    SettingsPageId.pets,
-    title: (l) => l.botsPets,
-    group: _look,
-    keywords: (l) => l.searchKwPets,
-    freq: Freq.medium,
-    links: const ['pets'],
-  ),
   // 通用
   SettingsPageMeta(
     SettingsPageId.interface,
@@ -750,32 +741,6 @@ abstract final class Spots {
     keywords: (l) => l.searchKwWallpaper,
   );
 
-  // 宠物.
-  static final petSize = SettingSpot(
-    'pet-size',
-    page: SettingsPageId.pets,
-    title: (l) => l.botsPetSize,
-    keywords: (l) => l.searchKwPetSize,
-  );
-  static final petQuiet = SettingSpot(
-    'pet-quiet',
-    page: SettingsPageId.pets,
-    title: (l) => l.botsPetQuiet,
-    keywords: (l) => l.searchKwPetQuiet,
-  );
-  static final petOutsideApp = SettingSpot(
-    'pet-outside-app',
-    page: SettingsPageId.pets,
-    title: (l) => l.botsPetOutsideApp,
-    keywords: (l) => l.searchKwPetOutside,
-  );
-  static final petDisplayWhen = SettingSpot(
-    'pet-display-when',
-    page: SettingsPageId.pets,
-    title: (l) => l.botsPetDisplayWhen,
-    keywords: (l) => l.searchKwPetDisplayWhen,
-  );
-
   // 界面.
   static final uiMode = SettingSpot(
     'ui-mode',
@@ -1085,10 +1050,6 @@ final _rows = <SettingSpot>[
   Spots.iconShortcut,
   Spots.launchScreen,
   Spots.wallpaper,
-  Spots.petSize,
-  Spots.petQuiet,
-  Spots.petOutsideApp,
-  Spots.petDisplayWhen,
   Spots.uiMode,
   Spots.hardwareEnterSends,
   Spots.quickPanel,

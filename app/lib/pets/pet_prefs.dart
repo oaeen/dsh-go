@@ -13,7 +13,7 @@ import 'pet_state.dart';
 const builtInPets = ['deepy-whale', 'whale-girl'];
 
 /// The default pet.
-const defaultPetId = 'deepy-whale';
+const defaultPetId = noPetId;
 
 @immutable
 class PetPrefs {

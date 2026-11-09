@@ -10,13 +10,10 @@
 // The pill and the chips share the height, the side insets and the type
 // metrics, so a state change (connected ↔ failed) swaps them in place.
 
-import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
-import '../../l10n/l10n.dart';
 import '../common/fade_in.dart';
 import '../common/pressable.dart';
 import '../theme/app_icons.dart';
@@ -458,163 +455,6 @@ class SuggestionCards extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-}
-
-/// Where the tip line starts (tests pin it so the copy is reproducible).
-@visibleForTesting
-int Function(int count) tipStart = (count) => math.Random().nextInt(count);
-
-/// How long one tip stays before the next rises in.
-const tipDwell = Duration(seconds: 7);
-
-/// One quiet line under the suggestions: a small bulb and one tip about using
-/// DSH Go. The tips turn on their own every [tipDwell]; a tap shows the next
-/// one at once and starts the wait again. With reduced motion they stay put
-/// until tapped. Screen readers get the tip shown, not a live region. Every
-/// tip is shown whole: the line is as tall as the longest tip at this width
-/// and text size, so nothing is cut and nothing below shifts as tips turn.
-class TipLine extends StatefulWidget {
-  const TipLine({super.key, required this.tips, this.start});
-
-  final List<String> tips;
-
-  /// First tip shown; defaults to [tipStart].
-  final int? start;
-
-  @override
-  State<TipLine> createState() => _TipLineState();
-}
-
-class _TipLineState extends State<TipLine> {
-  late int _index = widget.tips.isEmpty ? 0 : (widget.start ?? tipStart(widget.tips.length)) % widget.tips.length;
-  Timer? _turn;
-
-  /// The longest tip's height, for the tips and layout it was measured with.
-  (List<String>, Object, double)? _tallest;
-
-  bool get _many => widget.tips.length > 1;
-
-  double _tallestTip(BuildContext context, double width, TextStyle style) {
-    final scaler = MediaQuery.textScalerOf(context);
-    final direction = Directionality.of(context);
-    final layout = (width, style, scaler, direction);
-    if (_tallest case (final tips, final l, final h) when l == layout && listEquals(tips, widget.tips)) return h;
-    var tallest = 0.0;
-    for (final tip in widget.tips) {
-      final painter = TextPainter(
-        text: TextSpan(text: tip, style: style),
-        textDirection: direction,
-        textScaler: scaler,
-      )..layout(maxWidth: width);
-      if (painter.height > tallest) tallest = painter.height;
-      painter.dispose();
-    }
-    _tallest = (List.of(widget.tips), layout, tallest.ceilToDouble());
-    return _tallest!.$3;
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _schedule();
-  }
-
-  @override
-  void didUpdateWidget(TipLine old) {
-    super.didUpdateWidget(old);
-    if (widget.tips.isNotEmpty) _index %= widget.tips.length;
-    _schedule();
-  }
-
-  @override
-  void dispose() {
-    _turn?.cancel();
-    super.dispose();
-  }
-
-  /// (Re)starts the wait for the next tip, or stops it where tips don't turn.
-  void _schedule() {
-    _turn?.cancel();
-    _turn = null;
-    if (!_many || AppMotion.reduced(context)) return;
-    _turn = Timer(tipDwell, () {
-      if (!mounted) return;
-      _next();
-    });
-  }
-
-  void _next() {
-    setState(() => _index = (_index + 1) % widget.tips.length);
-    _schedule();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (widget.tips.isEmpty) return const SizedBox.shrink();
-    final theme = Theme.of(context);
-    final dsh = DshColors.of(context);
-    final l10n = context.l10n;
-    final tip = widget.tips[_index];
-    final style = DefaultTextStyle.of(context).style
-        .merge(theme.textTheme.bodySmall?.copyWith(color: dsh.textTertiary));
-    return Semantics(
-      button: _many,
-      label: l10n.viewTipLabel(tip),
-      onTapHint: _many ? l10n.viewTipNext : null,
-      onTap: _many ? _next : null,
-      excludeSemantics: true,
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          onTap: _many ? _next : null,
-          customBorder: const SquircleBorder(borderRadius: AppShape.radiusMd),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  // Sit the bulb on the first line's centre.
-                  padding: const EdgeInsets.only(top: 1),
-                  child: Icon(AppIcons.tip, size: 16, color: dsh.warning),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) => SizedBox(
-                      height: _tallestTip(context, constraints.maxWidth, style),
-                      child: AnimatedSwitcher(
-                        duration: AppMotion.of(context, AppMotion.slow),
-                        switchInCurve: AppMotion.enter,
-                        switchOutCurve: AppMotion.exit,
-                        layoutBuilder: (current, previous) =>
-                            Stack(alignment: AlignmentDirectional.topStart, children: [...previous, ?current]),
-                        transitionBuilder: (child, animation) => FadeTransition(
-                          opacity: animation,
-                          child: SlideTransition(
-                            position: Tween(begin: const Offset(0, 0.3), end: Offset.zero).animate(animation),
-                            child: child,
-                          ),
-                        ),
-                        child: Text(tip, key: ValueKey(_index), style: style),
-                      ),
-                    ),
-                  ),
-                ),
-                if (_many) ...[
-                  const SizedBox(width: 6),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 1),
-                    child: Icon(AppIcons.disclosure, size: 14, color: dsh.textTertiary),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

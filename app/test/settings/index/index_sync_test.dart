@@ -17,7 +17,6 @@ import 'package:dsh_app/ui/engine_settings/runtime_settings_pages.dart';
 import 'package:dsh_app/ui/engine_settings/subagent_settings_page.dart';
 import 'package:dsh_app/ui/engine_settings/web_search_page.dart';
 import 'package:dsh_app/ui/features/permission_page.dart';
-import 'package:dsh_app/ui/pets/pet_settings_page.dart';
 import 'package:dsh_app/ui/phone/phone_control_screen.dart';
 import 'package:dsh_app/ui/providers/providers_page.dart';
 import 'package:dsh_app/ui/remote/remote_screen.dart';
@@ -58,7 +57,6 @@ final Map<SettingsPageId, List<String Function(L10n)>> _unlisted = {
     (l) => l.performanceLight,
     (l) => l.performanceFollowMode,
   ],
-  SettingsPageId.pets: [(l) => l.botsPetShowNow, (l) => l.botsPetSwitchDisabled, (l) => l.botsPetHiddenToday],
   SettingsPageId.remote: [(l) => l.remoteWebConsole],
 };
 
@@ -218,16 +216,6 @@ void main() {
 
   testWidgets('主题', (tester) async {
     await _check(tester, SettingsPageId.appearance, () => _app(tester, const AppearancePage(), _running()));
-  });
-
-  testWidgets('宠物', (tester) async {
-    await _check(
-      tester,
-      SettingsPageId.pets,
-      () => _app(tester, const PetSettingsPage(), _running()),
-      // Once 「App 外显示」 is on.
-      absent: {'pet-display-when'},
-    );
   });
 
   testWidgets('性能', (tester) async {

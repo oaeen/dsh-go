@@ -513,43 +513,31 @@ class SettingsDropdownTile<T> extends StatefulWidget {
 
 class _SettingsDropdownTileState<T> extends State<SettingsDropdownTile<T>> {
   final _boxKey = GlobalKey();
+  bool _open = false;
 
   Future<void> _openMenu() async {
     final box = _boxKey.currentContext?.findRenderObject() as RenderBox?;
     if (box == null || !box.hasSize) return;
-    final overlay = Navigator.of(context).overlay!.context.findRenderObject()! as RenderBox;
-    final position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        box.localToGlobal(Offset(0, box.size.height + 4), ancestor: overlay),
-        box.localToGlobal(box.size.bottomRight(const Offset(0, 4)), ancestor: overlay),
+    final navigator = Navigator.of(context);
+    final overlay = navigator.overlay!.context.findRenderObject()! as RenderBox;
+    final triggerRect = Rect.fromPoints(
+      box.localToGlobal(Offset.zero, ancestor: overlay),
+      box.localToGlobal(box.size.bottomRight(Offset.zero), ancestor: overlay),
+    );
+    if (AppMotion.fluid(context)) HapticFeedback.selectionClick();
+    setState(() => _open = true);
+    final picked = await navigator.push<T>(
+      _SettingsDropdownRoute<T>(
+        triggerRect: triggerRect,
+        segments: widget.segments,
+        selected: widget.selected,
+        capturedThemes: InheritedTheme.capture(from: context, to: navigator.context),
+        duration: AppMotion.of(context, AppMotion.quick),
       ),
-      Offset.zero & overlay.size,
     );
-    final scheme = Theme.of(context).colorScheme;
-    final picked = await showMenu<T>(
-      context: context,
-      position: position,
-      initialValue: widget.selected,
-      items: [
-        for (final s in widget.segments)
-          PopupMenuItem<T>(
-            value: s.value,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  AppIcons.selected,
-                  size: 18,
-                  color: s.value == widget.selected ? scheme.primary : Colors.transparent,
-                ),
-                const SizedBox(width: 10),
-                Text(s.label),
-              ],
-            ),
-          ),
-      ],
-    );
-    if (!mounted || picked == null || picked == widget.selected) return;
+    if (!mounted) return;
+    setState(() => _open = false);
+    if (picked == null || picked == widget.selected) return;
     if (AppMotion.fluid(context)) HapticFeedback.selectionClick();
     widget.onChanged?.call(picked);
   }
@@ -559,12 +547,16 @@ class _SettingsDropdownTileState<T> extends State<SettingsDropdownTile<T>> {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final colors = DshColors.of(context);
+    final dark = theme.brightness == Brightness.dark;
     final selectedLabel =
         widget.segments.where((s) => s.value == widget.selected).firstOrNull?.label ?? widget.segments.first.label;
     final enabled = widget.onChanged != null;
-    final fill = theme.brightness == Brightness.dark
-        ? Colors.white.withValues(alpha: 0.07)
-        : scheme.onSurface.withValues(alpha: 0.06);
+    final fill = _open
+        ? scheme.primary.withValues(alpha: dark ? 0.16 : 0.08)
+        : (dark ? Colors.white.withValues(alpha: 0.06) : scheme.onSurface.withValues(alpha: 0.045));
+    final borderColor = _open
+        ? scheme.primary.withValues(alpha: 0.35)
+        : scheme.outlineVariant.withValues(alpha: dark ? 0.45 : 0.65);
 
     return SettingsTile(
       icon: widget.icon,
@@ -574,27 +566,234 @@ class _SettingsDropdownTileState<T> extends State<SettingsDropdownTile<T>> {
       tinted: widget.tinted,
       chevron: false,
       onTap: enabled ? _openMenu : null,
-      value: DecoratedBox(
+      value: AnimatedContainer(
         key: _boxKey,
+        duration: AppMotion.of(context, AppMotion.quick),
+        curve: AppMotion.std,
         decoration: ShapeDecoration(
           color: fill,
-          shape: Squircle.border(AppShape.sm),
+          shape: Squircle.border(AppShape.sm, side: BorderSide(color: borderColor, width: 0.5)),
         ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 6, 8, 6),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                selectedLabel,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurface,
-                  fontWeight: FontWeight.w500,
+        padding: const EdgeInsets.fromLTRB(11, 5, 8, 5),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              selectedLabel,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: _open ? scheme.primary : scheme.onSurface,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(width: 4),
+            AnimatedRotation(
+              turns: _open ? 0.5 : 0.0,
+              duration: AppMotion.of(context, AppMotion.quick),
+              curve: AppMotion.std,
+              child: Icon(AppIcons.expand, size: 16, color: _open ? scheme.primary : colors.textTertiary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsDropdownRoute<T> extends PopupRoute<T> {
+  _SettingsDropdownRoute({
+    required this.triggerRect,
+    required this.segments,
+    required this.selected,
+    required this.capturedThemes,
+    required this.duration,
+  });
+
+  final Rect triggerRect;
+  final List<PillSegment<T>> segments;
+  final T selected;
+  final CapturedThemes capturedThemes;
+  final Duration duration;
+
+  @override
+  Color? get barrierColor => null;
+
+  @override
+  bool get barrierDismissible => true;
+
+  @override
+  String? get barrierLabel => '';
+
+  @override
+  Duration get transitionDuration => duration;
+
+  @override
+  Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
+    final padding = MediaQuery.paddingOf(context);
+    return capturedThemes.wrap(
+      MediaQuery.removePadding(
+        context: context,
+        removeTop: true,
+        removeBottom: true,
+        removeLeft: true,
+        removeRight: true,
+        child: CustomSingleChildLayout(
+          delegate: _DropdownPositionDelegate(triggerRect: triggerRect, padding: padding),
+          child: _DropdownMenuSheet<T>(
+            animation: animation,
+            segments: segments,
+            selected: selected,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DropdownPositionDelegate extends SingleChildLayoutDelegate {
+  const _DropdownPositionDelegate({required this.triggerRect, required this.padding});
+
+  final Rect triggerRect;
+  final EdgeInsets padding;
+
+  static const _edgeMargin = 16.0;
+  static const _verticalGap = 6.0;
+
+  @override
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) => BoxConstraints.loose(
+    Size(
+      (constraints.maxWidth - _edgeMargin * 2).clamp(120.0, 260.0),
+      (constraints.maxHeight - padding.vertical - _edgeMargin * 2).clamp(80.0, 360.0),
+    ),
+  );
+
+  @override
+  Offset getPositionForChild(Size size, Size childSize) {
+    var x = triggerRect.right - childSize.width;
+    x = x.clamp(_edgeMargin + padding.left, size.width - childSize.width - _edgeMargin - padding.right);
+    final belowY = triggerRect.bottom + _verticalGap;
+    final maxY = size.height - padding.bottom - _edgeMargin;
+    var y = belowY;
+    if (belowY + childSize.height > maxY && triggerRect.top - _verticalGap - childSize.height >= padding.top + _edgeMargin) {
+      y = triggerRect.top - _verticalGap - childSize.height;
+    } else if (belowY + childSize.height > maxY) {
+      y = (maxY - childSize.height).clamp(padding.top + _edgeMargin, maxY);
+    }
+    return Offset(x, y);
+  }
+
+  @override
+  bool shouldRelayout(_DropdownPositionDelegate oldDelegate) =>
+      oldDelegate.triggerRect != triggerRect || oldDelegate.padding != padding;
+}
+
+class _DropdownMenuSheet<T> extends StatelessWidget {
+  const _DropdownMenuSheet({
+    required this.animation,
+    required this.segments,
+    required this.selected,
+  });
+
+  final Animation<double> animation;
+  final List<PillSegment<T>> segments;
+  final T selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final dark = theme.brightness == Brightness.dark;
+    final curved = CurvedAnimation(parent: animation, curve: AppMotion.enter, reverseCurve: AppMotion.exit);
+
+    return FadeTransition(
+      opacity: CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+      child: ScaleTransition(
+        alignment: Alignment.topRight,
+        scale: Tween<double>(begin: 0.94, end: 1.0).animate(curved),
+        child: GlassSurface(
+          tier: GlassTier.chrome,
+          borderRadius: AppShape.radiusMd,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 136, maxWidth: 240),
+            child: IntrinsicWidth(
+              child: Padding(
+                padding: const EdgeInsets.all(6),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: 2,
+                  children: [
+                    for (final s in segments)
+                      _DropdownMenuItem<T>(
+                        label: s.label,
+                        isSelected: s.value == selected,
+                        dark: dark,
+                        scheme: scheme,
+                        theme: theme,
+                        onTap: () => Navigator.of(context).pop(s.value),
+                      ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 4),
-              Icon(AppIcons.expand, size: 16, color: colors.textTertiary),
-            ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DropdownMenuItem<T> extends StatelessWidget {
+  const _DropdownMenuItem({
+    required this.label,
+    required this.isSelected,
+    required this.dark,
+    required this.scheme,
+    required this.theme,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool isSelected;
+  final bool dark;
+  final ColorScheme scheme;
+  final ThemeData theme;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedFill = scheme.primary.withValues(alpha: dark ? 0.18 : 0.10);
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      child: Material(
+        color: isSelected ? selectedFill : Colors.transparent,
+        shape: Squircle.border(AppShape.sm),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          customBorder: Squircle.border(AppShape.sm),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Expanded(
+                  child: Text(
+                    label,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: isSelected ? scheme.primary : scheme.onSurface,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Icon(
+                  AppIcons.selected,
+                  size: 16,
+                  color: isSelected ? scheme.primary : Colors.transparent,
+                ),
+              ],
+            ),
           ),
         ),
       ),

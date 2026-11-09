@@ -4,10 +4,7 @@ Pick a pet to keep you company in chats. When a turn finishes, fails, or waits f
 
 ## Choose a pet
 
-<!-- nav: commonSettings,botsPets -->
-`Settings › Pets` · [Open](dshgo://open/pets)
-
-Tap **Pets** in the Appearance group of Settings, or touch and hold the pet in a chat and choose **Pet settings**. Choose a pet first; the other settings appear below it.
+Choose a pet first; the other settings appear below it.
 
 - Choose **Deepy**, **Whale girl** or **None**.
 - **Size**: **Small**, **Standard** or **Large**. Standard by default.

@@ -66,21 +66,22 @@ class _SystemAccessPageState extends ConsumerState<SystemAccessPage> {
       children: [
         if (readings != null)
           for (final feature in AccessFeature.values)
-            if ([
-              for (final item in accessItemsFor(feature, readings.vendor))
-                if (accessStateOf(item, readings, visited) case final state?)
-                  AccessItemTile(
-                    item: item,
-                    state: state,
-                    vendor: readings.vendor,
-                    onTap: () => unawaited(openAccessItem(context, item)),
-                  ),
-            ] case final rows when rows.isNotEmpty)
-              SettingsSection(
-                key: ValueKey('access-section-${feature.name}'),
-                title: feature.title(l10n),
-                children: rows,
-              ),
+            if (feature != AccessFeature.pet)
+              if ([
+                for (final item in accessItemsFor(feature, readings.vendor))
+                  if (accessStateOf(item, readings, visited) case final state?)
+                    AccessItemTile(
+                      item: item,
+                      state: state,
+                      vendor: readings.vendor,
+                      onTap: () => unawaited(openAccessItem(context, item)),
+                    ),
+              ] case final rows when rows.isNotEmpty)
+                SettingsSection(
+                  key: ValueKey('access-section-${feature.name}'),
+                  title: feature.title(l10n),
+                  children: rows,
+                ),
       ],
     );
   }
