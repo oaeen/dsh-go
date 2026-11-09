@@ -128,6 +128,39 @@ void main() {
     expect(pill.center.dy, moreOrLessEquals(tester.getRect(find.text('字号')).center.dy, epsilon: 1));
   });
 
+  testWidgets('dropdown row: trigger aligns 16 in and menu selects option cleanly', (tester) async {
+    var picked = 1;
+    await _pump(
+      tester,
+      StatefulBuilder(
+        builder: (context, setState) => SettingsSection(
+          children: [
+            SettingsDropdownTile<int>(
+              icon: AppIcons.textSize,
+              title: '对话字号',
+              segments: const [PillSegment(0, '紧凑'), PillSegment(1, '标准'), PillSegment(2, '大')],
+              selected: picked,
+              onChanged: (v) => setState(() => picked = v),
+            ),
+          ],
+        ),
+      ),
+    );
+    final card = _card(tester, find.text('对话字号'));
+    final trigger = tester.getRect(find.ancestor(of: find.text('标准'), matching: find.byType(AnimatedContainer)).first);
+    expect(card.right - trigger.right, moreOrLessEquals(16, epsilon: _tol));
+
+    await tester.tap(find.text('标准'));
+    await tester.pumpAndSettle();
+    expect(find.text('紧凑'), findsOneWidget);
+    expect(find.text('大'), findsOneWidget);
+
+    await tester.tap(find.text('大'));
+    await tester.pumpAndSettle();
+    expect(picked, 2);
+    expect(find.text('大'), findsOneWidget);
+  });
+
   for (final scale in [1.0, 1.3]) {
     testWidgets('overview card: avatar insets, footer under avatar and title (text ×$scale)', (tester) async {
       await _pump(

@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../common/app_sheet.dart';
 import '../common/list_page_row.dart' show ListPageRow;
 import '../common/overview_card.dart' show OverviewChevron;
+import '../common/pressable.dart';
 import '../common/segmented_pill.dart';
 
 export '../common/segmented_pill.dart' show PillSegment, SegmentedPill;
@@ -546,53 +547,59 @@ class _SettingsDropdownTileState<T> extends State<SettingsDropdownTile<T>> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final colors = DshColors.of(context);
     final dark = theme.brightness == Brightness.dark;
     final selectedLabel =
         widget.segments.where((s) => s.value == widget.selected).firstOrNull?.label ?? widget.segments.first.label;
     final enabled = widget.onChanged != null;
-    final fill = _open
-        ? scheme.primary.withValues(alpha: dark ? 0.16 : 0.08)
-        : (dark ? Colors.white.withValues(alpha: 0.06) : scheme.onSurface.withValues(alpha: 0.045));
-    final borderColor = _open
-        ? scheme.primary.withValues(alpha: 0.35)
-        : scheme.outlineVariant.withValues(alpha: dark ? 0.45 : 0.65);
+    final fill = dark
+        ? Colors.white.withValues(alpha: _open ? 0.11 : 0.07)
+        : scheme.onSurface.withValues(alpha: _open ? 0.08 : 0.055);
+    final borderColor = scheme.outlineVariant.withValues(alpha: dark ? 0.40 : 0.55);
 
-    return SettingsTile(
-      icon: widget.icon,
-      tint: widget.tint,
-      title: widget.title,
-      spot: widget.spot,
-      tinted: widget.tinted,
-      chevron: false,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: enabled ? _openMenu : null,
-      value: AnimatedContainer(
-        key: _boxKey,
-        duration: AppMotion.of(context, AppMotion.quick),
-        curve: AppMotion.std,
-        decoration: ShapeDecoration(
-          color: fill,
-          shape: Squircle.border(AppShape.sm, side: BorderSide(color: borderColor, width: 0.5)),
-        ),
-        padding: const EdgeInsets.fromLTRB(11, 5, 8, 5),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              selectedLabel,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: _open ? scheme.primary : scheme.onSurface,
-                fontWeight: FontWeight.w500,
-              ),
+      child: SettingsTile(
+        icon: widget.icon,
+        tint: widget.tint,
+        title: widget.title,
+        spot: widget.spot,
+        tinted: widget.tinted,
+        chevron: false,
+        value: Pressable(
+          enabled: enabled,
+          haptic: false,
+          onTap: enabled ? _openMenu : null,
+          child: AnimatedContainer(
+            key: _boxKey,
+            duration: AppMotion.of(context, AppMotion.quick),
+            curve: AppMotion.std,
+            decoration: ShapeDecoration(
+              color: fill,
+              shape: Squircle.border(AppShape.sm, side: BorderSide(color: borderColor, width: 0.5)),
             ),
-            const SizedBox(width: 4),
-            AnimatedRotation(
-              turns: _open ? 0.5 : 0.0,
-              duration: AppMotion.of(context, AppMotion.quick),
-              curve: AppMotion.std,
-              child: Icon(AppIcons.expand, size: 16, color: _open ? scheme.primary : colors.textTertiary),
+            padding: const EdgeInsets.fromLTRB(12, 6, 9, 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  selectedLabel,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurface,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                AnimatedRotation(
+                  turns: _open ? 0.5 : 0.0,
+                  duration: AppMotion.of(context, AppMotion.quick),
+                  curve: AppMotion.std,
+                  child: Icon(AppIcons.expand, size: 16, color: scheme.onSurfaceVariant),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -621,7 +628,7 @@ class _SettingsDropdownRoute<T> extends PopupRoute<T> {
   bool get barrierDismissible => true;
 
   @override
-  String? get barrierLabel => '';
+  String? get barrierLabel => null;
 
   @override
   Duration get transitionDuration => duration;
@@ -701,7 +708,9 @@ class _DropdownMenuSheet<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final surfaces = DshSurfaces.of(context);
     final dark = theme.brightness == Brightness.dark;
+    final surfaceColor = dark ? scheme.surfaceContainerHigh : Colors.white;
     final curved = CurvedAnimation(parent: animation, curve: AppMotion.enter, reverseCurve: AppMotion.exit);
 
     return FadeTransition(
@@ -709,11 +718,17 @@ class _DropdownMenuSheet<T> extends StatelessWidget {
       child: ScaleTransition(
         alignment: Alignment.topRight,
         scale: Tween<double>(begin: 0.94, end: 1.0).animate(curved),
-        child: GlassSurface(
-          tier: GlassTier.chrome,
-          borderRadius: AppShape.radiusMd,
+        child: DecoratedBox(
+          decoration: ShapeDecoration(
+            color: surfaceColor,
+            shape: Squircle.border(
+              AppShape.md,
+              side: BorderSide(color: surfaces.chrome.hairline, width: 0.5),
+            ),
+            shadows: surfaces.chrome.shadows,
+          ),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: 136, maxWidth: 240),
+            constraints: const BoxConstraints(minWidth: 144, maxWidth: 240),
             child: IntrinsicWidth(
               child: Padding(
                 padding: const EdgeInsets.all(6),
@@ -742,7 +757,7 @@ class _DropdownMenuSheet<T> extends StatelessWidget {
   }
 }
 
-class _DropdownMenuItem<T> extends StatelessWidget {
+class _DropdownMenuItem<T> extends StatefulWidget {
   const _DropdownMenuItem({
     required this.label,
     required this.isSelected,
@@ -760,37 +775,54 @@ class _DropdownMenuItem<T> extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_DropdownMenuItem<T>> createState() => _DropdownMenuItemState<T>();
+}
+
+class _DropdownMenuItemState<T> extends State<_DropdownMenuItem<T>> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    final selectedFill = scheme.primary.withValues(alpha: dark ? 0.18 : 0.10);
+    final bg = widget.isSelected
+        ? (widget.dark ? Colors.white.withValues(alpha: 0.10) : widget.scheme.onSurface.withValues(alpha: 0.06))
+        : _pressed
+        ? (widget.dark ? Colors.white.withValues(alpha: 0.06) : widget.scheme.onSurface.withValues(alpha: 0.04))
+        : Colors.transparent;
     return Semantics(
       button: true,
-      selected: isSelected,
-      child: Material(
-        color: isSelected ? selectedFill : Colors.transparent,
-        shape: Squircle.border(AppShape.sm),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          customBorder: Squircle.border(AppShape.sm),
+      selected: widget.isSelected,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        onTap: widget.onTap,
+        child: DecoratedBox(
+          decoration: ShapeDecoration(
+            color: bg,
+            shape: Squircle.border(AppShape.sm),
+          ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
             child: Row(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
+                Flexible(
                   child: Text(
-                    label,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: isSelected ? scheme.primary : scheme.onSurface,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                    widget.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: widget.theme.textTheme.bodyMedium?.copyWith(
+                      color: widget.scheme.onSurface,
+                      fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.w400,
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 Icon(
                   AppIcons.selected,
                   size: 16,
-                  color: isSelected ? scheme.primary : Colors.transparent,
+                  color: widget.isSelected ? widget.scheme.primary : Colors.transparent,
                 ),
               ],
             ),
