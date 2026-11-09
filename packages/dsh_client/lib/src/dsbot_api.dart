@@ -361,6 +361,7 @@ class DsBot {
     this.model,
     this.appliedModel,
     this.effort,
+    this.permission,
     String? sessionId,
     this.parts = const [],
     this.waiting = false,
@@ -386,6 +387,7 @@ class DsBot {
       model: asString(map['model']),
       appliedModel: asString(map['appliedModel']),
       effort: asString(map['effort']),
+      permission: asString(map['permission']),
       sessionId: asString(map['sessionId']),
       parts: asStringList(map['parts']),
       waiting: asBool(map['waiting']) ?? false,
@@ -415,6 +417,9 @@ class DsBot {
   final String? model;
   final String? appliedModel;
   final String? effort;
+
+  /// Permission preset (`read-only`, `workspace-write`, `danger-full-access`).
+  final String? permission;
 
   /// The current part of the Bot's own chat.
   final String sessionId;
@@ -450,6 +455,7 @@ class DsBotRoom {
     this.preview,
     this.createdAt,
     this.workDir,
+    this.permission,
     this.parts = const [],
   });
 
@@ -474,6 +480,7 @@ class DsBotRoom {
       preview: asString(map['preview']),
       createdAt: asEpochMs(map['createdAt']),
       workDir: asString(map['workDir']),
+      permission: asString(map['permission']),
       parts: asStringList(map['parts']),
     );
   }
@@ -503,6 +510,7 @@ class DsBotRoom {
   final String? preview;
   final DateTime? createdAt;
   final String? workDir;
+  final String? permission;
 
   /// The members' hidden Sessions in this group (and their earlier parts).
   final List<String> parts;
@@ -1581,6 +1589,7 @@ class DsBotApi {
     String? color,
     String? model,
     String? effort,
+    String? permission,
   }) => call('update-bot', {
     'id': id,
     'name': ?name,
@@ -1589,6 +1598,7 @@ class DsBotApi {
     'color': ?color,
     'model': ?model,
     'effort': ?effort,
+    'permission': ?permission,
   });
 
   Future<DsBotFolders> folders() async => DsBotFolders.fromJson(await call('folders'));
@@ -1598,6 +1608,14 @@ class DsBotApi {
 
   /// Empty string lets each group member use its own working directory again.
   Future<void> setRoomWorkDir(String id, String path) => call('update-room', {'id': id, 'workDir': path});
+
+  /// Sets the Bot's permission preset (`read-only`, `workspace-write`, `danger-full-access`).
+  Future<void> setBotPermission(String id, String permission) =>
+      call('update-bot', {'id': id, 'permission': permission});
+
+  /// Sets the group's permission preset; null or empty string lets each member use its own.
+  Future<void> setRoomPermission(String id, String? permission) =>
+      call('update-room', {'id': id, 'permission': permission});
 
   Future<void> deleteBot(String id) => call('delete-bot', {'id': id});
 

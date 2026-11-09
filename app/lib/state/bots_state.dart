@@ -11,11 +11,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/l10n.dart';
+import '../runtime/runtime_state.dart';
 import '../ui/chat/secret_mask.dart';
 import 'app_info.dart';
 import 'connection_state.dart';
 import 'hosts_state.dart';
 import 'notify_state.dart';
+import 'settings_state.dart';
 
 // ── The plugin on the active host ────────────────────────────────────────────
 
@@ -157,6 +159,10 @@ class DsBotController extends Notifier<DsBotStatus> {
   bool _noticeSyncing = false;
   int _noticeSync = 0;
   final _noticed = _NoticeSequences();
+  HostRef? _lastHost;
+  String? _targetPermissionPreset;
+  final _syncedBotPermissions = <String>{};
+  final _syncedRoomPermissions = <String>{};
 
   final _events = StreamController<DsBotFeedEvent>.broadcast();
   final _notices = StreamController<({DsBotNotice notice, bool caughtUp})>.broadcast();
@@ -179,6 +185,28 @@ class DsBotController extends Notifier<DsBotStatus> {
   DsBotStatus build() {
     final connAsync = ref.watch(activeConnectionProvider);
     final host = ref.watch(activeHostProvider);
+    if (_lastHost != host) {
+      _lastHost = host;
+      _targetPermissionPreset = null;
+    }
+    _syncedBotPermissions.clear();
+    _syncedRoomPermissions.clear();
+    ref.listen(
+      settingsProvider.select((s) => s.autoApproveCommands),
+      (_, autoApprove) {
+        if (state.isLocal && !ref.read(localRuntimeProvider).status.inSafeMode && autoApprove) {
+          unawaited(applyPermissionPreset('danger-full-access'));
+        }
+      },
+    );
+    ref.listen(
+      localRuntimeProvider.select((s) => s.status.inSafeMode),
+      (_, inSafeMode) {
+        if (state.isLocal && !inSafeMode && ref.read(settingsProvider).autoApproveCommands) {
+          unawaited(applyPermissionPreset('danger-full-access'));
+        }
+      },
+    );
     ref.onDispose(_teardown);
     final conn = connAsync.value;
     if (conn == null) {
@@ -212,6 +240,8 @@ class DsBotController extends Notifier<DsBotStatus> {
     _noticeSyncing = false;
     _noticeSync++;
     _noticed.clear();
+    _syncedBotPermissions.clear();
+    _syncedRoomPermissions.clear();
     final sub = _feedSub;
     final feed = _feed;
     final api = _api;
@@ -277,6 +307,7 @@ class DsBotController extends Notifier<DsBotStatus> {
         live: answer.live,
         error: () => null,
       );
+      unawaited(_syncPermissions(generation));
     } catch (error) {
       if (!_current(generation)) return;
       // A team already on screen stays; the next feed event tries again.
@@ -458,6 +489,83 @@ class DsBotController extends Notifier<DsBotStatus> {
 
   /// The app came back or the network changed.
   void kick() => _feed?.kick();
+
+  String? get _effectivePermissionPreset {
+    if (state.isLocal &&
+        !ref.read(localRuntimeProvider).status.inSafeMode &&
+        ref.read(settingsProvider).autoApproveCommands) {
+      return 'danger-full-access';
+    }
+    return _targetPermissionPreset;
+  }
+
+  /// Applies [preset] to the team's Bots so their chats and group sessions
+  /// persist and inherit the chosen permission preset.
+  Future<void> applyPermissionPreset(String preset) async {
+    if (preset.isEmpty || preset == 'auto') return;
+    _targetPermissionPreset = preset;
+    _syncedBotPermissions.clear();
+    _syncedRoomPermissions.clear();
+    await _syncPermissions(_generation);
+  }
+
+  /// Persists [preset] on the Bot or group that owns [sessionId], if any.
+  Future<void> applyBotSessionPermission(String sessionId, String preset) async {
+    if (preset.isEmpty || preset == 'auto') return;
+    final api = _api;
+    final team = state.team;
+    if (api == null || team == null || state.readOnly != null) return;
+    final generation = _generation;
+    final bot = team.botOfSession(sessionId);
+    if (bot != null) {
+      try {
+        await api.setBotPermission(bot.id, preset);
+        if (_current(generation)) await _loadState(generation, full: true);
+      } catch (_) {}
+      return;
+    }
+    for (final room in team.rooms) {
+      if (room.sessionId == sessionId || room.ownParts.contains(sessionId) || room.parts.contains(sessionId)) {
+        try {
+          await api.setRoomPermission(room.id, preset);
+          if (_current(generation)) await _loadState(generation, full: true);
+        } catch (_) {}
+        return;
+      }
+    }
+  }
+
+  Future<void> _syncPermissions(int generation) async {
+    final api = _api;
+    final team = state.team;
+    final preset = _effectivePermissionPreset;
+    if (api == null || team == null || preset == null || state.readOnly != null || !_current(generation)) return;
+    var changed = false;
+    for (final bot in team.bots) {
+      final key = '${bot.id}:$preset';
+      if (bot.permission == preset || !_syncedBotPermissions.add(key)) continue;
+      try {
+        await api.setBotPermission(bot.id, preset);
+        changed = true;
+      } catch (_) {
+        // Older DS Bot builds or mocked transports may not support permission
+        // updates; do not retry in a tight loop for this generation.
+      }
+      if (!_current(generation)) return;
+    }
+    for (final room in team.rooms) {
+      final key = '${room.id}:$preset';
+      if (room.permission == null || room.permission == preset || !_syncedRoomPermissions.add(key)) continue;
+      try {
+        await api.setRoomPermission(room.id, null);
+        changed = true;
+      } catch (_) {}
+      if (!_current(generation)) return;
+    }
+    if (changed && _current(generation)) {
+      await _loadState(generation, full: true);
+    }
+  }
 }
 
 final dsBotProvider = NotifierProvider<DsBotController, DsBotStatus>(DsBotController.new);

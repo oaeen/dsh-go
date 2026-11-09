@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/l10n.dart';
 import '../../runtime/runtime_state.dart';
+import '../../state/bots_state.dart';
 import '../../state/connection_state.dart';
 import '../../state/engine_settings_state.dart' show describeSettingsError;
 import '../../state/features_state.dart';
@@ -46,6 +47,9 @@ Future<String?> writePermissionDefault(WidgetRef ref, DshClient client, String v
     } else {
       await client.setSetting('permission', ['defaultPreset'], value, expectedRevision: revision);
       if (localNormal) await settings.setAutoApproveCommands(false);
+    }
+    if (ref.context.mounted) {
+      unawaited(ref.read(dsBotProvider.notifier).applyPermissionPreset(value));
     }
     return null;
   } catch (e) {
@@ -90,7 +94,11 @@ class _PermissionPageState extends ConsumerState<PermissionPage> {
     setState(() => _busy = true);
     try {
       final result = await client.setPermissionPreset(sessionId, value);
-      if (!result.success && mounted) _toast(context.l10n.featuresSwitchFailed);
+      if (result.success) {
+        if (mounted) unawaited(ref.read(dsBotProvider.notifier).applyBotSessionPermission(sessionId, value));
+      } else if (mounted) {
+        _toast(context.l10n.featuresSwitchFailed);
+      }
     } catch (e) {
       if (mounted) _toast(featureErrorText(context.l10n.featuresSwitchFailed, e));
     } finally {

@@ -8,6 +8,7 @@ import 'package:dsh_app/state/bots_state.dart';
 import 'package:dsh_app/state/connection_state.dart';
 import 'package:dsh_app/state/hosts_state.dart';
 import 'package:dsh_app/state/notify_state.dart';
+import 'package:dsh_app/state/settings_state.dart';
 import 'package:dsh_app/ui/bots/bot_chat_kit.dart';
 import 'package:dsh_app/ui/bots/bot_format.dart';
 import 'package:dsh_app/ui/bots/bot_mention.dart';
@@ -114,6 +115,56 @@ void main() {
       expect(filter(HostRef.local, 'g2'), isTrue);
       expect(filter(HostRef.local, 'someone-else'), isFalse);
       expect(filter(const HostRef.ssh('lab'), 'g2'), isFalse);
+    });
+
+    test('permission presets sync across existing and newly created Bots', () async {
+      final team = sampleTeam();
+      final transport = FakeDsBotTransport(team: team);
+      transport.handlers['update-bot'] = (payload) {
+        final bots = (team['bots']! as List).cast<Map<String, Object?>>();
+        for (final bot in bots) {
+          if (bot['id'] == payload['id']) bot['permission'] = payload['permission'];
+        }
+        team['revision'] = (team['revision']! as int) + 1;
+        return true;
+      };
+      final container = await start(transport);
+      expect(transport.calls.where((c) => c.$1 == 'update-bot'), isEmpty);
+
+      // Enabling local full access (autoApproveCommands) updates all existing Bots.
+      await container.read(settingsProvider.notifier).setAutoApproveCommands(true);
+      await settle();
+      expect(
+        transport.calls.where((c) => c.$1 == 'update-bot').map((c) => c.$2),
+        [
+          {'id': 'm1', 'permission': 'danger-full-access'},
+          {'id': 'b2', 'permission': 'danger-full-access'},
+          {'id': 'b3', 'permission': 'danger-full-access'},
+        ],
+      );
+      expect(
+        container.read(dsBotProvider).team!.bots.map((b) => b.permission).toSet(),
+        {'danger-full-access'},
+      );
+
+      // A newly created Bot discovered on refresh inherits the active preset.
+      (team['bots']! as List).add({'id': 'b4', 'name': 'QA', 'sessionId': 'b4'});
+      team['revision'] = (team['revision']! as int) + 1;
+      await container.read(dsBotProvider.notifier).refresh();
+      await settle();
+      expect(
+        transport.calls.lastWhere((c) => c.$1 == 'update-bot').$2,
+        {'id': 'b4', 'permission': 'danger-full-access'},
+      );
+
+      // Switching the default preset to workspace-write updates all Bots.
+      await container.read(settingsProvider.notifier).setAutoApproveCommands(false);
+      await container.read(dsBotProvider.notifier).applyPermissionPreset('workspace-write');
+      await settle();
+      expect(
+        container.read(dsBotProvider).team!.bots.map((b) => b.permission).toSet(),
+        {'workspace-write'},
+      );
     });
   });
 

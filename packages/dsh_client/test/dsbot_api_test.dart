@@ -197,6 +197,7 @@ void main() {
               'sessionId': 'm1c',
               'parts': ['m1'],
               'model': 'deepseek/v4',
+              'permission': 'danger-full-access',
             },
             {
               'id': 'b2',
@@ -212,6 +213,7 @@ void main() {
               'members': ['m1', 'b2'],
               'admin': 'm1',
               'mode': 'admin',
+              'permission': 'workspace-write',
               'preview': 'Writer：draft ready',
             },
           ],
@@ -239,6 +241,7 @@ void main() {
       expect(team.isMain('m1'), isTrue);
       final chief = team.bot('m1')!;
       expect((chief.sessionId, chief.ink, chief.modelRef, chief.shape), ('m1c', 'deepseek', 'deepseek/v4', 'whale'));
+      expect(chief.permission, 'danger-full-access');
       final writer = team.bot('b2')!;
       expect(writer.sessionId, 'b2');
       expect(writer.waiting, isTrue);
@@ -246,6 +249,7 @@ void main() {
       expect(writer.ink, dsBotDefaultColor('b2'));
       expect(team.botOfSession('m1')?.id, 'm1');
       expect(team.room('r1')!.adminFirst, isTrue);
+      expect(team.room('r1')!.permission, 'workspace-write');
       expect(team.questionOf(chief)!.options.map((o) => o.label), ['Yes', 'No']);
       expect(team.models.single.ref, 'deepseek/v4');
 
@@ -354,6 +358,7 @@ void main() {
       for (final name in [
         'send',
         'update-bot',
+        'update-room',
         'create-room',
         'approval-answer',
         'answer-question',
@@ -366,6 +371,12 @@ void main() {
       expect(host.calls.last['payload'], {'sessionId': 'r1', 'text': '@Writer hi'});
       await api.updateBot('b2', model: 'deepseek/v4', effort: 'high');
       expect(host.calls.last['payload'], {'id': 'b2', 'model': 'deepseek/v4', 'effort': 'high'});
+      await api.setBotPermission('b2', 'danger-full-access');
+      expect(host.calls.last['payload'], {'id': 'b2', 'permission': 'danger-full-access'});
+      await api.setRoomPermission('r1', 'workspace-write');
+      expect(host.calls.last['payload'], {'id': 'r1', 'permission': 'workspace-write'});
+      await api.setRoomPermission('r1', null);
+      expect(host.calls.last['payload'], {'id': 'r1', 'permission': null});
       final room = await api.createRoom(members: ['m1', 'b2'], admin: 'm1');
       expect(room.members, ['m1', 'b2']);
       await api.answerApproval('a1', allow: false);
